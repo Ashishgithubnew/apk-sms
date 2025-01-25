@@ -69,7 +69,7 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
   Future<void> deleteFaculty(String facultyId) async {
     try {
       final response = await http.post(
-        Uri.parse('https://s-m-s-keyw.onrender.com/faculty/delete?fact_id=$facultyId'), // Passing ID as a query parameter
+        Uri.parse('https://s-m-s-keyw.onrender.com/faculty/delete?id=$facultyId'), // Passing ID as a query parameter
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
