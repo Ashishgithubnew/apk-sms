@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'add_student_form.dart';
 import 'FacultyTableScreen.dart';
+import 'facultyDetailsForm.dart';
 
 
 
@@ -207,6 +208,16 @@ class NavigationDrawer extends StatelessWidget {
             title: Text('Logout'),
             onTap: onLogout,
           ),
+          ListTile(
+                leading: Icon(Icons.add),
+                title: Text('Add faculty'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => FacultyDetailsForm()),
+                  );
+                },
+              ),
         ],
       ),
     );

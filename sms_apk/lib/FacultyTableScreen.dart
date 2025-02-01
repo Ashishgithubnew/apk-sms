@@ -31,7 +31,7 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
       );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginScreen()), // Add the login screen if not found
+        MaterialPageRoute(builder: (context) => LoginScreen()),
       );
     }
   }
@@ -69,7 +69,7 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
   Future<void> deleteFaculty(String facultyId) async {
     try {
       final response = await http.post(
-        Uri.parse('https://s-m-s-keyw.onrender.com/faculty/delete?id=$facultyId'), // Passing ID as a query parameter
+        Uri.parse('https://s-m-s-keyw.onrender.com/faculty/delete?id=$facultyId'), 
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -77,7 +77,6 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
       );
 
       if (response.statusCode == 200) {
-        // Remove the deleted faculty from the list
         setState(() {
           facultyList.removeWhere((faculty) => faculty['fact_id'] == facultyId);
         });
@@ -95,13 +94,118 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
       );
     }
   }
- 
 
-  Future<void> editFaculty(String facultyId) async {
-    // Handle the edit logic, like navigating to a form or showing a dialog to update the faculty details.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Edit button pressed for $facultyId')),
+  void showEditForm(Map<String, dynamic> faculty) {
+    final _formKey = GlobalKey<FormState>();
+    Map<String, dynamic> updatedFaculty = Map.from(faculty);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Edit Faculty'),
+          content: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextFormField(
+                    initialValue: faculty['fact_Name'],
+                    decoration: InputDecoration(labelText: 'Name'),
+                    onChanged: (value) {
+                      updatedFaculty['fact_Name'] = value;
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a name';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    initialValue: faculty['fact_email'],
+                    decoration: InputDecoration(labelText: 'Email'),
+                    onChanged: (value) {
+                      updatedFaculty['fact_email'] = value;
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter an email';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    initialValue: faculty['fact_contact'],
+                    decoration: InputDecoration(labelText: 'Contact'),
+                    onChanged: (value) {
+                      updatedFaculty['fact_contact'] = value;
+                    },
+                  ),
+                  TextFormField(
+                    initialValue: faculty['fact_address'],
+                    decoration: InputDecoration(labelText: 'Address'),
+                    onChanged: (value) {
+                      updatedFaculty['fact_address'] = value;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  editFaculty(updatedFaculty);
+                  Navigator.pop(context);
+                }
+              },
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  Future<void> editFaculty(Map<String, dynamic> faculty) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://s-m-s-keyw.onrender.com/faculty/Update'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(faculty),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          int index = facultyList.indexWhere((f) => f['fact_id'] == faculty['fact_id']);
+          if (index != -1) {
+            facultyList[index] = faculty;
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Faculty updated successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update faculty: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   @override
@@ -116,9 +220,7 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
               ? Center(child: Text('No data available'))
               : LayoutBuilder(
                   builder: (context, constraints) {
-                    // Check screen width to adjust layout
                     if (constraints.maxWidth < 600) {
-                      // Small screen (e.g., mobile)
                       return ListView.builder(
                         itemCount: facultyList.length,
                         itemBuilder: (context, index) {
@@ -141,7 +243,7 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
                                   IconButton(
                                     icon: Icon(Icons.edit),
                                     onPressed: () {
-                                      editFaculty(faculty['fact_id']);
+                                      showEditForm(faculty);
                                     },
                                   ),
                                   IconButton(
@@ -157,7 +259,6 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
                         },
                       );
                     } else {
-                      // Large screen (e.g., tablet, desktop)
                       return SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: DataTable(
@@ -172,8 +273,8 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
                             DataColumn(label: Text('Address')),
                             DataColumn(label: Text('Joining Date')),
                             DataColumn(label: Text('Leaving Date')),
-                            DataColumn(label: Text('Edit')), // Add Edit column
-                            DataColumn(label: Text('Delete')), // Add Delete column
+                            DataColumn(label: Text('Edit')),
+                            DataColumn(label: Text('Delete')),
                           ],
                           rows: facultyList.map((faculty) {
                             return DataRow(
@@ -192,7 +293,7 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
                                   IconButton(
                                     icon: Icon(Icons.edit),
                                     onPressed: () {
-                                      editFaculty(faculty['fact_id']);
+                                      showEditForm(faculty);
                                     },
                                   ),
                                 ),
