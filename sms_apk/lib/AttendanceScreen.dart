@@ -91,7 +91,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         setState(() {
           students = data.map((student) {
             return {
-              'stdId': student['stdId'], // Student ID now stored
+              'stdId': student['id'], // Student ID now stored
               'name': student['name'],
               'attendance': 'Present', // Default value
               'remark': '',
@@ -125,7 +125,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       "subject": selectedSubject,
       "studentList": students.map((student) {
         return {
-          "stdId": student['id'],  // Set the student ID correctly
+          "stdId": student['stdId'],  // Set the student ID correctly
           "name": student['name'],
           "attendance": student['attendance'],
           "remark": student['remark'],
