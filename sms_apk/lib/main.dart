@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sms_apk/AttendanceScreen.dart';
 import 'add_student_form.dart';
+import 'FacultyTableScreen.dart';
+import 'facultyDetailsForm.dart';
+
+
 
 void main() {
   runApp(MyApp());
@@ -297,6 +302,7 @@ class HomeScreen extends StatelessWidget {
 }
 
 // Navigation Drawer
+
 class NavigationDrawer extends StatelessWidget {
   final VoidCallback onLogout;
 
@@ -339,13 +345,44 @@ class NavigationDrawer extends StatelessWidget {
                   );
                 },
               ),
+               ListTile(
+                leading: Icon(Icons.add),
+                title: Text('Student Attendance'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AttendanceScreen()),
+                  );
+                },
+              ),
             ],
           ),
+          ListTile(
+            leading: Icon(Icons.group),
+            title: Text('Faculty'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FacultyTableScreen()),
+              );
+            },
+          ),
+           ListTile(
+                leading: Icon(Icons.add),
+                title: Text('Add faculty'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => FacultyDetailsForm()),
+                  );
+                },
+              ),
           ListTile(
             leading: Icon(Icons.logout),
             title: Text('Logout'),
             onTap: onLogout,
           ),
+        
         ],
       ),
     );
@@ -414,6 +451,7 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
       });
     }
   }
+
   Future<void> deleteStudent(String id) async {
     try {
       final response = await http.post(
@@ -471,12 +509,102 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
     }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Student Table')),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : students.isEmpty
+              ? Center(child: Text('No data available'))
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Check screen width to adjust layout
+                    if (constraints.maxWidth < 600) {
+                      // Small screen (e.g., mobile)
+                      return ListView.builder(
+                        itemCount: students.length,
+                        itemBuilder: (context, index) {
+                          final student = students[index];
+                          return Card(
+                            margin: EdgeInsets.all(8.0),
+                            child: ListTile(
+                              title: Text(student['name'] ?? 'N/A'),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('City: ${student['city'] ?? 'N/A'}'),
+                                  Text('Contact: ${student['contact'] ?? 'N/A'}'),
+                                  Text('Class: ${student['cls'] ?? 'N/A'}'),
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.edit, color: Colors.blue),
+                                    onPressed: () => showEditDialog(student),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () => deleteStudent(student['id']),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    } else {
+                      // Large screen (e.g., tablet, desktop)
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          columns: [
+                            DataColumn(label: Text('ID')),
+                            DataColumn(label: Text('Name')),
+                            DataColumn(label: Text('City')),
+                            DataColumn(label: Text('Contact')),
+                            DataColumn(label: Text('Class')),
+                            DataColumn(label: Text('Actions')),
+                          ],
+                          rows: students.map((student) {
+                            return DataRow(
+                              cells: [
+                                DataCell(Text(student['id'] ?? 'N/A')),
+                                DataCell(Text(student['name'] ?? 'N/A')),
+                                DataCell(Text(student['city'] ?? 'N/A')),
+                                DataCell(Text(student['contact'] ?? 'N/A')),
+                                DataCell(Text(student['cls'] ?? 'N/A')),
+                                DataCell(
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.edit, color: Colors.blue),
+                                        onPressed: () => showEditDialog(student),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.delete, color: Colors.red),
+                                        onPressed: () => deleteStudent(student['id']),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          }).toList(),
+                        ),
+                      );
+                    }
+                  },
+                ),
+    );
+  }
+
   void showEditDialog(Map<String, dynamic> student) {
     final nameController = TextEditingController(text: student['name']);
     final cityController = TextEditingController(text: student['city']);
-    final stateController = TextEditingController(text: student['state']);
     final contactController = TextEditingController(text: student['contact']);
-    final departmentController = TextEditingController(text: student['department']);
     final clsController = TextEditingController(text: student['cls']);
 
     showDialog(
@@ -489,9 +617,7 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
               children: [
                 TextField(controller: nameController, decoration: InputDecoration(labelText: 'Name')),
                 TextField(controller: cityController, decoration: InputDecoration(labelText: 'City')),
-                TextField(controller: stateController, decoration: InputDecoration(labelText: 'State')),
                 TextField(controller: contactController, decoration: InputDecoration(labelText: 'Contact')),
-                TextField(controller: departmentController, decoration: InputDecoration(labelText: 'Department')),
                 TextField(controller: clsController, decoration: InputDecoration(labelText: 'Class')),
               ],
             ),
@@ -506,9 +632,7 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
                 Navigator.pop(context);
                 student['name'] = nameController.text;
                 student['city'] = cityController.text;
-                student['state'] = stateController.text;
                 student['contact'] = contactController.text;
-                student['department'] = departmentController.text;
                 student['cls'] = clsController.text;
                 editStudent(student);
               },
@@ -517,55 +641,6 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
           ],
         );
       },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Student Table')),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : students.isEmpty
-              ? Center(child: Text('No data available'))
-              : SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    columns: [
-                      DataColumn(label: Text('ID')),
-                      DataColumn(label: Text('Name')),
-                      DataColumn(label: Text('City')),
-                      DataColumn(label: Text('Contact')),
-                      DataColumn(label: Text('Class')),
-                      DataColumn(label: Text('Actions')),
-                    ],
-                    rows: students.map((student) {
-                      return DataRow(
-                        cells: [
-                          DataCell(Text(student['id'] ?? 'N/A')),
-                          DataCell(Text(student['name'] ?? 'N/A')),
-                          DataCell(Text(student['city'] ?? 'N/A')),
-                          DataCell(Text(student['contact'] ?? 'N/A')),
-                          DataCell(Text(student['cls'] ?? 'N/A')),
-                          DataCell(
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () => showEditDialog(student),
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => deleteStudent(student['id']),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-                ),
     );
   }
 }
