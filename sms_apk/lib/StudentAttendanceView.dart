@@ -3,23 +3,13 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class FacultyAttendanceApp extends StatelessWidget {
+class StudentAttendanceScreen extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: FacultyAttendanceScreen(),
-    );
-  }
+  _StudentAttendanceScreenState createState() => _StudentAttendanceScreenState();
 }
 
-class FacultyAttendanceScreen extends StatefulWidget {
-  @override
-  _FacultyAttendanceScreenState createState() => _FacultyAttendanceScreenState();
-}
-
-class _FacultyAttendanceScreenState extends State<FacultyAttendanceScreen> {
-  List facultyList = [];
+class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
+  List studentList = [];
   Map<String, String> attendance = {};
   TextEditingController searchController = TextEditingController();
   List filteredList = [];
@@ -29,28 +19,29 @@ class _FacultyAttendanceScreenState extends State<FacultyAttendanceScreen> {
   @override
   void initState() {
     super.initState();
-    fetchTokenAndFacultyList();
+    fetchToken();
   }
 
-  /// Fetch auth token and faculty list
-  Future<void> fetchTokenAndFacultyList() async {
+  /// Fetch auth token and student list
+  Future<void> fetchToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     token = prefs.getString('authToken');
-    
+
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Token not found. Please log in again.')),
       );
-      return;
+    } else {
+      fetchStudentList();
     }
-
-    await fetchFacultyList();
   }
 
-  /// Fetch faculty list from API
-  Future<void> fetchFacultyList() async {
+  /// Fetch student list from API
+  Future<void> fetchStudentList() async {
+    if (token == null) return;
+
     final response = await http.get(
-      Uri.parse('https://s-m-s-keyw.onrender.com/faculty/findAllFaculty'),
+      Uri.parse('https://s-m-s-keyw.onrender.com/student/findAllStudents'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -59,21 +50,21 @@ class _FacultyAttendanceScreenState extends State<FacultyAttendanceScreen> {
 
     if (response.statusCode == 200) {
       setState(() {
-        facultyList = json.decode(response.body);
-        filteredList = facultyList;
+        studentList = json.decode(response.body);
+        filteredList = studentList;
         isLoading = false;
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to fetch faculty list')),
+        SnackBar(content: Text('Failed to fetch student list')),
       );
     }
   }
 
-  /// Filter faculty list based on search input
+  /// Filter student list based on search input
   void filterSearchResults(String query) {
-    List tempList = facultyList.where((faculty) =>
-      faculty['fact_Name'].toLowerCase().contains(query.toLowerCase())
+    List tempList = studentList.where((student) =>
+      student['stud_Name'].toLowerCase().contains(query.toLowerCase())
     ).toList();
 
     setState(() {
@@ -83,20 +74,27 @@ class _FacultyAttendanceScreenState extends State<FacultyAttendanceScreen> {
 
   /// Send attendance data to the API with correct JSON format
   Future<void> saveAttendance() async {
-    List<Map<String, dynamic>> factList = facultyList.map((faculty) {
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: Token is missing!')),
+      );
+      return;
+    }
+
+    List<Map<String, dynamic>> studList = studentList.map((student) {
       return {
-        "factId": faculty['fact_id'].toString(),
-        "name": faculty['fact_Name'].toString(),
-        "attendance": attendance[faculty['fact_id']] ?? "Absent"
+        "studId": student['stud_id'].toString(),
+        "name": student['stud_Name'].toString(),
+        "attendance": attendance[student['stud_id']] ?? "Absent"
       };
     }).toList();
 
     final Map<String, dynamic> requestBody = {
-      "factList": factList
+      "studList": studList
     };
 
     final response = await http.post(
-      Uri.parse('https://s-m-s-keyw.onrender.com/faculty/attendanceSave'),
+      Uri.parse('https://s-m-s-keyw.onrender.com/student/attendanceSave'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -119,7 +117,7 @@ class _FacultyAttendanceScreenState extends State<FacultyAttendanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Faculty Attendance Update'),
+        title: Text('Student Attendance Update'),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -130,7 +128,7 @@ class _FacultyAttendanceScreenState extends State<FacultyAttendanceScreen> {
                   TextField(
                     controller: searchController,
                     decoration: InputDecoration(
-                      labelText: 'Search Faculty',
+                      labelText: 'Search Student',
                       prefixIcon: Icon(Icons.search),
                       border: OutlineInputBorder(),
                     ),
@@ -141,14 +139,14 @@ class _FacultyAttendanceScreenState extends State<FacultyAttendanceScreen> {
                     child: ListView.builder(
                       itemCount: filteredList.length,
                       itemBuilder: (context, index) {
-                        var faculty = filteredList[index];
+                        var student = filteredList[index];
                         return Card(
                           margin: EdgeInsets.symmetric(vertical: 5),
                           child: ListTile(
-                            title: Text(faculty['fact_Name']),
-                            subtitle: Text(faculty['fact_email']),
+                            title: Text(student['stud_Name']),
+                            subtitle: Text(student['stud_email']),
                             trailing: DropdownButton<String>(
-                              value: attendance[faculty['fact_id']],
+                              value: attendance[student['stud_id']],
                               hint: Text('Select'),
                               items: ['Present', 'Absent', 'Leave']
                                   .map((status) => DropdownMenuItem(
@@ -158,7 +156,7 @@ class _FacultyAttendanceScreenState extends State<FacultyAttendanceScreen> {
                                   .toList(),
                               onChanged: (value) {
                                 setState(() {
-                                  attendance[faculty['fact_id']] = value!;
+                                  attendance[student['stud_id']] = value!;
                                 });
                               },
                             ),

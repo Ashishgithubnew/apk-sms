@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FacultyDetailsForm extends StatefulWidget {
   const FacultyDetailsForm({super.key});
@@ -14,20 +17,44 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
   // Form data
   String fullName = "";
   String email = "";
+  String factEmail = "";
+  String password = "";
   String contact = "";
   String gender = "";
   String address = "";
   String city = "";
   String state = "";
-  String joiningDate = "";
-  String leavingDate = "";
+  String factStatus = "";
+  String? token;
+
+  // Controllers for date fields
+  final TextEditingController _joiningDateController = TextEditingController();
+  final TextEditingController _leavingDateController = TextEditingController();
 
   List<Map<String, String>> qualifications = [
-    {"type": "", "subject": "", "branch": "", "grade": "", "university": "", "year": ""}
+    {"type": "", "grd_sub": "", "grd_branch": "", "grd_grade": "", "grd_university": "", "grd_yearOfPassing": ""}
   ];
 
+  List<Map<String, dynamic>> factClasses = [
+    {"cls_name": "", "cls_sub": [""]}
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchToken();
+  }
+
+  // Fetch token from SharedPreferences
+  Future<void> fetchToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString('authToken');
+    });
+  }
+
   // Date picker helper
-  Future<void> _selectDate(BuildContext context, Function(String) onDateSelected) async {
+  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -35,23 +62,67 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
       lastDate: DateTime(2101),
     );
     if (picked != null) {
-      final formattedDate = DateFormat('dd/MM/yyyy').format(picked);
-      onDateSelected(formattedDate);
+      setState(() {
+        controller.text = DateFormat('yyyy-MM-dd').format(picked);
+      });
     }
   }
 
-  // Add new qualification row
-  void _addQualification() {
-    setState(() {
-      qualifications.add({"type": "", "subject": "", "branch": "", "grade": "", "university": "", "year": ""});
-    });
-  }
+  // Submit Form with Token Authentication
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Authentication token is missing. Please log in again.")),
+        );
+        return;
+      }
 
-  // Remove qualification row
-  void _removeQualification(int index) {
-    setState(() {
-      qualifications.removeAt(index);
-    });
+      final url = Uri.parse("https://s-m-s-keyw.onrender.com/faculty/save");
+
+      Map<String, dynamic> requestData = {
+        "fact_id": "",
+        "fact_Name": fullName,
+        "email": email,
+        "fact_email": factEmail,
+        "password": password,
+        "fact_contact": contact,
+        "fact_gender": gender.isEmpty ? "Other" : gender[0],
+        "fact_address": address,
+        "fact_city": city,
+        "fact_state": state,
+        "fact_joiningDate": _joiningDateController.text,
+        "fact_leavingDate": _leavingDateController.text.isEmpty ? "" : _leavingDateController.text,
+        "fact_qualifications": qualifications,
+        "Fact_cls": factClasses,
+        "Fact_status": factStatus,
+      };
+
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          },
+          body: jsonEncode(requestData),
+        );
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Form submitted successfully!")),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Failed to submit. Try again! Error: ${response.statusCode}")),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
+    }
   }
 
   @override
@@ -75,6 +146,8 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                 children: [
                   _buildTextField("Full Name", (value) => fullName = value, initialValue: fullName),
                   _buildTextField("Email", (value) => email = value, initialValue: email, isEmail: true),
+                  _buildTextField("Faculty Email", (value) => factEmail = value, initialValue: factEmail, isEmail: true),
+                  _buildTextField("Password", (value) => password = value, initialValue: password, isPassword: true),
                   _buildTextField("Contact", (value) => contact = value, initialValue: contact),
                   _buildDropdownField(
                     "Gender",
@@ -85,70 +158,14 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                   _buildTextField("Address", (value) => address = value, initialValue: address),
                   _buildTextField("City", (value) => city = value, initialValue: city),
                   _buildTextField("State", (value) => state = value, initialValue: state),
-                  _buildDateField("Joining Date", joiningDate, (date) => setState(() => joiningDate = date)),
-                  _buildDateField("Leaving Date", leavingDate, (date) => setState(() => leavingDate = date)),
-                ],
-              ),
-              SizedBox(height: 32),
-              Text("Qualifications", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
-              Column(
-                children: [
-                  for (int i = 0; i < qualifications.length; i++)
-                    Card(
-                      elevation: 2,
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      child: Padding(
-                        padding: EdgeInsets.all(8),
-                        child: Row(
-                          children: [
-                            Expanded(flex: 2, child: _buildTextField("Type", (value) => qualifications[i]['type'] = value)),
-                            Expanded(flex: 2, child: _buildTextField("Subject", (value) => qualifications[i]['subject'] = value)),
-                            Expanded(flex: 2, child: _buildTextField("Branch", (value) => qualifications[i]['branch'] = value)),
-                            Expanded(flex: 2, child: _buildTextField("Grade", (value) => qualifications[i]['grade'] = value)),
-                            Expanded(flex: 2, child: _buildTextField("University", (value) => qualifications[i]['university'] = value)),
-                            Expanded(
-                              flex: 2,
-                              child: _buildDateField(
-                                "Year",
-                                qualifications[i]['year'] ?? "",
-                                (date) => setState(() => qualifications[i]['year'] = date),
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _removeQualification(i),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: _addQualification,
-                    icon: Icon(Icons.add),
-                    label: Text("Add Qualification"),
-                  ),
+                  _buildDateField("Joining Date", _joiningDateController),
+                  _buildDateField("Leaving Date", _leavingDateController),
                 ],
               ),
               SizedBox(height: 32),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      print("Full Name: $fullName");
-                      print("Email: $email");
-                      print("Contact: $contact");
-                      print("Gender: $gender");
-                      print("Address: $address");
-                      print("City: $city");
-                      print("State: $state");
-                      print("Joining Date: $joiningDate");
-                      print("Leaving Date: $leavingDate");
-                      print("Qualifications: $qualifications");
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Form submitted successfully!")));
-                    }
-                  },
+                  onPressed: _submitForm,
                   child: Text("Submit"),
                 ),
               ),
@@ -159,9 +176,10 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
     );
   }
 
-  Widget _buildTextField(String label, Function(String) onChanged, {String initialValue = "", bool isEmail = false}) {
+  Widget _buildTextField(String label, Function(String) onChanged, {String initialValue = "", bool isEmail = false, bool isPassword = false}) {
     return TextFormField(
       initialValue: initialValue,
+      obscureText: isPassword,
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(),
@@ -193,27 +211,16 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
     );
   }
 
-  Widget _buildDateField(String label, String initialValue, Function(String) onDateSelected) {
+  Widget _buildDateField(String label, TextEditingController controller) {
     return TextFormField(
+      controller: controller,
       readOnly: true,
-      initialValue: initialValue,
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(),
         suffixIcon: Icon(Icons.calendar_today),
       ),
-      onTap: () async {
-        final DateTime? pickedDate = await showDatePicker(
-          context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2101),
-        );
-        if (pickedDate != null) {
-          final formattedDate = DateFormat('dd/MM/yyyy').format(pickedDate);
-          onDateSelected(formattedDate);
-        }
-      },
+      onTap: () => _selectDate(context, controller),
     );
   }
 }
