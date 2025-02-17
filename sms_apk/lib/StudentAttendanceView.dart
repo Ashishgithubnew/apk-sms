@@ -3,6 +3,16 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class StudentAttendanceApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: StudentAttendanceScreen(),
+    );
+  }
+}
+
 class StudentAttendanceScreen extends StatefulWidget {
   @override
   _StudentAttendanceScreenState createState() => _StudentAttendanceScreenState();
@@ -19,11 +29,11 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
   @override
   void initState() {
     super.initState();
-    fetchToken();
+    fetchTokenAndStudentList();
   }
 
   /// Fetch auth token and student list
-  Future<void> fetchToken() async {
+  Future<void> fetchTokenAndStudentList() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     token = prefs.getString('authToken');
 
@@ -31,17 +41,16 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Token not found. Please log in again.')),
       );
-    } else {
-      fetchStudentList();
+      return;
     }
+
+    await fetchStudentList();
   }
 
   /// Fetch student list from API
   Future<void> fetchStudentList() async {
-    if (token == null) return;
-
     final response = await http.get(
-      Uri.parse('https://s-m-s-keyw.onrender.com/student/findAllStudents'),
+      Uri.parse('https://s-m-s-keyw.onrender.com/student/findAllStudent'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -64,7 +73,7 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
   /// Filter student list based on search input
   void filterSearchResults(String query) {
     List tempList = studentList.where((student) =>
-      student['stud_Name'].toLowerCase().contains(query.toLowerCase())
+      student['stu_Name'].toLowerCase().contains(query.toLowerCase())
     ).toList();
 
     setState(() {
@@ -74,23 +83,16 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
 
   /// Send attendance data to the API with correct JSON format
   Future<void> saveAttendance() async {
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: Token is missing!')),
-      );
-      return;
-    }
-
-    List<Map<String, dynamic>> studList = studentList.map((student) {
+    List<Map<String, dynamic>> stuList = studentList.map((student) {
       return {
-        "studId": student['stud_id'].toString(),
-        "name": student['stud_Name'].toString(),
-        "attendance": attendance[student['stud_id']] ?? "Absent"
+        "stuId": student['stu_id'].toString(),
+        "name": student['stu_Name'].toString(),
+        "attendance": attendance[student['stu_id']] ?? "Absent"
       };
     }).toList();
 
     final Map<String, dynamic> requestBody = {
-      "studList": studList
+      "stuList": stuList
     };
 
     final response = await http.post(
@@ -143,10 +145,10 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
                         return Card(
                           margin: EdgeInsets.symmetric(vertical: 5),
                           child: ListTile(
-                            title: Text(student['stud_Name']),
-                            subtitle: Text(student['stud_email']),
+                            title: Text(student['stu_Name']),
+                            subtitle: Text(student['stu_email']),
                             trailing: DropdownButton<String>(
-                              value: attendance[student['stud_id']],
+                              value: attendance[student['stu_id']],
                               hint: Text('Select'),
                               items: ['Present', 'Absent', 'Leave']
                                   .map((status) => DropdownMenuItem(
@@ -156,7 +158,7 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
                                   .toList(),
                               onChanged: (value) {
                                 setState(() {
-                                  attendance[student['stud_id']] = value!;
+                                  attendance[student['stu_id']] = value!;
                                 });
                               },
                             ),

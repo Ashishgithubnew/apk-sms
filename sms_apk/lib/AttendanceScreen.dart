@@ -1,180 +1,321 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-class FacultyAttendanceApp extends StatelessWidget {
+class AttendanceScreen extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: FacultyAttendanceScreen(),
-    );
-  }
+  _AttendanceScreenState createState() => _AttendanceScreenState();
 }
 
-class FacultyAttendanceScreen extends StatefulWidget {
-  @override
-  _FacultyAttendanceScreenState createState() => _FacultyAttendanceScreenState();
-}
-
-class _FacultyAttendanceScreenState extends State<FacultyAttendanceScreen> {
-  List facultyList = [];
-  Map<String, String> attendance = {};
-  TextEditingController searchController = TextEditingController();
-  List filteredList = [];
-  String? token;
-  bool isLoading = true;
+class _AttendanceScreenState extends State<AttendanceScreen> {
+  List<dynamic> classData = [];
+  String? selectedClass;
+  List<dynamic> subjects = [];
+  String? selectedSubject;
+  List<Map<String, dynamic>> students = [];
+  bool isMasterAttendance = false; // Switch state
 
   @override
   void initState() {
     super.initState();
-    fetchTokenAndFacultyList();
+    fetchClasses();
   }
 
-  /// Fetch auth token and faculty list
-  Future<void> fetchTokenAndFacultyList() async {
+  Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    token = prefs.getString('authToken');
-    
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Token not found. Please log in again.')),
-      );
-      return;
-    }
-
-    await fetchFacultyList();
+    return prefs.getString('authToken');
   }
 
-  /// Fetch faculty list from API
-  Future<void> fetchFacultyList() async {
-    final response = await http.get(
-      Uri.parse('https://s-m-s-keyw.onrender.com/faculty/findAllFaculty'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
+  Future<void> fetchClasses() async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        showSnackbar("No token found. Please log in.");
+        return;
+      }
 
-    if (response.statusCode == 200) {
-      setState(() {
-        facultyList = json.decode(response.body);
-        filteredList = facultyList;
-        isLoading = false;
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to fetch faculty list')),
+      final response = await http.get(
+        Uri.parse('https://s-m-s-keyw.onrender.com/class/data'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
       );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        setState(() {
+          classData = data['classData'];
+        });
+      } else {
+        showSnackbar("Failed to load classes");
+      }
+    } catch (e) {
+      showSnackbar("Error: $e");
     }
   }
 
-  /// Filter faculty list based on search input
-  void filterSearchResults(String query) {
-    List tempList = facultyList.where((faculty) =>
-      faculty['fact_Name'].toLowerCase().contains(query.toLowerCase())
-    ).toList();
-
+  void onClassChange(String? className) {
     setState(() {
-      filteredList = tempList;
+      selectedClass = className;
+      subjects = classData.firstWhere(
+        (cls) => cls['className'] == className,
+        orElse: () => {'subject': []},
+      )['subject'];
     });
   }
 
-  /// Send attendance data to the API with correct JSON format
-  Future<void> saveAttendance() async {
-    List<Map<String, dynamic>> factList = facultyList.map((faculty) {
-      return {
-        "factId": faculty['fact_id'].toString(),
-        "name": faculty['fact_Name'].toString(),
-        "attendance": attendance[faculty['fact_id']] ?? "Absent"
-      };
-    }).toList();
-
-    final Map<String, dynamic> requestBody = {
-      "factList": factList
-    };
-
-    final response = await http.post(
-      Uri.parse('https://s-m-s-keyw.onrender.com/faculty/attendanceSave'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(requestBody),
-    );
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Attendance updated successfully')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update attendance')),
-      );
+  Future<void> fetchStudents() async {
+    if (selectedClass == null) {
+      showSnackbar("Please select a class first.");
+      return;
     }
+
+    try {
+      final token = await getToken();
+      if (token == null) {
+        showSnackbar("No token found. Please log in.");
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('https://s-m-s-keyw.onrender.com/student/findAllStudent?cls=$selectedClass&masterAttendance=$isMasterAttendance'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          students = data.map((student) {
+            return {
+              'stdId': student['id'],
+              'name': student['name'],
+              'attendance': 'Present',
+              'remark': '',
+            };
+          }).toList();
+        });
+      } else {
+        showSnackbar("Failed to fetch students");
+      }
+    } catch (e) {
+      showSnackbar("Error: $e");
+    }
+  }
+
+  Future<void> submitAttendance() async {
+    if (selectedClass == null || selectedSubject == null || students.isEmpty) {
+      showSnackbar("Please complete all fields before submitting.");
+      return;
+    }
+
+    try {
+      final token = await getToken();
+      if (token == null) {
+        showSnackbar("No token found. Please log in.");
+        return;
+      }
+
+      final Map<String, dynamic> payload = {
+        "className": selectedClass,
+        "subject": selectedSubject,
+        "masterAttendance": isMasterAttendance,
+        "studentList": students.map((student) {
+          return {
+            "stdId": student['stdId'],
+            "name": student['name'],
+            "attendance": student['attendance'],
+            "remark": student['remark'],
+          };
+        }).toList(),
+      };
+
+      final response = await http.post(
+        Uri.parse('https://s-m-s-keyw.onrender.com/attendance/save?masterAttendance=$isMasterAttendance'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        showSnackbar("Attendance submitted successfully!");
+      } else {
+        showSnackbar("Failed to submit attendance");
+      }
+    } catch (e) {
+      showSnackbar("Error: $e");
+    }
+  }
+
+  void showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Faculty Attendance Update'),
-      ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      labelText: 'Search Faculty',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: filterSearchResults,
-                  ),
-                  SizedBox(height: 10),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: filteredList.length,
-                      itemBuilder: (context, index) {
-                        var faculty = filteredList[index];
-                        return Card(
-                          margin: EdgeInsets.symmetric(vertical: 5),
-                          child: ListTile(
-                            title: Text(faculty['fact_Name']),
-                            subtitle: Text(faculty['fact_email']),
-                            trailing: DropdownButton<String>(
-                              value: attendance[faculty['fact_id']],
-                              hint: Text('Select'),
-                              items: ['Present', 'Absent', 'Leave']
-                                  .map((status) => DropdownMenuItem(
-                                        value: status,
-                                        child: Text(status),
-                                      ))
-                                  .toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  attendance[faculty['fact_id']] = value!;
-                                });
-                              },
-                            ),
+      appBar: AppBar(title: Text('Attendance')),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Switch for Master Attendance
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Master Attendance",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Switch(
+                  value: isMasterAttendance,
+                  onChanged: (value) {
+                    setState(() {
+                      isMasterAttendance = value;
+                     // fetchStudents(); // Fetch students on toggle
+                    });
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+            DropdownButton<String>(
+              value: selectedClass,
+              hint: Text("Select Class"),
+              isExpanded: true,
+              items: classData.map<DropdownMenuItem<String>>((classItem) {
+                return DropdownMenuItem<String>(
+                  value: classItem['className'],
+                  child: Text(classItem['className']),
+                );
+              }).toList(),
+              onChanged: onClassChange,
+            ),
+            SizedBox(height: 10),
+            DropdownButton<String>(
+              value: selectedSubject,
+              hint: Text("Select Subject"),
+              isExpanded: true,
+              items: subjects.map<DropdownMenuItem<String>>((subject) {
+                return DropdownMenuItem<String>(
+                  value: subject,
+                  child: Text(subject),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedSubject = value;
+                });
+              },
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: fetchStudents,
+              child: Text("Fetch Students"),
+            ),
+            SizedBox(height: 20),
+            Expanded(
+              child: ListView.builder(
+                itemCount: students.length,
+                itemBuilder: (context, index) {
+                  var student = students[index];
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    child: Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            student['name'],
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
-                        );
-                      },
+                          Row(
+                            children: [
+                              Expanded(
+                                child: RadioListTile<String>(
+                                  title: Text("Present"),
+                                  value: "Present",
+                                  groupValue: student['attendance'],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      student['attendance'] = value!;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Expanded(
+                                child: RadioListTile<String>(
+                                  title: Text("Absent"),
+                                  value: "Absent",
+                                  groupValue: student['attendance'],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      student['attendance'] = value!;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                           Row(
+                            children: [
+                              Expanded(
+                                child: RadioListTile<String>(
+                                  title: Text("Half Day"),
+                                  value: "Half Day",
+                                  groupValue: student['attendance'],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      student['attendance'] = value!;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Expanded(
+                                child: RadioListTile<String>(
+                                  title: Text("Late"),
+                                  value: "Late",
+                                  groupValue: student['attendance'],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      student['attendance'] = value!;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: "Enter remarks",
+                              border: OutlineInputBorder(),
+                            ),
+                            onChanged: (value) {
+                              student['remark'] = value;
+                            },
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: saveAttendance,
-                    child: Text('Save Changes'),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: submitAttendance,
+              child: Text("Submit Attendance"),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
