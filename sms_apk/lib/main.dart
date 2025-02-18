@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sms_apk/AttendanceScreen.dart';
 import 'package:sms_apk/FacultyAttendanceApp.dart';
 import 'package:sms_apk/StudentAttendanceView.dart';
 import 'add_student_form.dart';
@@ -348,16 +349,6 @@ class NavigationDrawer extends StatelessWidget {
               ),
                ListTile(
                 leading: Icon(Icons.add),
-                title: Text('Student Attendance'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => StudentAttendanceScreen()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.add),
                 title: Text('Student Attendance view'),
                 onTap: () {
                   Navigator.push(
@@ -365,8 +356,20 @@ class NavigationDrawer extends StatelessWidget {
                     MaterialPageRoute(builder: (context) => StudentAttendanceScreen()),
                   );
                 },
-              )
-            ],
+              ),
+
+               ListTile(
+                leading: Icon(Icons.add),
+                title: Text('Student  AttendanceScreen'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AttendanceScreen()),
+                  );
+                },
+              ),
+
+              ],
           ),
           ExpansionTile(
             leading: Icon(Icons.person),
