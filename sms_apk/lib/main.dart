@@ -5,12 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_apk/AttendanceScreen.dart';
 import 'package:sms_apk/FacultyAttendanceApp.dart';
-import 'package:sms_apk/StudentAttendanceView.dart';
 import 'add_student_form.dart';
 import 'FacultyTableScreen.dart';
 import 'facultyDetailsForm.dart';
-
-
+import 'package:sms_apk/StudentAttendanceScreen.dart';
 
 void main() {
   runApp(MyApp());
@@ -27,6 +25,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 //home Screen
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -84,12 +83,14 @@ class WelcomePage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => const LoginScreen()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueAccent,
-                    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 40),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15, horizontal: 40),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -254,7 +255,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           ? CircularProgressIndicator(color: Colors.white)
                           : const Text(
                               'Login',
-                              style: TextStyle(fontSize: 18, color: Colors.white),
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.white),
                             ),
                     ),
                   ),
@@ -267,8 +269,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
-
 
 // Home Screen
 class HomeScreen extends StatelessWidget {
@@ -333,7 +333,8 @@ class NavigationDrawer extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => StudentTableScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => StudentTableScreen()),
                   );
                 },
               ),
@@ -347,18 +348,18 @@ class NavigationDrawer extends StatelessWidget {
                   );
                 },
               ),
-               ListTile(
+              ListTile(
                 leading: Icon(Icons.add),
                 title: Text('Student Attendance view'),
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => StudentAttendanceScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => StudentAttendanceScreen()),
                   );
                 },
               ),
-
-               ListTile(
+              ListTile(
                 leading: Icon(Icons.add),
                 title: Text('Student  AttendanceScreen'),
                 onTap: () {
@@ -368,51 +369,52 @@ class NavigationDrawer extends StatelessWidget {
                   );
                 },
               ),
-
-              ],
+            ],
           ),
           ExpansionTile(
             leading: Icon(Icons.person),
             title: Text('Faculty'),
-          children: [
-          ListTile(
-            leading: Icon(Icons.group),
-            title: Text('Faculty'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => FacultyTableScreen()),
-              );
-            },
-          ),
-           ListTile(
+            children: [
+              ListTile(
+                leading: Icon(Icons.group),
+                title: Text('Faculty'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => FacultyTableScreen()),
+                  );
+                },
+              ),
+              ListTile(
                 leading: Icon(Icons.add),
                 title: Text('Add faculty'),
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => FacultyDetailsForm()),
+                    MaterialPageRoute(
+                        builder: (context) => FacultyDetailsForm()),
                   );
                 },
               ),
-            ListTile(
+              ListTile(
                 leading: Icon(Icons.add),
                 title: Text('Faculty Attendance'),
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => FacultyAttendanceApp()),
+                    MaterialPageRoute(
+                        builder: (context) => FacultyAttendanceApp()),
                   );
                 },
-              ),   
-          ],
+              ),
+            ],
           ),
           ListTile(
             leading: Icon(Icons.logout),
             title: Text('Logout'),
             onTap: onLogout,
           ),
-        
         ],
       ),
     );
@@ -468,7 +470,8 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load students: ${response.statusCode}')),
+          SnackBar(
+              content: Text('Failed to load students: ${response.statusCode}')),
         );
       }
     } catch (e) {
@@ -501,7 +504,9 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete student: ${response.statusCode}')),
+          SnackBar(
+              content:
+                  Text('Failed to delete student: ${response.statusCode}')),
         );
       }
     } catch (e) {
@@ -529,7 +534,9 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
         fetchStudents(); // Refresh data
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update student: ${response.statusCode}')),
+          SnackBar(
+              content:
+                  Text('Failed to update student: ${response.statusCode}')),
         );
       }
     } catch (e) {
@@ -564,7 +571,8 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('City: ${student['city'] ?? 'N/A'}'),
-                                  Text('Contact: ${student['contact'] ?? 'N/A'}'),
+                                  Text(
+                                      'Contact: ${student['contact'] ?? 'N/A'}'),
                                   Text('Class: ${student['cls'] ?? 'N/A'}'),
                                 ],
                               ),
@@ -577,7 +585,8 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
                                   ),
                                   IconButton(
                                     icon: Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () => deleteStudent(student['id']),
+                                    onPressed: () =>
+                                        deleteStudent(student['id']),
                                   ),
                                 ],
                               ),
@@ -610,12 +619,16 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
                                   Row(
                                     children: [
                                       IconButton(
-                                        icon: Icon(Icons.edit, color: Colors.blue),
-                                        onPressed: () => showEditDialog(student),
+                                        icon: Icon(Icons.edit,
+                                            color: Colors.blue),
+                                        onPressed: () =>
+                                            showEditDialog(student),
                                       ),
                                       IconButton(
-                                        icon: Icon(Icons.delete, color: Colors.red),
-                                        onPressed: () => deleteStudent(student['id']),
+                                        icon: Icon(Icons.delete,
+                                            color: Colors.red),
+                                        onPressed: () =>
+                                            deleteStudent(student['id']),
                                       ),
                                     ],
                                   ),
@@ -645,10 +658,18 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
           content: SingleChildScrollView(
             child: Column(
               children: [
-                TextField(controller: nameController, decoration: InputDecoration(labelText: 'Name')),
-                TextField(controller: cityController, decoration: InputDecoration(labelText: 'City')),
-                TextField(controller: contactController, decoration: InputDecoration(labelText: 'Contact')),
-                TextField(controller: clsController, decoration: InputDecoration(labelText: 'Class')),
+                TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(labelText: 'Name')),
+                TextField(
+                    controller: cityController,
+                    decoration: InputDecoration(labelText: 'City')),
+                TextField(
+                    controller: contactController,
+                    decoration: InputDecoration(labelText: 'Contact')),
+                TextField(
+                    controller: clsController,
+                    decoration: InputDecoration(labelText: 'Class')),
               ],
             ),
           ),
