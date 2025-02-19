@@ -9,6 +9,7 @@ import 'add_student_form.dart';
 import 'FacultyTableScreen.dart';
 import 'facultyDetailsForm.dart';
 import 'package:sms_apk/StudentAttendanceScreen.dart';
+import 'NotificationPage.dart';
 
 void main() {
   runApp(MyApp());
@@ -405,6 +406,34 @@ class NavigationDrawer extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                         builder: (context) => FacultyAttendanceApp()),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.add),
+                title: Text('Notification'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => NotificationPage()),
+                  );
+                },
+              ),
+            ],
+          ),
+          ExpansionTile(
+            leading: Icon(Icons.notification_add),
+            title: Text('Notifications'),
+            children: [
+              ListTile(
+                leading: Icon(Icons.notifications_paused_sharp),
+                title: Text('Notification'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => NotificationPage()),
                   );
                 },
               ),
