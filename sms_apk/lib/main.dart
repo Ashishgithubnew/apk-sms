@@ -409,14 +409,14 @@ class NavigationDrawer extends StatelessWidget {
                   );
                 },
               ),
-              ListTile(
+               ListTile(
                 leading: Icon(Icons.add),
-                title: Text('Notification'),
+                title: Text('Faculty Attendence View'),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => NotificationPage()),
+                        builder: (context) => WatchAttendanceScreen()),
                   );
                 },
               ),
