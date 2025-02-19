@@ -12,28 +12,70 @@ class StudentAttendanceScreen extends StatefulWidget {
 
 class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
   bool masterAttendance = false;
-  String selectedClass = "1";
+  String? selectedClass;
+  String? selectedSubject;
   DateTime fromDate = DateTime.now();
   DateTime toDate = DateTime.now();
   List<dynamic> attendanceData = [];
   bool isLoading = false;
-
-  // Hardcoded classes from 1 to 12
-  final List<String> classes =
-      List.generate(12, (index) => (index + 1).toString());
+  List<Map<String, dynamic>> classData = [];
 
   @override
   void initState() {
     super.initState();
+    fetchClassData();
   }
 
-  // Function to get token
   Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('authToken');
   }
 
-  // Function to fetch attendance
+  Future<void> fetchClassData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    final token = await getToken();
+    if (token == null) {
+      showSnackbar("No token found. Please log in.");
+      return;
+    }
+
+    final String apiUrl = "https://s-m-s-keyw.onrender.com/class/data";
+    try {
+      final response = await http.get(
+        Uri.parse(apiUrl),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          classData = List<Map<String, dynamic>>.from(data['classData'] ?? []);
+          if (classData.isNotEmpty) {
+            selectedClass = classData[0]['className'];
+          }
+        });
+      } else {
+        showSnackbar("Failed to fetch class data.");
+      }
+    } catch (e) {
+      showSnackbar("Error: $e");
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  List<String> getSubjects() {
+    if (selectedClass == null) return [];
+    var selectedClassData = classData
+        .firstWhere((c) => c['className'] == selectedClass, orElse: () => {});
+    return List<String>.from(selectedClassData['subject'] ?? []);
+  }
+
   Future<void> fetchAttendance() async {
     setState(() {
       isLoading = true;
@@ -45,15 +87,15 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
       return;
     }
 
-    String formattedFromDate = DateFormat("dd/MM/yyyy").format(fromDate);
-    String formattedToDate = DateFormat("dd/MM/yyyy").format(toDate);
+    String formattedFromDate = DateFormat("yyyy-MM-dd").format(fromDate);
+    String formattedToDate = DateFormat("yyyy-MM-dd").format(toDate);
 
     final String apiUrl =
         "https://s-m-s-keyw.onrender.com/attendance/getAttendance"
         "?cls=$selectedClass"
         "&fromDate=$formattedFromDate"
         "&toDate=$formattedToDate"
-        "&subject="
+        "&subject=${masterAttendance ? '' : selectedSubject}"
         "&masterAttendance=$masterAttendance";
 
     try {
@@ -78,13 +120,11 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
     }
   }
 
-  // Function to show snackbar
   void showSnackbar(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  // Function to show Date Picker
   Future<void> selectDate(BuildContext context, bool isFromDate) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -97,8 +137,15 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
       setState(() {
         if (isFromDate) {
           fromDate = picked;
+          if (toDate.isBefore(fromDate)) {
+            toDate = fromDate;
+          }
         } else {
-          toDate = picked;
+          if (picked.isBefore(fromDate)) {
+            showSnackbar("To Date cannot be earlier than From Date.");
+          } else {
+            toDate = picked;
+          }
         }
       });
     }
@@ -128,109 +175,67 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
               ],
             ),
             SizedBox(height: 10),
-
-            // Class Dropdown (Hardcoded 1 to 12)
             DropdownButton<String>(
               value: selectedClass,
-              items: classes.map((String className) {
+              items: classData.map((c) {
                 return DropdownMenuItem<String>(
-                  value: className,
-                  child: Text("Class $className"),
+                  value: c['className'],
+                  child: Text("Class ${c['className']}"),
                 );
               }).toList(),
               onChanged: (String? newValue) {
                 setState(() {
-                  selectedClass = newValue!;
+                  selectedClass = newValue;
+                  selectedSubject = null;
                 });
               },
             ),
-
             SizedBox(height: 10),
-
-            // Date Pickers
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("From Date: ${fromDate.toString().split(" ")[0]}"),
                 ElevatedButton(
                   onPressed: () => selectDate(context, true),
-                  child: Text("Select"),
+                  child: Text(
+                      "From Date: ${DateFormat('yyyy-MM-dd').format(fromDate)}"),
                 ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("To Date: ${toDate.toString().split(" ")[0]}"),
                 ElevatedButton(
                   onPressed: () => selectDate(context, false),
-                  child: Text("Select"),
+                  child: Text(
+                      "To Date: ${DateFormat('yyyy-MM-dd').format(toDate)}"),
                 ),
               ],
             ),
-
-            SizedBox(height: 20),
-
-            // Fetch Attendance Button
+            SizedBox(height: 10),
             ElevatedButton(
               onPressed: fetchAttendance,
               child: Text("Fetch Attendance"),
             ),
-
-            SizedBox(height: 20),
-
-            // Loading Indicator
-            if (isLoading)
-              Center(child: CircularProgressIndicator())
-            else
-              // Display Attendance Data Properly
-              Expanded(
-                child: ListView.builder(
-                  itemCount: attendanceData.length,
-                  itemBuilder: (context, index) {
-                    var attendanceEntry =
-                        attendanceData[index]; // Each date entry
-                    String formattedDate = DateFormat("dd/MM/yyyy").format(
-                        DateTime.parse(
-                            attendanceEntry["date"])); // Convert date format
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Show Date as a Heading
-                        Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            "Date: $formattedDate",
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
+            SizedBox(height: 10),
+            Expanded(
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      itemCount: attendanceData.length,
+                      itemBuilder: (context, index) {
+                        final entry = attendanceData[index];
+                        return Card(
+                          child: ListTile(
+                            title: Text("Date: ${entry['date']}",
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children:
+                                  entry['students'].map<Widget>((student) {
+                                return Text(
+                                    "${student['name']} - ${student['attendance']}");
+                              }).toList(),
+                            ),
                           ),
-                        ),
-
-                        // Iterate over students inside this date entry
-                        ...attendanceEntry["students"].map<Widget>((student) {
-                          return ListTile(
-                            title: Text(
-                                student["name"] ?? "Unknown"), // Student Name
-                            subtitle: Text(student["remark"]?.isNotEmpty == true
-                                ? student["remark"]
-                                : "No remarks"), // Show remarks if available
-                            trailing: Text(
-                              student["attendance"] ?? "N/A",
-                              style: TextStyle(
-                                color: student["attendance"] == "Present"
-                                    ? Colors.green
-                                    : Colors.red,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ), // Show attendance status
-                          );
-                        }).toList(),
-                      ],
-                    );
-                  },
-                ),
-              ),
+                        );
+                      },
+                    ),
+            ),
           ],
         ),
       ),
