@@ -12,6 +12,24 @@ class _NotificationPageState extends State<NotificationPage> {
   List notifications = [];
   bool isLoading = true;
 
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  void showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
   Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('authToken');
@@ -83,18 +101,10 @@ class _NotificationPageState extends State<NotificationPage> {
     }
   }
 
-  void showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  void showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-  }
-
   void openAddNotificationDialog() {
     DateTime? startDate;
     DateTime? endDate;
-    String selectedCategory = "Student";
+    String selectedCategory = "All";
     List<String> selectedClasses = [];
     TextEditingController descriptionController = TextEditingController();
 
@@ -123,7 +133,7 @@ class _NotificationPageState extends State<NotificationPage> {
                       }
                     },
                     decoration: InputDecoration(
-                      hintText: startDate == null ? "Pick a date" : formatDate(startDate.toString()),
+                      hintText: startDate == null ? "Pick a date" : formatDate(startDate!),
                       suffixIcon: Icon(Icons.calendar_today),
                     ),
                   ),
@@ -143,37 +153,9 @@ class _NotificationPageState extends State<NotificationPage> {
                       }
                     },
                     decoration: InputDecoration(
-                      hintText: endDate == null ? "Pick a date" : formatDate(endDate.toString()),
+                      hintText: endDate == null ? "Pick a date" : formatDate(endDate!),
                       suffixIcon: Icon(Icons.calendar_today),
                     ),
-                  ),
-                  SizedBox(height: 10),
-                  DropdownButtonFormField<String>(
-                    value: selectedCategory,
-                    onChanged: (value) => setDialogState(() => selectedCategory = value!),
-                    items: ["Student", "Teacher", "All","Staff","Holiday","Exam","Event"]
-                        .map((category) => DropdownMenuItem(value: category, child: Text(category)))
-                        .toList(),
-                    decoration: InputDecoration(labelText: "Category"),
-                  ),
-                  SizedBox(height: 10),
-                  Text("Classes"),
-                  Column(
-                    children: ["LKG", "UKG", "Class 1", "Class 2", "Class 3","Class 4","Class 5","Class 6","Class 7","Class 8","Class 9","Class 10","Class 11","Class 12"]
-                        .map((className) => CheckboxListTile(
-                              title: Text(className),
-                              value: selectedClasses.contains(className),
-                              onChanged: (isSelected) {
-                                setDialogState(() {
-                                  if (isSelected == true) {
-                                    selectedClasses.add(className);
-                                  } else {
-                                    selectedClasses.remove(className);
-                                  }
-                                });
-                              },
-                            ))
-                        .toList(),
                   ),
                   TextField(
                     controller: descriptionController,
@@ -193,8 +175,8 @@ class _NotificationPageState extends State<NotificationPage> {
                 return;
               }
               saveNotification(
-                formatDate(startDate.toString()),
-                formatDate(endDate.toString()),
+                formatDate(startDate!),
+                formatDate(endDate!),
                 selectedCategory,
                 selectedClasses,
                 descriptionController.text.trim(),
@@ -208,16 +190,8 @@ class _NotificationPageState extends State<NotificationPage> {
     );
   }
 
-  String formatDate(String? dateString) {
-    if (dateString == null) return "Unknown Date";
-    try {
-      DateTime dateTime = DateTime.parse(dateString);
-      return "${dateTime.day.toString().padLeft(2, '0')}/"
-          "${dateTime.month.toString().padLeft(2, '0')}/"
-          "${dateTime.year}";
-    } catch (e) {
-      return "Invalid Date";
-    }
+  String formatDate(DateTime date) {
+    return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
   }
 
   @override
@@ -229,45 +203,29 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Notification Page")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(labelText: "Search Notifications...", border: OutlineInputBorder()),
-                  ),
-                ),
-                SizedBox(width: 10),
-                ElevatedButton(onPressed: fetchNotifications, child: Text("Refresh")),
-                SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: openAddNotificationDialog,
-                  child: Text("Add Notification"),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            isLoading
-                ? Center(child: CircularProgressIndicator())
-                : Expanded(
-                    child: ListView.builder(
-                      itemCount: notifications.length,
-                      itemBuilder: (context, index) {
-                        var notification = notifications[index];
-                        return ListTile(
-                          title: Text(notification['message'] ?? "No Message"),
-                          subtitle: Text(formatDate(notification['startDate'])),
-                        );
-                      },
-                    ),
-                  ),
-          ],
-        ),
+      appBar: AppBar(
+        title: Text("Notifications"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: openAddNotificationDialog,
+          ),
+        ],
       ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : notifications.isEmpty
+              ? Center(child: Text("No notifications available"))
+              : ListView.builder(
+                  itemCount: notifications.length,
+                  itemBuilder: (context, index) {
+                    final notification = notifications[index];
+                    return ListTile(
+                      title: Text(notification['description'] ?? 'No Description'),
+                      subtitle: Text("Category: ${notification['cato'] ?? 'N/A'}\nClasses: ${(notification['className'] as List?)?.join(', ') ?? 'N/A'}\nDate: ${notification['startDate']} - ${notification['endDate']}")
+                    );
+                  },
+                ),
     );
   }
 }

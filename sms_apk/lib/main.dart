@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_apk/AttendanceScreen.dart';
 import 'package:sms_apk/FacultyAttendanceApp.dart';
+import 'package:sms_apk/WatchAttendanceScreen.dart';
 import 'add_student_form.dart';
 import 'FacultyTableScreen.dart';
 import 'facultyDetailsForm.dart';
@@ -409,7 +410,7 @@ class NavigationDrawer extends StatelessWidget {
                   );
                 },
               ),
-               ListTile(
+              ListTile(
                 leading: Icon(Icons.add),
                 title: Text('Faculty Attendence View'),
                 onTap: () {
