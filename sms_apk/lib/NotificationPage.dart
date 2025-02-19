@@ -44,7 +44,8 @@ class _NotificationPageState extends State<NotificationPage> {
       }
 
       final response = await http.get(
-        Uri.parse("https://s-m-s-keyw.onrender.com/notification/getAllNotification"),
+        Uri.parse(
+            "https://s-m-s-keyw.onrender.com/notification/getAllNotification"),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -65,7 +66,8 @@ class _NotificationPageState extends State<NotificationPage> {
     }
   }
 
-  Future<void> saveNotification(String startDate, String endDate, String category, List<String> classes, String description) async {
+  Future<void> saveNotification(String startDate, String endDate,
+      String category, List<String> classes, String description) async {
     try {
       final token = await getToken();
       if (token == null) {
@@ -133,7 +135,9 @@ class _NotificationPageState extends State<NotificationPage> {
                       }
                     },
                     decoration: InputDecoration(
-                      hintText: startDate == null ? "Pick a date" : formatDate(startDate!),
+                      hintText: startDate == null
+                          ? "Pick a date"
+                          : formatDate(startDate!),
                       suffixIcon: Icon(Icons.calendar_today),
                     ),
                   ),
@@ -153,9 +157,30 @@ class _NotificationPageState extends State<NotificationPage> {
                       }
                     },
                     decoration: InputDecoration(
-                      hintText: endDate == null ? "Pick a date" : formatDate(endDate!),
+                      hintText: endDate == null
+                          ? "Pick a date"
+                          : formatDate(endDate!),
                       suffixIcon: Icon(Icons.calendar_today),
                     ),
+                  ),
+                  SizedBox(height: 10),
+                  Text("Classes"),
+                  Column(
+                    children: ["LKG", "UKG", "Class 1", "Class 2", "Class 3"]
+                        .map((className) => CheckboxListTile(
+                              title: Text(className),
+                              value: selectedClasses.contains(className),
+                              onChanged: (isSelected) {
+                                setDialogState(() {
+                                  if (isSelected == true) {
+                                    selectedClasses.add(className);
+                                  } else {
+                                    selectedClasses.remove(className);
+                                  }
+                                });
+                              },
+                            ))
+                        .toList(),
                   ),
                   TextField(
                     controller: descriptionController,
@@ -167,10 +192,13 @@ class _NotificationPageState extends State<NotificationPage> {
           },
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel")),
+          TextButton(
+              onPressed: () => Navigator.pop(context), child: Text("Cancel")),
           ElevatedButton(
             onPressed: () {
-              if (startDate == null || endDate == null || descriptionController.text.isEmpty) {
+              if (startDate == null ||
+                  endDate == null ||
+                  descriptionController.text.isEmpty) {
                 showError("Please fill all fields");
                 return;
               }
@@ -221,9 +249,10 @@ class _NotificationPageState extends State<NotificationPage> {
                   itemBuilder: (context, index) {
                     final notification = notifications[index];
                     return ListTile(
-                      title: Text(notification['description'] ?? 'No Description'),
-                      subtitle: Text("Category: ${notification['cato'] ?? 'N/A'}\nClasses: ${(notification['className'] as List?)?.join(', ') ?? 'N/A'}\nDate: ${notification['startDate']} - ${notification['endDate']}")
-                    );
+                        title: Text(
+                            notification['description'] ?? 'No Description'),
+                        subtitle: Text(
+                            "Category: ${notification['cato'] ?? 'N/A'}\nClasses: ${(notification['className'] as List?)?.join(', ') ?? 'N/A'}\nDate: ${notification['startDate']} - ${notification['endDate']}"));
                   },
                 ),
     );
