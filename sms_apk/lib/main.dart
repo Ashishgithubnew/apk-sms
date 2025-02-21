@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_apk/AttendanceScreen.dart';
 import 'package:sms_apk/FacultyAttendanceApp.dart';
+import 'package:sms_apk/UpdateAttendanceScreen.dart';
 import 'package:sms_apk/WatchAttendanceScreen.dart';
 import 'add_student_form.dart';
 import 'FacultyTableScreen.dart';
@@ -371,6 +372,20 @@ class NavigationDrawer extends StatelessWidget {
                   );
                 },
               ),
+              ListTile(
+  leading: Icon(Icons.add),
+  title: Text('Student Attendance Edit'),
+  onTap: () {
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UpdateAttendanceScreen(),
+      ),
+    );
+  },
+),
+
             ],
           ),
           ExpansionTile(
