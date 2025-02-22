@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AttendancePage extends StatefulWidget {
+  const AttendancePage({super.key});
+
   @override
   _AttendancePageState createState() => _AttendancePageState();
 }
@@ -195,10 +197,10 @@ class _AttendancePageState extends State<AttendancePage> {
             // Submit Button
             ElevatedButton(
               onPressed: saveAttendance,
-              child: Text('Submit Attendance'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
               ),
+              child: Text('Submit Attendance'),
             ),
           ],
         ),

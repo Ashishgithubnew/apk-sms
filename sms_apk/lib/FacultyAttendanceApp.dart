@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FacultyAttendanceApp extends StatelessWidget {
+  const FacultyAttendanceApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -14,6 +16,8 @@ class FacultyAttendanceApp extends StatelessWidget {
 }
 
 class FacultyAttendanceScreen extends StatefulWidget {
+  const FacultyAttendanceScreen({super.key});
+
   @override
   _FacultyAttendanceScreenState createState() => _FacultyAttendanceScreenState();
 }

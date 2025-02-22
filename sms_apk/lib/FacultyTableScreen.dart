@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'main.dart';
+import 'package:sms_apk/auth_screen/login.dart';
 
 class FacultyTableScreen extends StatefulWidget {
+  const FacultyTableScreen({super.key});
+
   @override
   _FacultyTableScreenState createState() => _FacultyTableScreenState();
 }
@@ -96,7 +98,7 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
   }
 
   void showEditForm(Map<String, dynamic> faculty) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     Map<String, dynamic> updatedFaculty = Map.from(faculty);
 
     showDialog(
@@ -105,7 +107,7 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
         return AlertDialog(
           title: Text('Edit Faculty'),
           content: Form(
-            key: _formKey,
+            key: formKey,
             child: SingleChildScrollView(
               child: Column(
                 children: [
@@ -162,7 +164,7 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                if (_formKey.currentState!.validate()) {
+                if (formKey.currentState!.validate()) {
                   editFaculty(updatedFaculty);
                   Navigator.pop(context);
                 }
