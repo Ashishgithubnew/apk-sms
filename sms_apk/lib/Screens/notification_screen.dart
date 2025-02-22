@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sms_apk/Screens/homeScreen.dart';
+import 'package:sms_apk/widgets/custom_popup.dart';
+import 'package:sms_apk/utils/app_colors.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -14,24 +17,6 @@ class _NotificationPageState extends State<NotificationPage> {
   List notifications = [];
   bool isLoading = true;
 
-  void showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
-
-  void showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
   Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('authToken');
@@ -41,7 +26,7 @@ class _NotificationPageState extends State<NotificationPage> {
     try {
       final token = await getToken();
       if (token == null) {
-        showError("No token found. Please log in.");
+        showPopup(context, "No token found. Please log in.", AppColors.error);
         return;
       }
 
@@ -55,16 +40,21 @@ class _NotificationPageState extends State<NotificationPage> {
       );
 
       if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        setState(() {
-          notifications = data;
-          isLoading = false;
-        });
+        final data = json.decode(response.body);
+        if (data is List) {
+          setState(() {
+            notifications = data;
+            isLoading = false;
+          });
+        } else {
+          showPopup(context, "Invalid response format", AppColors.error);
+        }
       } else {
-        showError("Failed to load notifications");
+        showPopup(context, "Failed to load notifications", AppColors.error);
       }
     } catch (e) {
-      showError("Error fetching notifications: ${e.toString()}");
+      showPopup(context, "Error fetching notifications: ${e.toString()}",
+          AppColors.error);
     }
   }
 
@@ -73,7 +63,13 @@ class _NotificationPageState extends State<NotificationPage> {
     try {
       final token = await getToken();
       if (token == null) {
-        showError("No token found. Please log in.");
+        showPopup(context, "No token found. Please log in.", AppColors.error);
+        return;
+      }
+
+      if (DateTime.parse(endDate).isBefore(DateTime.parse(startDate))) {
+        showPopup(
+            context, "End date cannot be before start date", AppColors.error);
         return;
       }
 
@@ -95,13 +91,15 @@ class _NotificationPageState extends State<NotificationPage> {
       );
 
       if (response.statusCode == 200) {
-        showSuccess("Notification saved successfully!");
+        showPopup(
+            context, "Notification saved successfully!", AppColors.success);
         fetchNotifications();
       } else {
-        showError("Failed to save notification");
+        showPopup(context, "Failed to save notification", AppColors.error);
       }
     } catch (e) {
-      showError("Error saving notification: ${e.toString()}");
+      showPopup(context, "Error saving notification: ${e.toString()}",
+          AppColors.error);
     }
   }
 
@@ -115,14 +113,16 @@ class _NotificationPageState extends State<NotificationPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Add Notification"),
+        title: const Text("Add Notification",
+            style: TextStyle(color: AppColors.primary)),
         content: StatefulBuilder(
           builder: (context, setDialogState) {
             return SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text("Start Date"),
+                  const Text("Start Date",
+                      style: TextStyle(color: AppColors.primary)),
                   TextField(
                     readOnly: true,
                     onTap: () async {
@@ -140,11 +140,16 @@ class _NotificationPageState extends State<NotificationPage> {
                       hintText: startDate == null
                           ? "Pick a date"
                           : formatDate(startDate!),
-                      suffixIcon: Icon(Icons.calendar_today),
+                      suffixIcon: const Icon(Icons.calendar_today,
+                          color: AppColors.primary),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
-                  SizedBox(height: 10),
-                  Text("End Date"),
+                  const SizedBox(height: 10),
+                  const Text("End Date",
+                      style: TextStyle(color: AppColors.primary)),
                   TextField(
                     readOnly: true,
                     onTap: () async {
@@ -162,15 +167,22 @@ class _NotificationPageState extends State<NotificationPage> {
                       hintText: endDate == null
                           ? "Pick a date"
                           : formatDate(endDate!),
-                      suffixIcon: Icon(Icons.calendar_today),
+                      suffixIcon: const Icon(Icons.calendar_today,
+                          color: AppColors.primary),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
-                  SizedBox(height: 10),
-                  Text("Classes"),
+                  const SizedBox(height: 10),
+                  const Text("Classes",
+                      style: TextStyle(color: AppColors.primary)),
                   Column(
                     children: ["LKG", "UKG", "Class 1", "Class 2", "Class 3"]
                         .map((className) => CheckboxListTile(
-                              title: Text(className),
+                              title: Text(className,
+                                  style: const TextStyle(
+                                      color: AppColors.primary)),
                               value: selectedClasses.contains(className),
                               onChanged: (isSelected) {
                                 setDialogState(() {
@@ -186,7 +198,13 @@ class _NotificationPageState extends State<NotificationPage> {
                   ),
                   TextField(
                     controller: descriptionController,
-                    decoration: InputDecoration(labelText: "Description"),
+                    decoration: InputDecoration(
+                      labelText: "Description",
+                      labelStyle: const TextStyle(color: AppColors.primary),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -195,13 +213,16 @@ class _NotificationPageState extends State<NotificationPage> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context), child: Text("Cancel")),
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel",
+                style: TextStyle(color: AppColors.primary)),
+          ),
           ElevatedButton(
             onPressed: () {
               if (startDate == null ||
                   endDate == null ||
                   descriptionController.text.isEmpty) {
-                showError("Please fill all fields");
+                showPopup(context, "Please fill all fields", AppColors.error);
                 return;
               }
               saveNotification(
@@ -213,7 +234,10 @@ class _NotificationPageState extends State<NotificationPage> {
               );
               Navigator.pop(context);
             },
-            child: Text("Save"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+            ),
+            child: const Text("Save", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -234,29 +258,87 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Notifications"),
+        title: const Text(
+          "Notifications",
+          style: TextStyle(color: Colors.white, fontSize: 18),
+        ),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context); // Navigate back if possible
+            } else {
+              // Fallback navigation (e.g., navigate to home screen)
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+              );
+            }
+          },
+        ),
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add, color: Colors.white),
             onPressed: openAddNotificationDialog,
           ),
         ],
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
           : notifications.isEmpty
-              ? Center(child: Text("No notifications available"))
+              ? const Center(
+                  child: Text("No notifications available",
+                      style: TextStyle(color: AppColors.primary)),
+                )
               : ListView.builder(
                   itemCount: notifications.length,
                   itemBuilder: (context, index) {
                     final notification = notifications[index];
-                    return ListTile(
-                        title: Text(
-                            notification['description'] ?? 'No Description'),
-                        subtitle: Text(
-                            "Category: ${notification['cato'] ?? 'N/A'}\nClasses: ${(notification['className'] as List?)?.join(', ') ?? 'N/A'}\nDate: ${notification['startDate']} - ${notification['endDate']}"));
+                    return _buildNotificationCard(notification);
                   },
                 ),
+    );
+  }
+
+  Widget _buildNotificationCard(Map<String, dynamic> notification) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        title: Text(
+          notification['description'] ?? 'No Description',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: AppColors.primary,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Category: ${notification['cato'] ?? 'N/A'}",
+              style: const TextStyle(color: Colors.grey),
+            ),
+            Text(
+              "Classes: ${(notification['className'] as List?)?.join(', ') ?? 'N/A'}",
+              style: const TextStyle(color: Colors.grey),
+            ),
+            Text(
+              "Date: ${notification['startDate']} - ${notification['endDate']}",
+              style: const TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

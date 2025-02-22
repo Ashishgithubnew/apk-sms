@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../auth_screen/login.dart';
-import '../utils/app_colors.dart';
-import '../widgets/user_icon.dart';
-import '../widgets/custom_popup.dart';
+import '../../auth_screen/login.dart';
+import '../../utils/app_colors.dart';
+import '../../widgets/user_icon.dart';
+import '../../widgets/custom_popup.dart';
 
 class StudentTableScreen extends StatefulWidget {
   const StudentTableScreen({super.key});
@@ -174,8 +174,8 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
                 student['cls'] = clsController.text;
                 editStudent(student);
               },
-              child: Text('Save', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              child: Text('Save', style: TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -187,7 +187,7 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Student Table', style: TextStyle(color: Colors.white)),
+        title: Text('Student Table', style: TextStyle(color: Colors.white, fontSize: 18)),
         backgroundColor: AppColors.primary,
         actions: [
           Padding(

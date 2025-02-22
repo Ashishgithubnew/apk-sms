@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../utils/app_colors.dart';
-import '../widgets/user_icon.dart';
-import '../widgets/class_subject_selection.dart';
+import '../../utils/app_colors.dart';
+import '../../widgets/user_icon.dart';
+import '../../widgets/class_subject_selection.dart';
 
 class ViewAttendanceScreen extends StatefulWidget {
   const ViewAttendanceScreen({super.key});
@@ -215,7 +215,7 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("View Attendance", style: TextStyle(color: Colors.white)),
+        title: Text("View Attendance", style: TextStyle(color: Colors.white, fontSize: 18)),
         backgroundColor: AppColors.primary,
         actions: [
           Padding(

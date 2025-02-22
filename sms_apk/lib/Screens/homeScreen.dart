@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
       key: _scaffoldKey,
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 18, 102, 102),
-        title: Text("Dashboard", style: TextStyle(color: Colors.white)),
+        title: Text("Dashboard", style: TextStyle(color: Colors.white, fontSize: 18)),
         actions: [
           Padding(
             padding: EdgeInsets.only(right: 16.0),

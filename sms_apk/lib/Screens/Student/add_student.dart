@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../widgets/student_form.dart';
-import '../utils/app_colors.dart';
-import '../widgets/user_icon.dart';
+import '../../widgets/student_form.dart';
+import '../../utils/app_colors.dart';
+import '../../widgets/user_icon.dart';
 
 class AddStudentScreen extends StatelessWidget {
   const AddStudentScreen({super.key});
@@ -15,7 +15,7 @@ class AddStudentScreen extends StatelessWidget {
           'Add Student',
           style: TextStyle(
             color: Colors.white,
-            fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
         ),
         actions: const [

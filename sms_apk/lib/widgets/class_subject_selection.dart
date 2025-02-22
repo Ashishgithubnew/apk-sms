@@ -5,8 +5,7 @@ class ClassSubjectSelection extends StatefulWidget {
   final Function(String selectedClass, String? selectedSubject)?
       onSelectionChanged;
 
-  const ClassSubjectSelection({Key? key, this.onSelectionChanged})
-      : super(key: key);
+  const ClassSubjectSelection({super.key, this.onSelectionChanged});
 
   @override
   _ClassSubjectSelectionState createState() => _ClassSubjectSelectionState();

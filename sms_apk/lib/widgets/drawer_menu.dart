@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // For logout functionality
+import 'package:sms_apk/Screens/Faculty/FacultyTableScreen.dart';
+import 'package:sms_apk/Screens/Faculty/add_faculty.dart';
+import 'package:sms_apk/Screens/Faculty/mark_attendance.dart';
+import 'package:sms_apk/Screens/Faculty/view_attendance.dart';
 import 'package:sms_apk/Screens/notification_screen.dart';
-import '../Screens/add_student.dart';
+import '../Screens/Student/add_student.dart';
 import '../Screens/homeScreen.dart';
-import '../Screens/studentTableScreen.dart'; // Import StudentTableScreen
-import '../Screens/viewAttendance.dart'; // Import View Attendance Screen
-import '../Screens/markAttendance.dart'; // Import Mark Attendance Screen
+import '../Screens/Student/studentTableScreen.dart'; // Import StudentTableScreen
+import '../Screens/Student/viewAttendance.dart'; // Import View Attendance Screen
+import '../Screens/Student/markAttendance.dart'; // Import Mark Attendance Screen
 import '../auth_screen/login.dart'; // Import LoginScreen
 import '../utils/app_colors.dart'; // Import AppColors
 
@@ -199,7 +203,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => StudentTableScreen(),
+                          builder: (context) => FacultyTableScreen(),
                         ),
                       );
                     }),
@@ -207,7 +211,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const AddStudentScreen(),
+                          builder: (context) => const FacultyDetailsForm(),
                         ),
                       );
                     }),
@@ -243,7 +247,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ViewAttendanceScreen(),
+                                  builder: (context) => ViewAttendance(),
                                 ),
                               );
                             }),
@@ -252,7 +256,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => MarkAttendanceScreen(),
+                                  builder: (context) => MarkAttendance(),
                                 ),
                               );
                             }),

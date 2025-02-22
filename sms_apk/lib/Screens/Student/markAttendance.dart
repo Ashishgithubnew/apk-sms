@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../utils/app_colors.dart';
-import '../widgets/class_subject_selection.dart';
-import '../widgets/user_icon.dart'; // Import UserIconWidget
+import '../../utils/app_colors.dart';
+import '../../widgets/class_subject_selection.dart';
+import '../../widgets/user_icon.dart'; // Import UserIconWidget
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MarkAttendanceScreen extends StatefulWidget {
+  const MarkAttendanceScreen({super.key});
+
   @override
   _MarkAttendanceScreenState createState() => _MarkAttendanceScreenState();
 }
@@ -134,7 +136,7 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Mark Attendance", style: TextStyle(color: Colors.white)),
+        title: Text("Mark Attendance", style: TextStyle(color: Colors.white, fontSize: 18)),
         backgroundColor: AppColors.primary,
         iconTheme: IconThemeData(color: Colors.white),
         actions: [
