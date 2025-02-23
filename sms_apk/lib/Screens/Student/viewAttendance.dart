@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sms_apk/widgets/custom_popup.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/user_icon.dart';
-import '../../widgets/class_subject_selection.dart';
 
 class ViewAttendanceScreen extends StatefulWidget {
   const ViewAttendanceScreen({super.key});
@@ -15,7 +15,7 @@ class ViewAttendanceScreen extends StatefulWidget {
 }
 
 class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
-  bool masterAttendance = false;
+  bool masterAttendance = true;
   String? selectedClass;
   String? selectedSubject;
   DateTime fromDate = DateTime.now();
@@ -25,12 +25,24 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
   bool isFetchingAttendance = false;
   List<Map<String, dynamic>> classData = [];
   String? userName;
+  String? token;
+
+  static const String baseUrl = "s-m-s-keyw.onrender.com";
 
   @override
   void initState() {
     super.initState();
-    fetchClassData();
-    fetchUserName();
+    fetchTokenAndData();
+  }
+
+  Future<void> fetchTokenAndData() async {
+    token = await getToken();
+    if (token != null) {
+      fetchClassData();
+      fetchUserName();
+    } else {
+      showPopup(context, "No token found. Please log in.", AppColors.primary);
+    }
   }
 
   Future<String?> getToken() async {
@@ -47,30 +59,41 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
 
   Future<void> fetchClassData() async {
     setState(() => isFetchingClasses = true);
-    final token = await getToken();
+
     if (token == null) {
-      showPopup("No token found. Please log in.");
+      setState(() => isFetchingClasses = false);
+      showPopup(context, "No token found. Please log in.", AppColors.primary);
       return;
     }
-    final String apiUrl = "https://s-m-s-keyw.onrender.com/class/data";
+
+    final String apiUrl = "https://$baseUrl/class/data";
     try {
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: {"Authorization": "Bearer $token"},
       );
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
           classData = List<Map<String, dynamic>>.from(data['classData'] ?? []);
-          if (classData.isNotEmpty) {
-            selectedClass = classData[0]['className'];
+          if (selectedClass != null &&
+              !classData.any((c) => c['className'] == selectedClass)) {
+            selectedClass =
+                null; // Reset if previously selected class is invalid
           }
         });
+      } else if (response.statusCode == 401) {
+        showPopup(
+            context, "Unauthorized. Please log in again.", AppColors.primary);
       } else {
-        showPopup("Failed to fetch class data.");
+        showPopup(
+            context,
+            "Failed to fetch class data. Status: ${response.statusCode}",
+            AppColors.primary);
       }
     } catch (e) {
-      showPopup("Error: $e");
+      showPopup(context, "Network error: $e", AppColors.primary);
     } finally {
       setState(() => isFetchingClasses = false);
     }
@@ -80,43 +103,53 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
     if (selectedClass == null) return [];
     var selectedClassData = classData.firstWhere(
       (c) => c['className'] == selectedClass,
-      orElse: () => {'subject': []},
+      orElse: () => {'subject': <String>[]},
     );
     return List<String>.from(selectedClassData['subject'] ?? []);
   }
 
   Future<void> fetchAttendance() async {
     if (selectedClass == null) {
-      showPopup("Please select a class.");
+      showPopup(context, "Please select a class.", AppColors.primary);
       return;
     }
+
     setState(() => isFetchingAttendance = true);
-    final token = await getToken();
+
     if (token == null) {
-      showPopup("No token found. Please log in.");
+      setState(() => isFetchingAttendance = false);
+      showPopup(context, "No token found. Please log in.", AppColors.primary);
       return;
     }
+
     String formattedFromDate = DateFormat("dd/MM/yyyy").format(fromDate);
     String formattedToDate = DateFormat("dd/MM/yyyy").format(toDate);
-    final String apiUrl =
-        "https://s-m-s-keyw.onrender.com/attendance/getAttendance"
-        "?cls=$selectedClass"
-        "&fromDate=$formattedFromDate"
-        "&toDate=$formattedToDate"
-        "&subject=${masterAttendance ? '' : selectedSubject}"
-        "&masterAttendance=$masterAttendance";
+
+    final Uri apiUrl = Uri.https(
+      baseUrl,
+      "/attendance/getAttendance",
+      {
+        "cls": selectedClass!,
+        "fromDate": formattedFromDate,
+        "toDate": formattedToDate,
+        "subject": masterAttendance ? '' : (selectedSubject ?? ''),
+        "masterAttendance": masterAttendance.toString(),
+      },
+    );
+
     try {
       final response = await http.post(
-        Uri.parse(apiUrl),
+        apiUrl,
         headers: {"Authorization": "Bearer $token"},
       );
+
       if (response.statusCode == 200) {
         setState(() => attendanceData = jsonDecode(response.body));
       } else {
-        showPopup("Failed to fetch attendance.");
+        showPopup(context, "Failed to fetch attendance.", AppColors.primary);
       }
     } catch (e) {
-      showPopup("Error: $e");
+      showPopup(context, "Error: $e", AppColors.primary);
     } finally {
       setState(() => isFetchingAttendance = false);
     }
@@ -143,84 +176,52 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
     if (picked != null) {
       setState(() {
         if (isFromDate) {
-          fromDate = picked;
-          if (toDate.isBefore(fromDate)) {
-            toDate = fromDate; // Adjust To Date if needed
-          }
+          updateFromDate(picked);
         } else {
-          if (picked.isBefore(fromDate)) {
-            showPopup("To Date cannot be earlier than From Date.");
-          } else {
-            toDate = picked;
-          }
+          updateToDate(picked);
         }
       });
     }
   }
 
-  void showPopup(String message) {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Prevents accidental dismissals
-      builder: (context) {
-        return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          backgroundColor: AppColors.primary,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.info, color: Colors.white, size: 40),
-                SizedBox(height: 10),
-                Text(
-                  "Notification",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  message,
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    if (Navigator.canPop(context)) {
-                      Navigator.pop(context);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child:
-                      Text("OK", style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  void updateFromDate(DateTime newDate) {
+    setState(() {
+      fromDate = newDate;
+      if (toDate.isBefore(fromDate)) {
+        toDate = fromDate;
+      }
+    });
+  }
+
+  void updateToDate(DateTime newDate) {
+    if (newDate.isBefore(fromDate)) {
+      showPopup(context, "To Date cannot be earlier than From Date.",
+          AppColors.primary);
+    } else {
+      setState(() => toDate = newDate);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final dateButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: AppColors.primary,
+      foregroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("View Attendance", style: TextStyle(color: Colors.white, fontSize: 18)),
+        title: Text("View Attendance",
+            style: TextStyle(color: Colors.white, fontSize: 18)),
         backgroundColor: AppColors.primary,
         actions: [
           Padding(
             padding: EdgeInsets.only(right: 16.0),
-            child: UserIconWidget(userName: "Aditya Sharma"),
+            child: UserIconWidget(userName: userName ?? "Guest"),
           )
         ],
       ),
@@ -229,56 +230,138 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClassSubjectSelection(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  masterAttendance
+                      ? "Master Attendance"
+                      : "Subject-wise Attendance",
+                  style: TextStyle(fontSize: 18),
+                ),
+                Switch(
+                  value: masterAttendance,
+                  activeColor: AppColors.primary,
+                  onChanged: (value) {
+                    setState(() {
+                      masterAttendance = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+
+            // Class Selection Container
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(color: Colors.grey.shade300, blurRadius: 6)
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Select Class",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: DropdownButton<String>(
+                      value: selectedClass?.isNotEmpty == true
+                          ? selectedClass
+                          : null, // ✅ Safe check
+                      isExpanded: true,
+                      items: classData.map((c) {
+                        return DropdownMenuItem<String>(
+                          value: c['className'],
+                          child: Text("Class ${c['className']}"),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedClass = newValue;
+                          selectedSubject =
+                              null; // Reset subject when class changes
+                        });
+                      },
+                      hint: Text(
+                          "Select a class"), // ✅ Shows hint when nothing is selected
+                      dropdownColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 16),
+
+            // Subject Selection (only when masterAttendance is false)
+            if (!masterAttendance)
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(color: Colors.grey.shade300, blurRadius: 6)
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Select Subject",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: DropdownButton<String>(
+                        value: selectedSubject,
+                        isExpanded: true,
+                        items: getSubjects().map((subject) {
+                          return DropdownMenuItem<String>(
+                            value: subject,
+                            child: Text(subject),
+                          );
+                        }).toList(),
+                        onChanged: selectedClass == null
+                            ? null
+                            : (String? newValue) {
+                                setState(() {
+                                  selectedSubject = newValue;
+                                });
+                              },
+                        hint: Text("Choose a subject"),
+                        dropdownColor: Colors.white,
+                        disabledHint: Text("Select a class first"),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             SizedBox(height: 20),
+
+            // Date Pickers
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  ),
-                  onPressed: () async {
-                    DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: fromDate,
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime.now(),
-                    );
-                    if (pickedDate != null) {
-                      setState(() => fromDate = pickedDate);
-                    }
-                  },
+                  style: dateButtonStyle,
+                  onPressed: () => selectDate(context, true),
                   child: Text(
                     "From: ${DateFormat('dd/MM/yyyy').format(fromDate)}",
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  ),
-                  onPressed: () async {
-                    DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: toDate,
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime.now(),
-                    );
-                    if (pickedDate != null) {
-                      setState(() => toDate = pickedDate);
-                    }
-                  },
+                  style: dateButtonStyle,
+                  onPressed: () => selectDate(context, false),
                   child: Text(
                     "To: ${DateFormat('dd/MM/yyyy').format(toDate)}",
                     style: TextStyle(fontWeight: FontWeight.bold),
@@ -286,7 +369,10 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                 ),
               ],
             ),
+
             SizedBox(height: 30),
+
+            // Fetch Attendance Button
             Center(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -316,18 +402,42 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                       ),
               ),
             ),
+
             SizedBox(height: 10),
+
+            // Attendance List
             Expanded(
               child: attendanceData.isEmpty
-                  ? Center(child: Text("No attendance records found."))
+                  ? Center(
+                      child: Text(
+                        "No attendance records found.",
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    )
                   : ListView.builder(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       itemCount: attendanceData.length,
                       itemBuilder: (context, index) {
                         final entry = attendanceData[index];
                         return Card(
+                          margin: EdgeInsets.symmetric(vertical: 6),
+                          elevation: 3,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           child: ListTile(
-                            title: Text("Date: ${entry['date']}",
-                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            contentPadding: EdgeInsets.all(12),
+                            title: Text(
+                              "Date: ${entry['date']}",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle:
+                                Text("Status: ${entry['status'] ?? 'N/A'}"),
+                            leading: Icon(
+                              Icons.calendar_today,
+                              color: AppColors.primary,
+                            ),
                           ),
                         );
                       },
