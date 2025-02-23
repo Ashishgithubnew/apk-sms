@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sms_apk/Screens/splashScreen.dart';
-// import 'package:sms_apk/Screens/splashScreen.dart';
 
 void main() {
   runApp(const MyApp());

@@ -336,7 +336,7 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                                   selectedSubject = newValue;
                                 });
                               },
-                        hint: Text("Choose a subject"),
+                        hint: Text("Select a subject"),
                         dropdownColor: Colors.white,
                         disabledHint: Text("Select a class first"),
                       ),

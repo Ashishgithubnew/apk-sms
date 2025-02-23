@@ -1,0 +1,2 @@
+C:/Users/Adi/OneDrive/Desktop/sms_apk/android/app/.cxx/RelWithDebInfo/6za2k2m4/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/Adi/OneDrive/Desktop/sms_apk/android/app/.cxx/RelWithDebInfo/6za2k2m4/armeabi-v7a/CMakeFiles/rebuild_cache.dir

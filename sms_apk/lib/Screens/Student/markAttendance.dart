@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:sms_apk/utils/app_colors.dart';
+import 'package:sms_apk/widgets/user_icon.dart';
 
 class MarkAttendanceScreen extends StatefulWidget {
   const MarkAttendanceScreen({super.key});
@@ -16,11 +18,12 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
   List<dynamic> subjects = [];
   String? selectedSubject;
   List<Map<String, dynamic>> students = [];
-  bool masterAttendance = false;
+  bool masterAttendance = true;
   String? globalAttendance;
+  String? userName;
 
   @override
-  void initState() {  
+  void initState() {
     super.initState();
     fetchClasses();
   }
@@ -190,52 +193,138 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Student Attendance')),
+      appBar: AppBar(
+        title: Text("Mark Attendance",
+            style: TextStyle(color: Colors.white, fontSize: 18)),
+        backgroundColor: AppColors.primary,
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: UserIconWidget(userName: userName ?? "Guest"),
+          )
+        ],
+      ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
-            SwitchListTile(
-              title: Text("Subject-Wise Attendance"),
-              value: masterAttendance,
-              onChanged: (value) {
-                setState(() {
-                  masterAttendance = value;
-                });
-              },
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  masterAttendance
+                      ? "Master Attendance"
+                      : "Subject-wise Attendance",
+                  style: TextStyle(fontSize: 18),
+                ),
+                Switch(
+                  value: masterAttendance,
+                  activeColor: AppColors.primary,
+                  onChanged: (value) {
+                    setState(() {
+                      masterAttendance = value;
+                    });
+                  },
+                ),
+              ],
             ),
-            DropdownButton<String>(
-              value: selectedClass,
-              hint: Text("Select Class"),
-              isExpanded: true,
-              items: classData.map<DropdownMenuItem<String>>((classItem) {
-                return DropdownMenuItem<String>(
-                  value: classItem['className'],
-                  child: Text(classItem['className']),
-                );
-              }).toList(),
-              onChanged: onClassChange,
+            SizedBox(
+              height: 20,
+            ),
+            // Class Selection Container
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(color: Colors.grey.shade300, blurRadius: 6)
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Select Class",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: DropdownButton<String>(
+                      value: selectedClass?.isNotEmpty == true
+                          ? selectedClass
+                          : null, // ✅ Safe check
+                      isExpanded: true,
+                      items:
+                          classData.map<DropdownMenuItem<String>>((classItem) {
+                        return DropdownMenuItem<String>(
+                          value: classItem['className'],
+                          child: Text(classItem['className']),
+                        );
+                      }).toList(),
+                      onChanged: onClassChange,
+                      hint: Text(
+                          "Select a class"), // ✅ Shows hint when nothing is selected
+                      dropdownColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 20,
             ),
             if (!masterAttendance)
-              DropdownButton<String>(
-                value: selectedSubject,
-                hint: Text("Select Subject"),
-                isExpanded: true,
-                items: subjects.map<DropdownMenuItem<String>>((subject) {
-                  return DropdownMenuItem<String>(
-                    value: subject,
-                    child: Text(subject),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedSubject = value;
-                  });
-                },
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(color: Colors.grey.shade300, blurRadius: 6)
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Select Subject",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: DropdownButton<String>(
+                        value: selectedSubject,
+                        isExpanded: true,
+                        items:
+                            subjects.map<DropdownMenuItem<String>>((subject) {
+                          return DropdownMenuItem<String>(
+                            value: subject,
+                            child: Text(subject),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedSubject = value;
+                          });
+                        },
+                        hint: Text("Select a subject"),
+                        dropdownColor: Colors.white,
+                        disabledHint: Text("Select a class first"),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            SizedBox(
+              height: 20,
+            ),
             ElevatedButton(
               onPressed: fetchStudents,
               child: Text("Fetch Students"),
+            ),
+            SizedBox(
+              height: 20,
             ),
             DropdownButton<String>(
               hint: Text("Apply Attendance to All"),
@@ -248,6 +337,9 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                 );
               }).toList(),
               onChanged: applyAttendanceToAll,
+            ),
+            SizedBox(
+              height: 20,
             ),
             Expanded(
               child: ListView.builder(
