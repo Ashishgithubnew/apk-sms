@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_apk/Screens/homeScreen.dart';
 import 'package:sms_apk/widgets/custom_popup.dart';
 import 'package:sms_apk/utils/app_colors.dart';
+import 'package:intl/intl.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -67,7 +68,9 @@ class _NotificationPageState extends State<NotificationPage> {
         return;
       }
 
-      if (DateTime.parse(endDate).isBefore(DateTime.parse(startDate))) {
+      if (DateFormat("dd/MM/yyyy")
+          .parse(endDate)
+          .isBefore(DateFormat("dd/MM/yyyy").parse(startDate))) {
         showPopup(
             context, "End date cannot be before start date", AppColors.error);
         return;
