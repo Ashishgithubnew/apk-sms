@@ -22,8 +22,6 @@ class _StudentFormState extends State<StudentForm> {
   final TextEditingController contactController = TextEditingController();
   final TextEditingController dobController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
-  final TextEditingController classController = TextEditingController();
-  final TextEditingController departmentController = TextEditingController();
   final TextEditingController categoryController = TextEditingController();
   final TextEditingController totalFeeController = TextEditingController();
   final TextEditingController genderController = TextEditingController();
@@ -37,14 +35,59 @@ class _StudentFormState extends State<StudentForm> {
   final TextEditingController familyStateController = TextEditingController();
   final TextEditingController familyEmailController = TextEditingController();
 
-  Future<String?> getToken() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('authToken');
+  List<Map<String, dynamic>> classes = [];
+  String? selectedClass;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchClasses();
+  }
+
+  Future<void> fetchClasses() async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        showSnackbar('No token found. Please log in.');
+        return;
+      }
+      final response = await http.get(
+        Uri.parse('https://s-m-s-keyw.onrender.com/admin/getAll'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        List data = json.decode(response.body);
+        setState(() {
+          classes = data
+              .map((e) => {
+                    'className': e['className'],
+                    'totalFee': e['totalFee'],
+                  })
+              .toList();
+        });
+      } else {
+        showSnackbar('Failed to load classes');
+      }
+    } catch (e) {
+      showSnackbar('Error fetching classes: $e');
+    }
+  }
+
+  void onClassSelected(String? className) {
+    if (className == null) return;
+    setState(() {
+      selectedClass = className;
+      totalFeeController.text = classes
+          .firstWhere((e) => e['className'] == className)['totalFee']
+          .toString();
+    });
   }
 
   Future<void> submitForm() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => isLoading = true);
 
     final studentData = {
@@ -55,22 +98,11 @@ class _StudentFormState extends State<StudentForm> {
       'contact': contactController.text,
       'dob': dobController.text,
       'email': emailController.text,
-      'cls': classController.text,
-      'department': departmentController.text,
+      'cls': selectedClass,
       'category': categoryController.text,
       'totalFee': totalFeeController.text,
       'gender': genderController.text,
-      'familyDetails': {
-        'stdo_FatherName': fatherNameController.text,
-        'stdo_MotherName': motherNameController.text,
-        'stdo_primaryContact': primaryContactController.text,
-        'stdo_secondaryContact': secondaryContactController.text,
-        'stdo_city': familyCityController.text,
-        'stdo_state': familyStateController.text,
-        'stdo_email': familyEmailController.text,
-      }
     };
-    
 
     try {
       final token = await getToken();
@@ -101,9 +133,28 @@ class _StudentFormState extends State<StudentForm> {
     }
   }
 
+  Future<String?> getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('authToken');
+  }
+
   void showSnackbar(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        dobController.text = "${picked.toLocal()}".split(' ')[0];
+      });
+    }
   }
 
   @override
@@ -119,27 +170,33 @@ class _StudentFormState extends State<StudentForm> {
                 buildInputField(nameController, 'Student Name', true),
                 buildInputField(addressController, 'Address', true),
                 buildInputField(cityController, 'City', true),
-                buildInputField(genderController, 'Gender', true),
+                buildDropdownGenderField(),
                 buildInputField(stateController, 'State', true),
                 buildInputField(contactController, 'Contact', true),
-                buildInputField(dobController, 'Date of Birth', true),
+                GestureDetector(
+                  onTap: () => _selectDate(context),
+                  child: AbsorbPointer(
+                    child:
+                        buildInputField(dobController, 'Date of Birth', true),
+                  ),
+                ),
                 buildInputField(emailController, 'Email', true),
-                buildInputField(classController, 'Class', true),
-                buildInputField(departmentController, 'Department', true),
-                buildInputField(categoryController, 'Category', false),
+                buildDropdownField(),
                 buildInputField(totalFeeController, 'Total Fee', true,
-                    isNumber: true),
+                    isNumber: true, readOnly: true),
               ]),
               buildCard('Family Details', [
-                buildInputField(fatherNameController, "Father's Name", false),
-                buildInputField(motherNameController, "Mother's Name", false),
+                buildInputField(fatherNameController, "Father's Name", true),
+                buildInputField(motherNameController, "Mother's Name", true),
                 buildInputField(
-                    primaryContactController, 'Primary Contact', false),
+                    primaryContactController, "Primary Contact", true,
+                    isNumber: true),
                 buildInputField(
-                    secondaryContactController, 'Secondary Contact', false),
-                buildInputField(familyCityController, 'Family City', false),
-                buildInputField(familyStateController, 'Family State', false),
-                buildInputField(familyEmailController, 'Family Email', false),
+                    secondaryContactController, "Secondary Contact", false,
+                    isNumber: true),
+                buildInputField(familyCityController, "Family City", true),
+                buildInputField(familyStateController, "Family State", true),
+                buildInputField(familyEmailController, "Family Email", false),
               ]),
               SizedBox(height: 20),
               ElevatedButton(
@@ -152,7 +209,8 @@ class _StudentFormState extends State<StudentForm> {
                 onPressed: isLoading ? null : submitForm,
                 child: isLoading
                     ? CircularProgressIndicator(color: Colors.white)
-                    : Text('Submit', style: TextStyle(color: Colors.white,fontSize: 18)),
+                    : Text('Submit',
+                        style: TextStyle(color: Colors.white, fontSize: 18)),
               ),
             ],
           ),
@@ -161,34 +219,33 @@ class _StudentFormState extends State<StudentForm> {
     );
   }
 
-  Widget buildInputField(
-      TextEditingController controller, String label, bool required,
-      {bool isNumber = false}) {
+  Widget buildDropdownField() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        controller: controller,
+      child: DropdownButtonFormField<String>(
+        value: selectedClass,
         decoration: InputDecoration(
-          labelText: label,
+          labelText: 'Select Class',
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
         ),
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        validator: (value) {
-          if (required && (value == null || value.isEmpty)) {
-            return 'Please enter $label';
-          }
-          return null;
-        },
+        items: classes.map<DropdownMenuItem<String>>((e) {
+          return DropdownMenuItem<String>(
+            value: e['className'] as String, // Ensure this is a String
+            child: Text(e['className']),
+          );
+        }).toList(),
+        onChanged: onClassSelected,
+        validator: (value) => value == null ? 'Please select a class' : null,
       ),
     );
   }
 
   Widget buildCard(String title, List<Widget> children) {
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      elevation: 4,
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -198,6 +255,53 @@ class _StudentFormState extends State<StudentForm> {
             ...children,
           ],
         ),
+      ),
+    );
+  }
+
+  Widget buildDropdownGenderField() {
+    List<String> genderOptions = ['Male', 'Female', 'Other'];
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: DropdownButtonFormField<String>(
+        value: genderController.text.isNotEmpty ? genderController.text : null,
+        decoration: InputDecoration(
+          labelText: 'Gender',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+        ),
+        items: genderOptions.map((String gender) {
+          return DropdownMenuItem<String>(
+            value: gender,
+            child: Text(gender),
+          );
+        }).toList(),
+        onChanged: (String? newValue) {
+          setState(() {
+            genderController.text = newValue!;
+          });
+        },
+        validator: (value) => value == null ? 'Please select a gender' : null,
+      ),
+    );
+  }
+
+  Widget buildInputField(
+      TextEditingController controller, String label, bool isRequired,
+      {bool isNumber = false, bool readOnly = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        readOnly: readOnly,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+        ),
+        validator: isRequired
+            ? (value) =>
+                value == null || value.isEmpty ? 'This field is required' : null
+            : null,
       ),
     );
   }
