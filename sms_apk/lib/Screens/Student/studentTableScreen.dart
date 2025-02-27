@@ -67,7 +67,7 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
 
   Future<void> deleteStudent(String id) async {
     try {
-      final response = await http.delete(
+      final response = await http.post(
         Uri.parse('https://s-m-s-keyw.onrender.com/student/delete?id=$id'),
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
     }
 
     try {
-      final response = await http.put(
+      final response = await http.post(
         Uri.parse('https://s-m-s-keyw.onrender.com/student/update'),
         headers: {
           'Content-Type': 'application/json',
