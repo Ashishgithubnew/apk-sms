@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_apk/auth_screen/login.dart';
 import 'package:sms_apk/utils/app_colors.dart';
 import 'package:sms_apk/widgets/custom_popup.dart';
-import 'package:sms_apk/widgets/user_icon.dart';
+import 'package:sms_apk/widgets/header.dart';
 
 class FacultyTableScreen extends StatefulWidget {
   const FacultyTableScreen({super.key});
@@ -272,18 +272,8 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Faculty Table',
-          style: TextStyle(color: Colors.white, fontSize: 18),
-        ),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        actions: const [
-        UserIconWidget(userName: "Aditya Sharma",), // UserIconWidget placed in actions
-        SizedBox(width: 10), // Adds some spacing
-      ],
-      ),
+      backgroundColor: Colors.white,
+      appBar: Header(text: "Faculty Table"),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : facultyList.isEmpty
