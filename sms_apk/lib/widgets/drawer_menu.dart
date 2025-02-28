@@ -36,26 +36,36 @@ class _DrawerMenuState extends State<DrawerMenu> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            // Drawer Header
             DrawerHeader(
-              decoration: BoxDecoration(color: AppColors.primary),
+              decoration: const BoxDecoration(
+                color: AppColors
+                    .primary, // Replace with AppColors.primary if needed
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment:
+                    CrossAxisAlignment.stretch, // Ensures full width
                 children: [
-                  Icon(Icons.school, size: 50, color: Colors.white),
-                  SizedBox(height: 10),
-                  Text(
-                    'School Attendance',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                  Container(
+                    width: double.infinity, // Takes full width
+                    padding: const EdgeInsets.all(16), // Consistent padding
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E7878), // Slightly lighter shade
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'EasyWaySolution',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ],
               ),
             ),
-
             // Home Item
             _buildDrawerItem(Icons.home, 'Home', () {
               Navigator.pushReplacement(
@@ -128,7 +138,8 @@ class _DrawerMenuState extends State<DrawerMenu> {
                       ),
                       onTap: () {
                         setState(() {
-                          isStudentAttendanceDropdownOpen = !isStudentAttendanceDropdownOpen;
+                          isStudentAttendanceDropdownOpen =
+                              !isStudentAttendanceDropdownOpen;
                         });
                       },
                     ),
@@ -231,7 +242,8 @@ class _DrawerMenuState extends State<DrawerMenu> {
                       ),
                       onTap: () {
                         setState(() {
-                          isFacultyAttendanceDropdownOpen = !isFacultyAttendanceDropdownOpen;
+                          isFacultyAttendanceDropdownOpen =
+                              !isFacultyAttendanceDropdownOpen;
                         });
                       },
                     ),
@@ -269,7 +281,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
               ),
             ),
 
-             // Notification
+            // Notification
             _buildDrawerItem(Icons.notification_add, 'Notifications', () {
               Navigator.pushReplacement(
                 context,

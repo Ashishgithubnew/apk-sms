@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_apk/utils/app_colors.dart';
-import 'package:sms_apk/widgets/user_icon.dart';
+import 'package:sms_apk/widgets/header.dart';
 import 'package:sms_apk/widgets/custom_popup.dart';
 
 class MarkAttendance extends StatefulWidget {
@@ -114,17 +114,8 @@ class _MarkAttendanceState extends State<MarkAttendance> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mark Attendance', style: TextStyle(color: Colors.white, fontSize: 18),),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        actions: const [
-          UserIconWidget(
-            userName: "Aditya Sharma",
-          ),
-          SizedBox(width: 10),
-        ],
-      ),
+      backgroundColor: Colors.white,
+      appBar: Header(text: 'Mark Attendance'),
       body: isLoading
           ? const Center(
               child: CircularProgressIndicator(

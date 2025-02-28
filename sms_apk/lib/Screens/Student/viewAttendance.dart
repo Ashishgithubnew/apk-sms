@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_apk/widgets/custom_popup.dart';
+import 'package:sms_apk/widgets/header.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/user_icon.dart';
 
 class ViewAttendanceScreen extends StatefulWidget {
   const ViewAttendanceScreen({super.key});
@@ -24,7 +24,6 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
   bool isFetchingClasses = false;
   bool isFetchingAttendance = false;
   List<Map<String, dynamic>> classData = [];
-  String? userName;
   String? token;
 
   static const String baseUrl = "s-m-s-keyw.onrender.com";
@@ -39,7 +38,7 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
     token = await getToken();
     if (token != null) {
       fetchClassData();
-      fetchUserName();
+      // fetchUserName();
     } else {
       showPopup(context, "No token found. Please log in.", AppColors.primary);
     }
@@ -50,12 +49,12 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
     return prefs.getString('authToken');
   }
 
-  Future<void> fetchUserName() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      userName = prefs.getString('userName');
-    });
-  }
+  // Future<void> fetchUserName() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   setState(() {
+  //     userName = prefs.getString('userName');
+  //   });
+  // }
 
   Future<void> fetchClassData() async {
     setState(() => isFetchingClasses = true);
@@ -214,17 +213,8 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("View Attendance",
-            style: TextStyle(color: Colors.white, fontSize: 18)),
-        backgroundColor: AppColors.primary,
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: UserIconWidget(userName: userName ?? "Guest"),
-          )
-        ],
-      ),
+      backgroundColor: Colors.white,
+      appBar: Header(text: 'View Attendance'),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(MyApp());
@@ -10,6 +11,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.grey[200],
+      ),
       home: NotificationScreen(),
       debugShowCheckedModeBanner: false,
     );
@@ -22,15 +27,22 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-  TextEditingController _codeController = TextEditingController();
+  final TextEditingController _codeController = TextEditingController();
   List<dynamic> notifications = [];
 
+  String _formatDate(String date) {
+    try {
+      DateTime parsedDate = DateTime.parse(date);
+      return DateFormat('dd/MM/yyyy').format(parsedDate);
+    } catch (e) {
+      return date;
+    }
+  }
+
   Future<void> fetchNotifications() async {
-    final String code = _codeController.text;
+    final String code = _codeController.text.trim();
     if (code.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a code')),
-      );
+      _showSnackbar('Please enter a code');
       return;
     }
     
@@ -42,22 +54,30 @@ class _NotificationScreenState extends State<NotificationScreen> {
           notifications = json.decode(response.body);
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load notifications')),
-        );
+        _showSnackbar('Failed to load notifications');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching notifications')),
-      );
+      _showSnackbar('Error fetching notifications');
     }
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Notifications')),
-      body: NotificationBody(fetchNotifications: fetchNotifications, codeController: _codeController, notifications: notifications),
+      appBar: AppBar(
+        title: Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+      ),
+      body: NotificationBody(
+        fetchNotifications: fetchNotifications,
+        codeController: _codeController,
+        notifications: notifications,
+        formatDate: _formatDate,
+      ),
     );
   }
 }
@@ -66,8 +86,14 @@ class NotificationBody extends StatelessWidget {
   final Function fetchNotifications;
   final TextEditingController codeController;
   final List<dynamic> notifications;
+  final String Function(String) formatDate;
 
-  NotificationBody({required this.fetchNotifications, required this.codeController, required this.notifications});
+  NotificationBody({
+    required this.fetchNotifications,
+    required this.codeController,
+    required this.notifications,
+    required this.formatDate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -80,38 +106,44 @@ class NotificationBody extends StatelessWidget {
             decoration: InputDecoration(
               labelText: 'Enter Code',
               border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.code),
+                            helperText: 'Note : Write 4 characters of your name and last 4 digits of your contact number',
+
             ),
           ),
           SizedBox(height: 10),
           ElevatedButton(
             onPressed: () => fetchNotifications(),
-            child: Text('Fetch Notifications'),
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('Fetch Notifications', style: TextStyle(fontSize: 16)),
           ),
           SizedBox(height: 20),
           Expanded(
-            child: ListView.builder(
-              itemCount: notifications.length,
-              itemBuilder: (context, index) {
-                var notification = notifications[index];
-                return Card(
-                  child: ListTile(
-                    title: Text(notification['description']),
-                    subtitle: Text(
-                        'Start: ${notification['startDate']}, End: ${notification['endDate']}'),
+            child: notifications.isEmpty
+                ? Center(child: Text('No notifications available', style: TextStyle(fontSize: 16)))
+                : ListView.builder(
+                    itemCount: notifications.length,
+                    itemBuilder: (context, index) {
+                      var notification = notifications[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.all(16),
+                          title: Text(notification['description'],
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          subtitle: Text(
+                            'Start: ${formatDate(notification['startDate'])}\nEnd: ${formatDate(notification['endDate'])}',
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                          leading: Icon(Icons.notifications_active, color: Colors.blue),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-          ),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => NotificationScreen()),
-              );
-            },
-            child: Text('Get Notifications'),
           ),
         ],
       ),

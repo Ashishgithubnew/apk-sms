@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:sms_apk/utils/app_colors.dart';
-import 'package:sms_apk/widgets/user_icon.dart';
+import 'package:sms_apk/widgets/header.dart';
 
 class MarkAttendanceScreen extends StatefulWidget {
   const MarkAttendanceScreen({super.key});
@@ -20,7 +20,7 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
   List<Map<String, dynamic>> students = [];
   bool masterAttendance = true;
   String? globalAttendance;
-  String? userName;
+  
 
   @override
   void initState() {
@@ -193,17 +193,8 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Mark Attendance",
-            style: TextStyle(color: Colors.white, fontSize: 18)),
-        backgroundColor: AppColors.primary,
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: UserIconWidget(userName: userName ?? "Guest"),
-          )
-        ],
-      ),
+      backgroundColor: Colors.white,
+      appBar: Header(text: 'Mark Attendance'),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(

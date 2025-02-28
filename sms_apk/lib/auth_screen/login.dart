@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:animate_do/animate_do.dart';
+
 import 'package:sms_apk/auth_screen/NotificationScreen.dart';
+import 'package:sms_apk/utils/app_colors.dart';
 import '../Screens/homeScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -39,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 Icon(
                   isSuccess ? Icons.check_circle : Icons.error,
-                  color: isSuccess ? Colors.green : Colors.red,
+                  color: isSuccess ? AppColors.primary : Colors.red,
                 ),
                 SizedBox(width: 8),
                 Text(isSuccess ? "Success" : "Error"),
@@ -188,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           labelText: 'Password',
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                           suffixIcon: IconButton(
-                            icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                            icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility),
                             onPressed: () {
                               setState(() {
                                 _isPasswordVisible = !_isPasswordVisible;
@@ -205,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           shadowColor: Colors.black,
                           elevation: 5,
@@ -236,5 +238,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ],
       ),
     );
-  }
+  
+}
 }

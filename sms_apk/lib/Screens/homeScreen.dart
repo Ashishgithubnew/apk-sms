@@ -1,9 +1,10 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
+import 'package:sms_apk/widgets/header.dart';
 import '../widgets/drawer_menu.dart'; // Import Drawer Menu
 import '../widgets/menu_card.dart'; // Import Menu Cards
-import '../widgets/user_icon.dart'; // Import User Icon Widget
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,30 +16,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey =
       GlobalKey<ScaffoldState>(); // Fix for Drawer
-  String? userName =
-      "Aditya Sharma"; // Replace this with dynamic username from API
-
+   
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 18, 102, 102),
-        title: Text("Dashboard", style: TextStyle(color: Colors.white, fontSize: 18)),
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: UserIconWidget(userName: "Aditya Sharma"),
-          )
-        ],
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () {
-            _scaffoldKey.currentState?.openDrawer();
-          },
-        ),
-      ),
-
+      backgroundColor: Colors.white,
+      appBar: Header(
+          text: "Dashboard", scaffoldKey: _scaffoldKey), // Pass key to Header
       drawer: const DrawerMenu(), // Drawer from separate widget
 
       body: Padding(

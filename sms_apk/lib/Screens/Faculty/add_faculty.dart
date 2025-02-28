@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_apk/utils/app_colors.dart';
 import 'package:sms_apk/widgets/custom_popup.dart';
-import 'package:sms_apk/widgets/user_icon.dart';
+import 'package:sms_apk/widgets/header.dart';
 
 class FacultyDetailsForm extends StatefulWidget {
   const FacultyDetailsForm({super.key});
@@ -131,20 +131,8 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Add Faculty',
-          style: TextStyle(color: Colors.white, fontSize: 18),
-        ),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        actions: const [
-          UserIconWidget(
-            userName: "Aditya Sharma",
-          ), // UserIconWidget placed in actions
-          SizedBox(width: 10), // Adds some spacing
-        ],
-      ),
+      backgroundColor: Colors.white,
+      appBar: Header(text: "Add Faculty"),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
