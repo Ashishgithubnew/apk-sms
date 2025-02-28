@@ -46,7 +46,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       return;
     }
     
-    final String url = 'http://localhost:8080/notification/getNotification?code=$code';
+    final String url = 'https://s-m-s-keyw.onrender.com/notification/getNotification?code=$code';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -68,15 +68,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
-      body: NotificationBody(
-        fetchNotifications: fetchNotifications,
-        codeController: _codeController,
-        notifications: notifications,
-        formatDate: _formatDate,
+      body: Container(
+        color: Colors.white,
+        child: NotificationBody(
+          fetchNotifications: fetchNotifications,
+          codeController: _codeController,
+          notifications: notifications,
+          formatDate: _formatDate,
+        ),
       ),
     );
   }
@@ -97,7 +101,8 @@ class NotificationBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
+      color: Colors.white,
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
@@ -107,8 +112,7 @@ class NotificationBody extends StatelessWidget {
               labelText: 'Enter Code',
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.code),
-                            helperText: 'Note : Write 4 characters of your name and last 4 digits of your contact number',
-
+              helperText: 'Note : Write 4 characters of your name and last 4 digits of your contact number',
             ),
           ),
           SizedBox(height: 10),
@@ -129,6 +133,7 @@ class NotificationBody extends StatelessWidget {
                     itemBuilder: (context, index) {
                       var notification = notifications[index];
                       return Card(
+                        color: Colors.white,
                         margin: EdgeInsets.symmetric(vertical: 8),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         child: ListTile(
@@ -136,7 +141,7 @@ class NotificationBody extends StatelessWidget {
                           title: Text(notification['description'],
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           subtitle: Text(
-                            'Start: ${formatDate(notification['startDate'])}\nEnd: ${formatDate(notification['endDate'])}',
+                            'Start: ${formatDate(notification['startDate'])}\nEnd: ${formatDate(notification['endDate'])}\nClasses: ${notification['className']}',
                             style: TextStyle(color: Colors.grey[700]),
                           ),
                           leading: Icon(Icons.notifications_active, color: Colors.blue),
