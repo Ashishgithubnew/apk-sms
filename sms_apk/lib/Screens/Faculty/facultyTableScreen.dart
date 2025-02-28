@@ -289,7 +289,7 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: const Color.fromARGB(237, 255, 255, 255),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Column(
@@ -312,14 +312,14 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
                               children: [
                                 _buildActionButton(
                                   icon: Icons.edit,
-                                  color: Colors.blue,
+                                  color: AppColors.primary,
                                   tooltip: 'Edit Faculty',
                                   onTap: () => showEditForm(faculty),
                                 ),
                                 const SizedBox(width: 8),
                                 _buildActionButton(
                                   icon: Icons.delete,
-                                  color: Colors.red,
+                                  color: AppColors.primary,
                                   tooltip: 'Delete Faculty',
                                   onTap: () =>
                                       deleteFaculty(faculty['fact_id']),

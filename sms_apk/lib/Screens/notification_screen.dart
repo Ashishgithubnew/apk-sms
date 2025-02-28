@@ -1,12 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sms_apk/Screens/homeScreen.dart';
+// import 'package:sms_apk/Screens/homeScreen.dart';
 import 'package:sms_apk/widgets/custom_popup.dart';
 import 'package:sms_apk/utils/app_colors.dart';
 import 'package:intl/intl.dart';
+import 'package:sms_apk/widgets/header.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -182,7 +182,22 @@ class _NotificationPageState extends State<NotificationPage> {
                   const Text("Classes",
                       style: TextStyle(color: AppColors.primary)),
                   Column(
-                    children: ["LKG", "UKG", "Class 1", "Class 2", "Class 3", "Class 4", "Class 5", "Class 6", "Class 7", "Class 8", "Class 9", "Class 10", "Class 11", "Class 12"]
+                    children: [
+                      "LKG",
+                      "UKG",
+                      "Class 1",
+                      "Class 2",
+                      "Class 3",
+                      "Class 4",
+                      "Class 5",
+                      "Class 6",
+                      "Class 7",
+                      "Class 8",
+                      "Class 9",
+                      "Class 10",
+                      "Class 11",
+                      "Class 12"
+                    ]
                         .map((className) => CheckboxListTile(
                               title: Text(className,
                                   style: const TextStyle(
@@ -204,21 +219,30 @@ class _NotificationPageState extends State<NotificationPage> {
                   const Text("Category",
                       style: TextStyle(color: AppColors.primary)),
                   Column(
-  children: ["All", "Student", "Teacher", "Staff", "Event", "Holiday", "Exam"]
-      .map((category) => RadioListTile(
-            title: Text(category, style: const TextStyle(color: AppColors.primary)),
-            value: category,
-            groupValue: selectedCategory,
-            onChanged: (value) {
-              setDialogState(() {
-                selectedCategory = value as String; // Update selected category
-              });
-            },
-          ))
-      .toList(), // Convert Iterable to List
-),
-
-                  
+                    children: [
+                      "All",
+                      "Student",
+                      "Teacher",
+                      "Staff",
+                      "Event",
+                      "Holiday",
+                      "Exam"
+                    ]
+                        .map((category) => RadioListTile(
+                              title: Text(category,
+                                  style: const TextStyle(
+                                      color: AppColors.primary)),
+                              value: category,
+                              groupValue: selectedCategory,
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  selectedCategory = value
+                                      as String; // Update selected category
+                                });
+                              },
+                            ))
+                        .toList(), // Convert Iterable to List
+                  ),
                   TextField(
                     controller: descriptionController,
                     decoration: InputDecoration(
@@ -281,50 +305,68 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text(
-          "Notifications",
-          style: TextStyle(color: Colors.white, fontSize: 18),
-        ),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context); // Navigate back if possible
-            } else {
-              // Fallback navigation (e.g., navigate to home screen)
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
-              );
-            }
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: openAddNotificationDialog,
+      appBar: Header(text: "Notifications"),
+      body: Column(
+        children: [
+          // Add Notification Button Container
+          GestureDetector(
+            onTap: openAddNotificationDialog, // Opens dialog on tap
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white, // Background color
+                borderRadius: BorderRadius.circular(12), // Rounded edges
+                border: Border.all(
+                  color: Colors.grey.shade300, // Light border for a clean look
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1), // Soft shadow
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Add Notification",
+                    style: TextStyle(color: Colors.black, fontSize: 16),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add, color: AppColors.primary),
+                    onPressed:
+                        openAddNotificationDialog, // Also triggers on button tap
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Main Content (Loading, No Notifications, or List)
+          Expanded(
+            child: isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  )
+                : notifications.isEmpty
+                    ? const Center(
+                        child: Text("No notifications available",
+                            style: TextStyle(color: AppColors.primary)),
+                      )
+                    : ListView.builder(
+                        itemCount: notifications.length,
+                        itemBuilder: (context, index) {
+                          final notification = notifications[index];
+                          return _buildNotificationCard(notification);
+                        },
+                      ),
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            )
-          : notifications.isEmpty
-              ? const Center(
-                  child: Text("No notifications available",
-                      style: TextStyle(color: AppColors.primary)),
-                )
-              : ListView.builder(
-                  itemCount: notifications.length,
-                  itemBuilder: (context, index) {
-                    final notification = notifications[index];
-                    return _buildNotificationCard(notification);
-                  },
-                ),
     );
   }
 

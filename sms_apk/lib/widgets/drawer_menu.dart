@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // For logout functionality
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_apk/Screens/Faculty/FacultyTableScreen.dart';
 import 'package:sms_apk/Screens/Faculty/add_faculty.dart';
 import 'package:sms_apk/Screens/Faculty/mark_attendance.dart';
@@ -7,11 +7,11 @@ import 'package:sms_apk/Screens/Faculty/view_attendance.dart';
 import 'package:sms_apk/Screens/notification_screen.dart';
 import '../Screens/Student/add_student.dart';
 import '../Screens/homeScreen.dart';
-import '../Screens/Student/studentTableScreen.dart'; // Import StudentTableScreen
-import '../Screens/Student/viewAttendance.dart'; // Import View Attendance Screen
-import '../Screens/Student/markAttendance.dart'; // Import Mark Attendance Screen
-import '../auth_screen/login.dart'; // Import LoginScreen
-import '../utils/app_colors.dart'; // Import AppColors
+import '../Screens/Student/studentTableScreen.dart';
+import '../Screens/Student/viewAttendance.dart';
+import '../Screens/Student/markAttendance.dart';
+import '../auth_screen/login.dart';
+import '../utils/app_colors.dart';
 
 class DrawerMenu extends StatefulWidget {
   const DrawerMenu({super.key});
@@ -21,14 +21,10 @@ class DrawerMenu extends StatefulWidget {
 }
 
 class _DrawerMenuState extends State<DrawerMenu> {
-  bool isStudentDropdownOpen =
-      false; // State to toggle student dropdown visibility
-  bool isStudentAttendanceDropdownOpen =
-      false; // State to toggle attendance dropdown visibility
-  bool isFacultyDropdownOpen =
-      false; // State to toggle student dropdown visibility
-  bool isFacultyAttendanceDropdownOpen =
-      false; // State to toggle attendance dropdown visibility
+  bool isStudentDropdownOpen = false;
+  bool isStudentAttendanceDropdownOpen = false;
+  bool isFacultyDropdownOpen = false;
+  bool isFacultyAttendanceDropdownOpen = false;
 
   @override
   Widget build(BuildContext context) {
@@ -38,260 +34,157 @@ class _DrawerMenuState extends State<DrawerMenu> {
           children: [
             DrawerHeader(
               decoration: const BoxDecoration(
-                color: AppColors
-                    .primary, // Replace with AppColors.primary if needed
+                color: AppColors.primary,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment:
-                    CrossAxisAlignment.stretch, // Ensures full width
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Container(
-                    width: double.infinity, // Takes full width
-                    padding: const EdgeInsets.all(16), // Consistent padding
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E7878), // Slightly lighter shade
+                      color: const Color(0xFF1E7878),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
-                      'EasyWaySolution',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                      child: const Text(
+                        'EasyWaySolution',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
                   ),
                 ],
               ),
             ),
-            // Home Item
             _buildDrawerItem(Icons.home, 'Home', () {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => HomeScreen()),
               );
             }),
-
-            // Students Dropdown
-            ListTile(
-              leading: Icon(Icons.person, color: AppColors.primary),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Student',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  Icon(isStudentDropdownOpen
-                      ? Icons.arrow_drop_up
-                      : Icons.arrow_drop_down),
-                ],
-              ),
+            _buildExpandableSection(
+              title: 'Student',
+              isExpanded: isStudentDropdownOpen,
               onTap: () {
                 setState(() {
                   isStudentDropdownOpen = !isStudentDropdownOpen;
                 });
               },
-            ),
-
-            // Dropdown Items with Animation
-            AnimatedContainer(
-              duration: Duration(milliseconds: 300),
-              height: isStudentDropdownOpen
-                  ? (isStudentAttendanceDropdownOpen ? 250 : 150)
-                  : 0,
-              curve: Curves.easeInOut,
-              child: SingleChildScrollView(
-                child: Column(
+              children: [
+                _buildDrawerSubItem(Icons.table_rows, 'Student Table', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => StudentTableScreen(),
+                    ),
+                  );
+                }),
+                _buildDrawerSubItem(Icons.person_add, 'Add Student', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddStudentScreen(),
+                    ),
+                  );
+                }),
+                _buildExpandableSection(
+                  title: 'Student Attendance',
+                  isExpanded: isStudentAttendanceDropdownOpen,
+                  onTap: () {
+                    setState(() {
+                      isStudentAttendanceDropdownOpen =
+                          !isStudentAttendanceDropdownOpen;
+                    });
+                  },
                   children: [
-                    _buildDrawerSubItem(Icons.table_rows, 'Student Table', () {
+                    _buildDrawerSubItem(Icons.visibility, 'View Attendance',
+                        () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => StudentTableScreen(),
+                          builder: (context) => ViewAttendanceScreen(),
                         ),
                       );
                     }),
-                    _buildDrawerSubItem(Icons.person_add, 'Add Student', () {
+                    _buildDrawerSubItem(Icons.edit, 'Mark Attendance', () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const AddStudentScreen(),
+                          builder: (context) => MarkAttendanceScreen(),
                         ),
                       );
                     }),
-                    ListTile(
-                      leading: Icon(Icons.fact_check, color: AppColors.primary),
-                      title: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Student Attendance',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                          Icon(isStudentAttendanceDropdownOpen
-                              ? Icons.arrow_drop_up
-                              : Icons.arrow_drop_down),
-                        ],
-                      ),
-                      onTap: () {
-                        setState(() {
-                          isStudentAttendanceDropdownOpen =
-                              !isStudentAttendanceDropdownOpen;
-                        });
-                      },
-                    ),
-                    AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      height: isStudentAttendanceDropdownOpen ? 100 : 0,
-                      curve: Curves.easeInOut,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            _buildDrawerSubItem(
-                                Icons.visibility, 'View Attendance', () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ViewAttendanceScreen(),
-                                ),
-                              );
-                            }),
-                            _buildDrawerSubItem(Icons.edit, 'Mark Attendance',
-                                () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MarkAttendanceScreen(),
-                                ),
-                              );
-                            }),
-                          ],
-                        ),
-                      ),
-                    ),
                   ],
                 ),
-              ),
+              ],
             ),
-
-            // Faculty Item
-
-            ListTile(
-              leading: Icon(Icons.people, color: AppColors.primary),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Faculty',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  Icon(isFacultyDropdownOpen
-                      ? Icons.arrow_drop_up
-                      : Icons.arrow_drop_down),
-                ],
-              ),
+            _buildExpandableSection(
+              title: 'Faculty',
+              isExpanded: isFacultyDropdownOpen,
               onTap: () {
                 setState(() {
                   isFacultyDropdownOpen = !isFacultyDropdownOpen;
                 });
               },
-            ),
-
-            // Dropdown Items with Animation
-            AnimatedContainer(
-              duration: Duration(milliseconds: 300),
-              height: isFacultyDropdownOpen
-                  ? (isFacultyAttendanceDropdownOpen ? 250 : 150)
-                  : 0,
-              curve: Curves.easeInOut,
-              child: SingleChildScrollView(
-                child: Column(
+              children: [
+                _buildDrawerSubItem(Icons.table_rows, 'Faculty Table', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FacultyTableScreen(),
+                    ),
+                  );
+                }),
+                _buildDrawerSubItem(Icons.person_add, 'Add Faculty', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const FacultyDetailsForm(),
+                    ),
+                  );
+                }),
+                _buildExpandableSection(
+                  title: 'Faculty Attendance',
+                  isExpanded: isFacultyAttendanceDropdownOpen,
+                  onTap: () {
+                    setState(() {
+                      isFacultyAttendanceDropdownOpen =
+                          !isFacultyAttendanceDropdownOpen;
+                    });
+                  },
                   children: [
-                    _buildDrawerSubItem(Icons.table_rows, 'Faculty Table', () {
+                    _buildDrawerSubItem(Icons.visibility, 'View Attendance',
+                        () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => FacultyTableScreen(),
+                          builder: (context) => ViewAttendance(),
                         ),
                       );
                     }),
-                    _buildDrawerSubItem(Icons.person_add, 'Add Faculty', () {
+                    _buildDrawerSubItem(Icons.edit, 'Mark Attendance', () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const FacultyDetailsForm(),
+                          builder: (context) => MarkAttendance(),
                         ),
                       );
                     }),
-                    ListTile(
-                      leading: Icon(Icons.fact_check, color: AppColors.primary),
-                      title: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Faculty Attendance',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                          Icon(isFacultyAttendanceDropdownOpen
-                              ? Icons.arrow_drop_up
-                              : Icons.arrow_drop_down),
-                        ],
-                      ),
-                      onTap: () {
-                        setState(() {
-                          isFacultyAttendanceDropdownOpen =
-                              !isFacultyAttendanceDropdownOpen;
-                        });
-                      },
-                    ),
-                    AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      height: isFacultyAttendanceDropdownOpen ? 100 : 0,
-                      curve: Curves.easeInOut,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            _buildDrawerSubItem(
-                                Icons.visibility, 'View Attendance', () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ViewAttendance(),
-                                ),
-                              );
-                            }),
-                            _buildDrawerSubItem(Icons.edit, 'Mark Attendance',
-                                () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MarkAttendance(),
-                                ),
-                              );
-                            }),
-                          ],
-                        ),
-                      ),
-                    ),
                   ],
                 ),
-              ),
+              ],
             ),
-
-            // Notification
             _buildDrawerItem(Icons.notification_add, 'Notifications', () {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => NotificationPage()),
               );
             }),
-
-            Divider(),
-
-            // Logout Button
+            const Divider(),
             ListTile(
               leading: Icon(Icons.logout, color: AppColors.logout),
               title: Text(
@@ -317,7 +210,6 @@ class _DrawerMenuState extends State<DrawerMenu> {
     );
   }
 
-  // Reusable Drawer Item
   Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       leading: Icon(icon, color: AppColors.primary),
@@ -329,10 +221,9 @@ class _DrawerMenuState extends State<DrawerMenu> {
     );
   }
 
-  // Reusable Drawer Sub-Item
   Widget _buildDrawerSubItem(IconData icon, String title, VoidCallback onTap) {
     return Padding(
-      padding: EdgeInsets.only(left: 40),
+      padding: const EdgeInsets.only(left: 40),
       child: ListTile(
         leading: Icon(icon, color: AppColors.primary),
         title: Text(
@@ -341,6 +232,33 @@ class _DrawerMenuState extends State<DrawerMenu> {
         ),
         onTap: onTap,
       ),
+    );
+  }
+
+  Widget _buildExpandableSection({
+    required String title,
+    required bool isExpanded,
+    required VoidCallback onTap,
+    required List<Widget> children,
+  }) {
+    return Column(
+      children: [
+        ListTile(
+          leading: Icon(Icons.person, color: AppColors.primary),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              Icon(isExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down),
+            ],
+          ),
+          onTap: onTap,
+        ),
+        if (isExpanded) ...children,
+      ],
     );
   }
 }

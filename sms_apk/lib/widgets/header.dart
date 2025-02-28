@@ -3,7 +3,7 @@ import 'package:sms_apk/widgets/user_icon.dart';
 
 class Header extends StatelessWidget implements PreferredSizeWidget {
   final String text;
-  final GlobalKey<ScaffoldState>? scaffoldKey; // Nullable scaffoldKey
+  final GlobalKey<ScaffoldState>? scaffoldKey;
 
   const Header({super.key, required this.text, this.scaffoldKey});
 
@@ -23,19 +23,15 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
       ],
       leading: scaffoldKey != null
           ? IconButton(
-              icon: const Icon(Icons.menu, color: Colors.white), // Drawer Menu Icon
-              onPressed: () {
-                scaffoldKey!.currentState?.openDrawer();
-              },
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () => scaffoldKey!.currentState?.openDrawer(),
             )
-          : ModalRoute.of(context)?.canPop == true
+          : Navigator.canPop(context)
               ? IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white), // Custom Back Button
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
                 )
-              : null, // If no back button needed, keep it null
+              : null,
     );
   }
 

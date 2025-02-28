@@ -174,7 +174,7 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
                 student['cls'] = clsController.text;
                 editStudent(student);
               },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondary),
               child: Text('Save', style: TextStyle(color: Colors.white)),
             ),
           ],
@@ -192,10 +192,10 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context), // Cancel
-            child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+            child: Text("Cancel", style: TextStyle(color: AppColors.primary)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () {
               Navigator.pop(context); // Close the dialog
               deleteStudent(id); // Call the delete function
@@ -241,11 +241,11 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: Icon(Icons.edit, color: Colors.blue),
+                              icon: Icon(Icons.edit, color: AppColors.primary),
                               onPressed: () => showEditDialog(student),
                             ),
                             IconButton(
-                             icon: Icon(Icons.delete, color: AppColors.logout),
+                             icon: Icon(Icons.delete, color: AppColors.primary),
                              onPressed: () => confirmDeleteStudent(student['id']),
                             ),
                           ],

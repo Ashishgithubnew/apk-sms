@@ -43,7 +43,7 @@ class _UserIconWidgetState extends State<UserIconWidget> {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-      );
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -62,7 +62,7 @@ class _UserIconWidgetState extends State<UserIconWidget> {
         isLoading = false;
         hasError = true;
       });
-      print('Error fetching user data: $error');
+      showPopup(context, "Failed to load user data. Please try again.", AppColors.error);
     }
   }
 
@@ -95,7 +95,10 @@ class _UserIconWidgetState extends State<UserIconWidget> {
                 CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
           )
         else if (hasError)
-          const Icon(Icons.error, color: Colors.red, size: 18)
+          IconButton(
+            icon: const Icon(Icons.error, color: Colors.red, size: 18),
+            onPressed: fetchAndStoreUserData,
+          )
         else
           Text(
             userName ?? "Guest",
