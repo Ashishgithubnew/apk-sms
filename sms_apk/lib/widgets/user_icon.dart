@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sms_apk/utils/app_colors.dart';
+import 'package:sms_apk/widgets/custom_popup.dart';
 
 class UserIconWidget extends StatefulWidget {
   const UserIconWidget({super.key});
@@ -21,10 +23,27 @@ class _UserIconWidgetState extends State<UserIconWidget> {
     fetchAndStoreUserData();
   }
 
+  Future<String?> getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('authToken');
+  }
+
   /// Fetches data from API and stores it in SharedPreferences
   Future<void> fetchAndStoreUserData() async {
     try {
-      final response = await http.get(Uri.parse('https://s-m-s-keyw.onrender.com/self'));
+      final token = await getToken();
+      if (token == null) {
+        showPopup(context, "No token found. Please log in.", AppColors.primary);
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('https://s-m-s-keyw.onrender.com/self'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -72,14 +91,16 @@ class _UserIconWidgetState extends State<UserIconWidget> {
           const SizedBox(
             width: 16,
             height: 16,
-            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+            child:
+                CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
           )
         else if (hasError)
           const Icon(Icons.error, color: Colors.red, size: 18)
         else
           Text(
             userName ?? "Guest",
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold),
           ),
       ],
     );
