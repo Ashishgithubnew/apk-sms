@@ -182,6 +182,32 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
       },
     );
   }
+  Future<void> confirmDeleteStudent(String id) async {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Delete Student"),
+        content: Text("Are you sure you want to delete this student?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // Cancel
+            child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              Navigator.pop(context); // Close the dialog
+              deleteStudent(id); // Call the delete function
+            },
+            child: Text("Delete", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -227,8 +253,8 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
                               onPressed: () => showEditDialog(student),
                             ),
                             IconButton(
-                              icon: Icon(Icons.delete, color: AppColors.logout),
-                              onPressed: () => deleteStudent(student['id']),
+                             icon: Icon(Icons.delete, color: AppColors.logout),
+                             onPressed: () => confirmDeleteStudent(student['id']),
                             ),
                           ],
                         ),
