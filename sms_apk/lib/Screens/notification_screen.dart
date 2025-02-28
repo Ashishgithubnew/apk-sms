@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -181,7 +182,7 @@ class _NotificationPageState extends State<NotificationPage> {
                   const Text("Classes",
                       style: TextStyle(color: AppColors.primary)),
                   Column(
-                    children: ["LKG", "UKG", "Class 1", "Class 2", "Class 3"]
+                    children: ["LKG", "UKG", "Class 1", "Class 2", "Class 3", "Class 4", "Class 5", "Class 6", "Class 7", "Class 8", "Class 9", "Class 10", "Class 11", "Class 12"]
                         .map((className) => CheckboxListTile(
                               title: Text(className,
                                   style: const TextStyle(
@@ -199,6 +200,25 @@ class _NotificationPageState extends State<NotificationPage> {
                             ))
                         .toList(),
                   ),
+                  const SizedBox(height: 10),
+                  const Text("Category",
+                      style: TextStyle(color: AppColors.primary)),
+                  Column(
+  children: ["All", "Student", "Teacher", "Staff", "Event", "Holiday", "Exam"]
+      .map((category) => RadioListTile(
+            title: Text(category, style: const TextStyle(color: AppColors.primary)),
+            value: category,
+            groupValue: selectedCategory,
+            onChanged: (value) {
+              setDialogState(() {
+                selectedCategory = value as String; // Update selected category
+              });
+            },
+          ))
+      .toList(), // Convert Iterable to List
+),
+
+                  
                   TextField(
                     controller: descriptionController,
                     decoration: InputDecoration(
