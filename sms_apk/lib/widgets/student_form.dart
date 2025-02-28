@@ -102,6 +102,15 @@ class _StudentFormState extends State<StudentForm> {
       'category': categoryController.text,
       'totalFee': totalFeeController.text,
       'gender': genderController.text,
+      'familyDetails': {
+        'stdo_FatherName': fatherNameController.text,
+        'stdo_MotherName': motherNameController.text,
+        'stdo_primaryContact': primaryContactController.text,
+        'stdo_secondaryContact': secondaryContactController.text,
+        'stdo_city': familyCityController.text,
+        'stdo_state': familyStateController.text,
+        'stdo_email': familyEmailController.text,
+      }
     };
 
     try {
