@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:animate_do/animate_do.dart';
+import 'package:sms_apk/auth_screen/NotificationScreen.dart';
 import '../Screens/homeScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -217,6 +218,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             : Text('Login', style: TextStyle(fontSize: 18)),
                       ),
                     ),
+                     SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationScreen()),
+              );
+            },
+            child: Text('Notifications'),
+          ),
                   ],
                 ),
               ),
@@ -227,204 +238,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
-
-// // ignore_for_file: unused_local_variable, use_build_context_synchronously, library_private_types_in_public_api
-
-// import 'package:flutter/material.dart';
-// import 'package:http/http.dart' as http;
-// import 'dart:convert';
-// import 'package:animate_do/animate_do.dart';
-// import '../Screens/homeScreen.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-
-// class LoginScreen extends StatefulWidget {
-//   const LoginScreen({super.key});
-
-//   @override
-//   _LoginScreenState createState() => _LoginScreenState();
-// }
-
-// class _LoginScreenState extends State<LoginScreen> {
-//   final TextEditingController _emailController = TextEditingController();
-//   final TextEditingController _passwordController = TextEditingController();
-//   bool _isLoading = false;
-
-//   // Function to handle login request
-//   Future<void> _login() async {
-//     setState(() {
-//       _isLoading = true;
-//     });
-
-//     const String apiUrl = 'https://s-m-s-keyw.onrender.com/auth/login';
-//     final response = await http.post(
-//       Uri.parse(apiUrl),
-//       headers: {'Content-Type': 'application/json'},
-//       body: jsonEncode({
-//         'email': _emailController.text,
-//         'password': _passwordController.text,
-//       }),
-//     );
-
-//     setState(() {
-//       _isLoading = false;
-//     });
-
-//     if (response.statusCode == 200) {
-//       // Handle successful login
-//       final data = json.decode(response.body);
-//       final token = data['token'];
-
-//       SharedPreferences prefs = await SharedPreferences.getInstance();
-//       await prefs.setString('authToken', token);
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Login Successful!')),
-//       );
-
-//       // Navigate to MainScreen
-//       Navigator.pushReplacement(
-//         context,
-//         MaterialPageRoute(builder: (context) => HomeScreen()),
-//       );
-//     } else {
-//       // Handle login failure
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Login Failed! Please check your credentials.')),
-//       );
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     double screenHeight = MediaQuery.of(context).size.height;
-
-//     return Scaffold(
-//       backgroundColor: Color.fromARGB(255, 238, 235, 235),
-//       body: Stack(
-//         children: [
-//           // Background color container with fade animation
-//           FadeIn(
-//             duration: Duration(seconds: 2),
-//             child: Container(
-//               height: screenHeight * 0.4,
-//               padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-//               decoration: BoxDecoration(
-//                 color: Color.fromARGB(
-//                     255, 18, 102, 102), // Original background color
-//               ),
-//               child: Center(
-//                 child: Container(
-//                   padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-//                   decoration: BoxDecoration(
-//                     color: Color.fromARGB(
-//                         255, 30, 120, 120), // Lighter background for text
-//                     borderRadius: BorderRadius.circular(8),
-//                   ),
-//                   child: Text(
-//                     'EasyWaySolution',
-//                     style: TextStyle(
-//                       fontSize: 28,
-//                       fontWeight: FontWeight.bold,
-//                       color: Colors.white,
-//                     ),
-//                     textAlign: TextAlign.center,
-//                   ),
-//                 ),
-//               ),
-//             ),
-//           ),
-
-//           // Centered login container with bounce animation
-//           Center(
-//             child: BounceInDown(
-//               duration: Duration(seconds: 1),
-//               child: Container(
-//                 padding: EdgeInsets.all(20),
-//                 width: MediaQuery.of(context).size.width * 0.85,
-//                 decoration: BoxDecoration(
-//                   color: const Color.fromARGB(255, 255, 255, 255),
-//                   borderRadius: BorderRadius.circular(12),
-//                   boxShadow: [
-//                     BoxShadow(
-//                       color: Colors.black26,
-//                       blurRadius: 10,
-//                       spreadRadius: 2,
-//                     ),
-//                   ],
-//                 ),
-//                 child: Column(
-//                   mainAxisSize: MainAxisSize.min,
-//                   children: [
-//                     // Login Title with fade effect
-//                     FadeInLeft(
-//                       child: Text(
-//                         'Login',
-//                         style: TextStyle(
-//                           fontSize: 26,
-//                           fontWeight: FontWeight.bold,
-//                           color: Colors.black,
-//                         ),
-//                       ),
-//                     ),
-//                     SizedBox(height: 20),
-
-//                     // Email Input Field
-//                     FadeInRight(
-//                       child: TextField(
-//                         controller: _emailController,
-//                         decoration: InputDecoration(
-//                           labelText: 'Email',
-//                           border: OutlineInputBorder(
-//                             borderRadius: BorderRadius.circular(8),
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                     SizedBox(height: 15),
-
-//                     // Password Input Field
-//                     FadeInLeft(
-//                       child: TextField(
-//                         controller: _passwordController,
-//                         obscureText: true,
-//                         decoration: InputDecoration(
-//                           labelText: 'Password',
-//                           border: OutlineInputBorder(
-//                             borderRadius: BorderRadius.circular(8),
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                     SizedBox(height: 20),
-
-//                     // Login Button with pulse animation
-//                     Pulse(
-//                       child: ElevatedButton(
-//                         onPressed: _isLoading ? null : _login,
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: Colors.blue,
-//                           foregroundColor: Colors.white,
-//                           shadowColor: Colors.black,
-//                           elevation: 5,
-//                           padding: EdgeInsets.symmetric(vertical: 12),
-//                           minimumSize:
-//                               Size(double.infinity, 50), // Full width button
-//                           shape: RoundedRectangleBorder(
-//                             borderRadius: BorderRadius.circular(8),
-//                           ),
-//                         ),
-//                         child: _isLoading
-//                             ? CircularProgressIndicator(color: Colors.white)
-//                             : Text('Login', style: TextStyle(fontSize: 18)),
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
