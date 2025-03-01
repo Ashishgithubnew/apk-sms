@@ -31,6 +31,7 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
     "factStatus": "",
     "joiningDate": "",
     "leavingDate": "",
+    "factQualifications": []
   };
 
   // Controllers for date fields
@@ -109,7 +110,7 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
         "fact_state": _formData["state"],
         "fact_joiningDate": _formData["joiningDate"],
         "fact_leavingDate": _formData["leavingDate"],
-        "fact_qualifications": [],
+        "fact_qualifications": _formData["factQualifications"],
         "Fact_cls": [],
         "Fact_status": _formData["factStatus"],
       };
@@ -138,6 +139,38 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
     }
   }
 
+ void _addQualification() {
+    setState(() {
+      _formData["factQualifications"].add({
+        "type": "Graduation",
+        "grd_sub": "",
+        "grd_branch": "",
+        "grd_grade": "",
+        "grd_university": "",
+        "grd_yearOfPassing": ""
+      });
+    });
+  }
+
+  Widget _buildQualificationFields() {
+    return Column(
+      children: List.generate(_formData["factQualifications"].length, (index) {
+        return Column(
+          children: [
+            _buildTextField("Degree Type", "factQualifications[$index][type]"),
+            _buildTextField("Subject", "factQualifications[$index][grd_sub]"),
+            _buildTextField("Branch", "factQualifications[$index][grd_branch]"),
+            _buildTextField("Grade", "factQualifications[$index][grd_grade]"),
+            _buildTextField("University", "factQualifications[$index][grd_university]"),
+            _buildTextField("Year of Passing", "factQualifications[$index][grd_yearOfPassing]"),
+            const SizedBox(height: 16),
+          ],
+        );
+      }),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,18 +184,24 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              _buildTextField("Full Name", "fullName"),
-              _buildTextField("Email", "email", isEmail: true),
-              _buildTextField("Faculty Email", "factEmail", isEmail: true),
-              _buildTextField("Password", "password", isPassword: true),
-              _buildTextField("Contact", "contact"),
+              _buildTextField("Full Name*", "fullName"),
+              _buildTextField("Email*", "email", isEmail: false),
+              _buildTextField("Faculty Email*", "factEmail", isEmail: true),
+              _buildTextField("Password*", "password", isPassword: true),
+              _buildTextField("Contact*", "contact"),
               _buildDropdownField(
-                  "Gender", ["Male", "Female", "Other"], "gender"),
+                  "Gender*", ["Male", "Female", "Other"], "gender"),
               _buildTextField("Address", "address"),
-              _buildTextField("City", "city"),
+              _buildTextField("City*", "city"),
               _buildTextField("State", "state"),
-              _buildDateField("Joining Date", _joiningDateController),
+              _buildDateField("Joining Date*", _joiningDateController),
               _buildDateField("Leaving Date", _leavingDateController),
+              _buildDropdownField("Status", ["Active", "Inactive"], "factStatus"),
+               _buildQualificationFields(),
+              ElevatedButton(
+                onPressed: _addQualification,
+                child: const Text("+ Add Qualification"),
+              ),
               const SizedBox(height: 32),
               Center(
                 child: ElevatedButton(
