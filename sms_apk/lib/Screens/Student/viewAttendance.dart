@@ -162,9 +162,9 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
       lastDate: DateTime(2026),
       builder: (context, child) {
         return Theme(
-          data: ThemeData.dark().copyWith(
+          data: ThemeData.light().copyWith(
             primaryColor: AppColors.primary,
-            colorScheme: ColorScheme.dark(primary: AppColors.primary),
+            colorScheme: ColorScheme.light(primary: AppColors.primary),
             buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
           ),
           child: child!,
@@ -410,23 +410,39 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                       itemCount: attendanceData.length,
                       itemBuilder: (context, index) {
                         final entry = attendanceData[index];
+                        final String formattedDate = entry['date']
+                            .split('T')[0]; // Extracting only the date
+                        final List students = entry['students'];
+
                         return Card(
                           margin: EdgeInsets.symmetric(vertical: 6),
                           elevation: 3,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: ListTile(
-                            contentPadding: EdgeInsets.all(12),
-                            title: Text(
-                              "Date: ${entry['date']}",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle:
-                                Text("Status: ${entry['status'] ?? 'N/A'}"),
-                            leading: Icon(
-                              Icons.calendar_today,
-                              color: AppColors.primary,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Date: $formattedDate",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(height: 8),
+                                ...students.map((student) {
+                                  return ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: Icon(
+                                      Icons.person,
+                                      color: AppColors.primary,
+                                    ),
+                                    title: Text("Name: ${student['name']}"),
+                                    subtitle: Text(
+                                        "Attendance: ${student['attendance']}, \nRemark: ${student['remark'] ?? 'N/A'}"),
+                                  );
+                                }).toList(),
+                              ],
                             ),
                           ),
                         );

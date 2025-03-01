@@ -158,6 +158,16 @@ class _StudentFormState extends State<StudentForm> {
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: AppColors.primary,
+            colorScheme: ColorScheme.light(primary: AppColors.primary),
+            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       setState(() {
@@ -176,36 +186,37 @@ class _StudentFormState extends State<StudentForm> {
           child: ListView(
             children: [
               buildCard('Student Details', [
-                buildInputField(nameController, 'Student Name', true),
-                buildInputField(addressController, 'Address', true),
-                buildInputField(cityController, 'City', true),
+                buildInputField(nameController, 'Student Name*', true),
+                buildInputField(addressController, 'Address*', true),
+                buildInputField(cityController, 'City*', true),
                 buildDropdownGenderField(),
-                buildInputField(stateController, 'State', true),
-                buildInputField(contactController, 'Contact', true),
+                buildDropdownCategoryField(),
+                buildInputField(stateController, 'State*', true),
+                buildInputField(contactController, 'Contact*', true),
                 GestureDetector(
                   onTap: () => _selectDate(context),
                   child: AbsorbPointer(
                     child:
-                        buildInputField(dobController, 'Date of Birth', true),
+                        buildInputField(dobController, 'Date of Birth*', true),
                   ),
                 ),
-                buildInputField(emailController, 'Email', true),
+                buildInputField(emailController, 'Email', false),
                 buildDropdownField(),
                 buildInputField(totalFeeController, 'Total Fee', true,
                     isNumber: true, readOnly: true),
               ]),
               buildCard('Family Details', [
-                buildInputField(fatherNameController, "Father's Name", true),
-                buildInputField(motherNameController, "Mother's Name", true),
+                buildInputField(fatherNameController, "Father's Name*", true),
+                buildInputField(motherNameController, "Mother's Name", false),
                 buildInputField(
-                    primaryContactController, "Primary Contact", true,
+                    primaryContactController, "Primary Contact*", true,
                     isNumber: true),
                 buildInputField(
                     secondaryContactController, "Secondary Contact", false,
                     isNumber: true),
-                buildInputField(familyCityController, "Family City", true),
-                buildInputField(familyStateController, "Family State", true),
-                buildInputField(familyEmailController, "Family Email", false),
+                buildInputField(familyCityController, "Family City", false),
+                buildInputField(familyStateController, "Family State", false),
+                buildInputField(familyEmailController, "Family Email*", true),
               ]),
               SizedBox(height: 20),
               ElevatedButton(
@@ -235,7 +246,19 @@ class _StudentFormState extends State<StudentForm> {
         value: selectedClass,
         decoration: InputDecoration(
           labelText: 'Select Class',
+          floatingLabelStyle:
+              TextStyle(color: AppColors.primary), // Label color when focused
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: AppColors.primary), // Default border color
+            borderRadius: BorderRadius.circular(8),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+                color: AppColors.primary, width: 2), // Focused border color
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
         items: classes.map<DropdownMenuItem<String>>((e) {
           return DropdownMenuItem<String>(
@@ -275,8 +298,20 @@ class _StudentFormState extends State<StudentForm> {
       child: DropdownButtonFormField<String>(
         value: genderController.text.isNotEmpty ? genderController.text : null,
         decoration: InputDecoration(
-          labelText: 'Gender',
+          labelText: 'Gender*',
+          floatingLabelStyle:
+              TextStyle(color: AppColors.primary), // Label color when focused
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: AppColors.primary), // Default border color
+            borderRadius: BorderRadius.circular(8),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+                color: AppColors.primary, width: 2), // Focused border color
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
         items: genderOptions.map((String gender) {
           return DropdownMenuItem<String>(
@@ -294,6 +329,45 @@ class _StudentFormState extends State<StudentForm> {
     );
   }
 
+  Widget buildDropdownCategoryField() {
+    List<String> categoryOptions = ['General', 'SC', 'ST', 'OBC', 'Other'];
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: DropdownButtonFormField<String>(
+        value:
+            categoryController.text.isNotEmpty ? categoryController.text : null,
+        decoration: InputDecoration(
+          labelText: 'Category*',
+          floatingLabelStyle:
+              TextStyle(color: AppColors.primary), // Label color when focused
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: AppColors.primary), // Default border color
+            borderRadius: BorderRadius.circular(8),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+                color: AppColors.primary, width: 2), // Focused border color
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        items: categoryOptions.map((String category) {
+          return DropdownMenuItem<String>(
+            value: category,
+            child: Text(category),
+          );
+        }).toList(),
+        onChanged: (String? newValue) {
+          setState(() {
+            categoryController.text = newValue!;
+          });
+        },
+        validator: (value) => value == null ? 'Please select a category' : null,
+      ),
+    );
+  }
+
   Widget buildInputField(
       TextEditingController controller, String label, bool isRequired,
       {bool isNumber = false, bool readOnly = false}) {
@@ -303,9 +377,24 @@ class _StudentFormState extends State<StudentForm> {
         controller: controller,
         keyboardType: isNumber ? TextInputType.number : TextInputType.text,
         readOnly: readOnly,
+        cursorColor: AppColors.primary, // Cursor (caret) color
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+          floatingLabelStyle:
+              TextStyle(color: AppColors.primary), // Label color when focused
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: AppColors.primary), // Default border color
+            borderRadius: BorderRadius.circular(8),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+                color: AppColors.primary, width: 2), // Focused border color
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
         validator: isRequired
             ? (value) =>

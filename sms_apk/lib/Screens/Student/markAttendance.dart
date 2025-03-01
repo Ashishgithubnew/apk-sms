@@ -20,7 +20,6 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
   List<Map<String, dynamic>> students = [];
   bool masterAttendance = true;
   String? globalAttendance;
-  
 
   @override
   void initState() {
@@ -312,7 +311,17 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
             ),
             ElevatedButton(
               onPressed: fetchStudents,
-              child: Text("Fetch Students"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary, // Button color
+                foregroundColor: Colors.white, // Text color
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 12), // Optional: Adjust padding
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(8), // Optional: Rounded corners
+                ),
+              ),
+              child: const Text("Fetch Students"),
             ),
             SizedBox(
               height: 20,
@@ -369,7 +378,17 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
             ),
             ElevatedButton(
               onPressed: submitAttendance,
-              child: Text("Submit Attendance"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary, // Button color
+                foregroundColor: Colors.white, // Text color
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 12), // Optional: Padding
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(8), // Optional: Rounded corners
+                ),
+              ),
+              child: const Text("Submit Attendance"),
             ),
           ],
         ),

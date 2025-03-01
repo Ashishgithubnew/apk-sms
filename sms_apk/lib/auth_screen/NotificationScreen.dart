@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:sms_apk/utils/app_colors.dart';
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -22,6 +25,8 @@ class MyApp extends StatelessWidget {
 }
 
 class NotificationScreen extends StatefulWidget {
+  const NotificationScreen({super.key});
+
   @override
   _NotificationScreenState createState() => _NotificationScreenState();
 }
@@ -45,8 +50,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
       _showSnackbar('Please enter a code');
       return;
     }
-    
-    final String url = 'https://s-m-s-keyw.onrender.com/notification/getNotification?code=$code';
+
+    final String url =
+        'https://s-m-s-keyw.onrender.com/notification/getNotification?code=$code';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -62,16 +68,26 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   void _showSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Notifications',
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
+        backgroundColor: AppColors.primary, // Ensures app bar matches theme
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back,
+              color: Colors.white), // Back arrow icon
+          onPressed: () =>
+              Navigator.pop(context), // Navigate back to the previous screen
+        ),
       ),
       body: Container(
         color: Colors.white,
@@ -92,7 +108,8 @@ class NotificationBody extends StatelessWidget {
   final List<dynamic> notifications;
   final String Function(String) formatDate;
 
-  NotificationBody({
+  const NotificationBody({
+    super.key,
     required this.fetchNotifications,
     required this.codeController,
     required this.notifications,
@@ -108,26 +125,52 @@ class NotificationBody extends StatelessWidget {
         children: [
           TextField(
             controller: codeController,
+            cursorColor: AppColors.primary, // Cursor (caret) color
             decoration: InputDecoration(
               labelText: 'Enter Code',
-              border: OutlineInputBorder(),
+              floatingLabelStyle: TextStyle(
+                  color: AppColors.primary), // Label color when focused
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: AppColors.primary), // Default border color
+                borderRadius: BorderRadius.circular(8),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: AppColors.primary, width: 2), // Focused border color
+                borderRadius: BorderRadius.circular(8),
+              ),
               prefixIcon: Icon(Icons.code),
-              helperText: 'Note : Write 4 characters of your name and last 4 digits of your contact number',
+              helperText:
+                  'Note : Write 4 characters of your name and last 4 digits of your contact number',
             ),
           ),
           SizedBox(height: 10),
           ElevatedButton(
             onPressed: () => fetchNotifications(),
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              backgroundColor: AppColors.primary, // Button color
+              foregroundColor: Colors.white, // Text color
+              padding: const EdgeInsets.symmetric(
+                  vertical: 12, horizontal: 20), // Button padding
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // Rounded corners
+              ),
             ),
-            child: Text('Fetch Notifications', style: TextStyle(fontSize: 16)),
+            child: const Text(
+              "Fetch Notifications",
+              style: TextStyle(fontSize: 16),
+            ),
           ),
           SizedBox(height: 20),
           Expanded(
             child: notifications.isEmpty
-                ? Center(child: Text('No notifications available', style: TextStyle(fontSize: 16)))
+                ? Center(
+                    child: Text('No notifications available',
+                        style: TextStyle(fontSize: 16)))
                 : ListView.builder(
                     itemCount: notifications.length,
                     itemBuilder: (context, index) {
@@ -135,16 +178,19 @@ class NotificationBody extends StatelessWidget {
                       return Card(
                         color: Colors.white,
                         margin: EdgeInsets.symmetric(vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
                         child: ListTile(
                           contentPadding: EdgeInsets.all(16),
                           title: Text(notification['description'],
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16)),
                           subtitle: Text(
                             'Start: ${formatDate(notification['startDate'])}\nEnd: ${formatDate(notification['endDate'])}\nClasses: ${notification['className']}',
                             style: TextStyle(color: Colors.grey[700]),
                           ),
-                          leading: Icon(Icons.notifications_active, color: Colors.blue),
+                          leading: Icon(Icons.notifications_active,
+                              color: AppColors.primary),
                         ),
                       );
                     },

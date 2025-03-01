@@ -135,6 +135,18 @@ class _NotificationPageState extends State<NotificationPage> {
                         initialDate: DateTime.now(),
                         firstDate: DateTime(2000),
                         lastDate: DateTime(2100),
+                        builder: (context, child) {
+                          return Theme(
+                            data: ThemeData.light().copyWith(
+                              primaryColor: AppColors.primary,
+                              colorScheme:
+                                  ColorScheme.light(primary: AppColors.primary),
+                              buttonTheme: ButtonThemeData(
+                                  textTheme: ButtonTextTheme.primary),
+                            ),
+                            child: child!,
+                          );
+                        },
                       );
                       if (picked != null) {
                         setDialogState(() => startDate = picked);
@@ -147,6 +159,15 @@ class _NotificationPageState extends State<NotificationPage> {
                       suffixIcon: const Icon(Icons.calendar_today,
                           color: AppColors.primary),
                       border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.primary),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: AppColors.primary, width: 2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
@@ -162,6 +183,18 @@ class _NotificationPageState extends State<NotificationPage> {
                         initialDate: DateTime.now(),
                         firstDate: DateTime(2000),
                         lastDate: DateTime(2100),
+                        builder: (context, child) {
+                          return Theme(
+                            data: ThemeData.light().copyWith(
+                              primaryColor: AppColors.primary,
+                              colorScheme:
+                                  ColorScheme.light(primary: AppColors.primary),
+                              buttonTheme: ButtonThemeData(
+                                  textTheme: ButtonTextTheme.primary),
+                            ),
+                            child: child!,
+                          );
+                        },
                       );
                       if (picked != null) {
                         setDialogState(() => endDate = picked);
@@ -176,44 +209,16 @@ class _NotificationPageState extends State<NotificationPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.primary),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: AppColors.primary, width: 2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text("Classes",
-                      style: TextStyle(color: AppColors.primary)),
-                  Column(
-                    children: [
-                      "LKG",
-                      "UKG",
-                      "Class 1",
-                      "Class 2",
-                      "Class 3",
-                      "Class 4",
-                      "Class 5",
-                      "Class 6",
-                      "Class 7",
-                      "Class 8",
-                      "Class 9",
-                      "Class 10",
-                      "Class 11",
-                      "Class 12"
-                    ]
-                        .map((className) => CheckboxListTile(
-                              title: Text(className,
-                                  style: const TextStyle(
-                                      color: AppColors.primary)),
-                              value: selectedClasses.contains(className),
-                              onChanged: (isSelected) {
-                                setDialogState(() {
-                                  if (isSelected == true) {
-                                    selectedClasses.add(className);
-                                  } else {
-                                    selectedClasses.remove(className);
-                                  }
-                                });
-                              },
-                            ))
-                        .toList(),
                   ),
                   const SizedBox(height: 10),
                   const Text("Category",
@@ -234,6 +239,8 @@ class _NotificationPageState extends State<NotificationPage> {
                                       color: AppColors.primary)),
                               value: category,
                               groupValue: selectedCategory,
+                              activeColor:
+                                  AppColors.primary, // Set radio button color
                               onChanged: (value) {
                                 setDialogState(() {
                                   selectedCategory = value
@@ -241,14 +248,64 @@ class _NotificationPageState extends State<NotificationPage> {
                                 });
                               },
                             ))
-                        .toList(), // Convert Iterable to List
+                        .toList(),
                   ),
+                  if (selectedCategory == "Student") ...[
+                    const SizedBox(height: 10),
+                    const Text("Classes",
+                        style: TextStyle(color: AppColors.primary)),
+                    Column(
+                      children: [
+                        "LKG",
+                        "UKG",
+                        "Class 1",
+                        "Class 2",
+                        "Class 3",
+                        "Class 4",
+                        "Class 5",
+                        "Class 6",
+                        "Class 7",
+                        "Class 8",
+                        "Class 9",
+                        "Class 10",
+                        "Class 11",
+                        "Class 12"
+                      ]
+                          .map((className) => CheckboxListTile(
+                                title: Text(className,
+                                    style: const TextStyle(
+                                        color: AppColors.primary)),
+                                value: selectedClasses.contains(className),
+                                activeColor:
+                                    AppColors.primary, // Set radio button color
+                                onChanged: (isSelected) {
+                                  setDialogState(() {
+                                    if (isSelected == true) {
+                                      selectedClasses.add(className);
+                                    } else {
+                                      selectedClasses.remove(className);
+                                    }
+                                  });
+                                },
+                              ))
+                          .toList(),
+                    ),
+                  ],
                   TextField(
                     controller: descriptionController,
                     decoration: InputDecoration(
                       labelText: "Description",
                       labelStyle: const TextStyle(color: AppColors.primary),
                       border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.primary),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: AppColors.primary, width: 2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),

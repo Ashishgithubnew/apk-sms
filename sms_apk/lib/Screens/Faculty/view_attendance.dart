@@ -73,6 +73,16 @@ class _ViewAttendanceState extends State<ViewAttendance> {
       initialDate: isFromDate ? fromDate : toDate,
       firstDate: DateTime(2024),
       lastDate: DateTime(2026),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: AppColors.primary,
+            colorScheme: ColorScheme.light(primary: AppColors.primary),
+            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
@@ -159,7 +169,7 @@ class _ViewAttendanceState extends State<ViewAttendance> {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary.withOpacity(0.1),
+        backgroundColor: AppColors.primary,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
       child: Text(
@@ -186,7 +196,7 @@ class _ViewAttendanceState extends State<ViewAttendance> {
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: Colors.blueAccent,
+                color: AppColors.primary,
               ),
             ),
             const Divider(),
@@ -209,8 +219,8 @@ class _ViewAttendanceState extends State<ViewAttendance> {
                         style: const TextStyle(color: Colors.white),
                       ),
                       backgroundColor: student['attendance'] == 'Present'
-                          ? Colors.greenAccent
-                          : Colors.redAccent,
+                          ? AppColors.primary
+                          : Colors.grey,
                     ),
                   ],
                 ),

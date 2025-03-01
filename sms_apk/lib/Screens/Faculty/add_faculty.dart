@@ -61,6 +61,16 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: AppColors.primary,
+            colorScheme: ColorScheme.light(primary: AppColors.primary),
+            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       setState(() {
@@ -182,9 +192,24 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
       child: TextFormField(
         initialValue: _formData[key],
         obscureText: isPassword,
+        cursorColor: AppColors.primary, // Cursor (caret) color
         decoration: InputDecoration(
           labelText: label,
-          border: const OutlineInputBorder(),
+          floatingLabelStyle:
+              TextStyle(color: AppColors.primary), // Label color when focused
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: AppColors.primary), // Default border color
+            borderRadius: BorderRadius.circular(8),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+                color: AppColors.primary, width: 2), // Focused border color
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
         keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
         onChanged: (value) => _formData[key] = value,
@@ -208,7 +233,21 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
         value: _formData[key].isEmpty ? null : _formData[key],
         decoration: InputDecoration(
           labelText: label,
-          border: const OutlineInputBorder(),
+          floatingLabelStyle:
+              TextStyle(color: AppColors.primary), // Label color when focused
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: AppColors.primary), // Default border color
+            borderRadius: BorderRadius.circular(8),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+                color: AppColors.primary, width: 2), // Focused border color
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
         items: items
             .map((item) => DropdownMenuItem(value: item, child: Text(item)))
@@ -226,9 +265,24 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
       child: TextFormField(
         controller: controller,
         readOnly: true,
+        cursorColor: AppColors.primary, // Cursor (caret) color
         decoration: InputDecoration(
           labelText: label,
-          border: const OutlineInputBorder(),
+          floatingLabelStyle:
+              TextStyle(color: AppColors.primary), // Label color when focused
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: AppColors.primary), // Default border color
+            borderRadius: BorderRadius.circular(8),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+                color: AppColors.primary, width: 2), // Focused border color
+            borderRadius: BorderRadius.circular(8),
+          ),
           suffixIcon: const Icon(Icons.calendar_today),
         ),
         onTap: () => _selectDate(context, controller),

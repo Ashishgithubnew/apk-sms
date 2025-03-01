@@ -22,7 +22,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // Email validation function
   bool _isValidEmail(String email) {
-    return RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(email);
+    return RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+        .hasMatch(email);
   }
 
   // Function to show animated popup dialog
@@ -34,7 +35,8 @@ class _LoginScreenState extends State<LoginScreen> {
         return FadeInDown(
           duration: Duration(milliseconds: 500),
           child: AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             backgroundColor: Colors.white,
             title: Row(
               children: [
@@ -56,105 +58,104 @@ class _LoginScreenState extends State<LoginScreen> {
     Future.delayed(Duration(seconds: 2), () {
       Navigator.pop(context);
       if (isSuccess) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => HomeScreen()));
       }
     });
   }
 
   // Function to handle login request
   Future<void> _login() async {
-  String email = _emailController.text.trim();
-  String password = _passwordController.text.trim();
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
 
-  if (email.isEmpty || password.isEmpty) {
-    _showPopupMessage('Please fill in all fields.', false);
-    return;
-  }
-
-  if (!_isValidEmail(email)) {
-    _showPopupMessage('Please enter a valid email address.', false);
-    return;
-  }
-
-  setState(() {
-    _isLoading = true;
-  });
-
-  try {
-    const String apiUrl = 'https://s-m-s-keyw.onrender.com/auth/login';
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final token = data['token'];
-
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('authToken', token);
-      await prefs.setString('email', email); // Store email
-      await prefs.setString('password', password); // Store password
-      // Fetch user data and store username
-      await _fetchAndStoreUserData(token);
-
-      _showPopupMessage('Login Successful!', true);
-    } else {
-      _showPopupMessage('Invalid email or password.', false);
+    if (email.isEmpty || password.isEmpty) {
+      _showPopupMessage('Please fill in all fields.', false);
+      return;
     }
-  } catch (e) {
-    _showPopupMessage('Network error. Please try again.', false);
-  } finally {
+
+    if (!_isValidEmail(email)) {
+      _showPopupMessage('Please enter a valid email address.', false);
+      return;
+    }
+
     setState(() {
-      _isLoading = false;
+      _isLoading = true;
     });
-  }
-}
 
-/// Fetches data from API and stores it in SharedPreferences
-Future<void> _fetchAndStoreUserData(String token) async {
-  try {
-    final response = await http.get(
-      Uri.parse('https://s-m-s-keyw.onrender.com/self'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    ).timeout(const Duration(seconds: 10));
+    try {
+      const String apiUrl = 'https://s-m-s-keyw.onrender.com/auth/login';
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final token = data['token'];
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userData', json.encode(data));
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('authToken', token);
+        await prefs.setString('email', email); // Store email
+        await prefs.setString('password', password); // Store password
+        // Fetch user data and store username
+        await _fetchAndStoreUserData(token);
 
-      // Extract username and store it
-      String extractedUserName = _extractUserName(data);
-      String extractedRole = data['role'] ?? "Unknown";
-
-      // Store username and role
-      await prefs.setString('role', extractedRole);
-      await prefs.setString('userName', extractedUserName);
-    } else {
-      throw Exception('Failed to load user data');
+        _showPopupMessage('Login Successful!', true);
+      } else {
+        _showPopupMessage('Invalid email or password.', false);
+      }
+    } catch (e) {
+      _showPopupMessage('Network error. Please try again.', false);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-  } catch (error) {
-    _showPopupMessage('Failed to load user data. Please try again.', false);
   }
-}
 
-/// Extracts the username based on the user's role
-String _extractUserName(Map<String, dynamic> data) {
-  if (data["role"] == "user") {
-    return data["schoolCreationEntity"]?["ownerName"] ?? "Guest";
-  } else if (data["role"] == "sub-user") {
-    return data["facultyInfo"]?["fact_Name"] ?? "Guest";
+  /// Fetches data from API and stores it in SharedPreferences
+  Future<void> _fetchAndStoreUserData(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://s-m-s-keyw.onrender.com/self'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userData', json.encode(data));
+
+        // Extract username and store it
+        String extractedUserName = _extractUserName(data);
+        String extractedRole = data['role'] ?? "Unknown";
+
+        // Store username and role
+        await prefs.setString('role', extractedRole);
+        await prefs.setString('userName', extractedUserName);
+      } else {
+        throw Exception('Failed to load user data');
+      }
+    } catch (error) {
+      _showPopupMessage('Failed to load user data. Please try again.', false);
+    }
   }
-  return "Guest";
-}
 
-
+  /// Extracts the username based on the user's role
+  String _extractUserName(Map<String, dynamic> data) {
+    if (data["role"] == "user") {
+      return data["schoolCreationEntity"]?["ownerName"] ?? "Guest";
+    } else if (data["role"] == "sub-user") {
+      return data["facultyInfo"]?["fact_Name"] ?? "Guest";
+    }
+    return "Guest";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +171,8 @@ String _extractUserName(Map<String, dynamic> data) {
             child: Container(
               height: screenHeight * 0.4,
               padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-              decoration: BoxDecoration(color: Color.fromARGB(255, 18, 102, 102)),
+              decoration:
+                  BoxDecoration(color: Color.fromARGB(255, 18, 102, 102)),
               child: Center(
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -180,7 +182,10 @@ String _extractUserName(Map<String, dynamic> data) {
                   ),
                   child: Text(
                     'EasyWaySolution',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -190,100 +195,160 @@ String _extractUserName(Map<String, dynamic> data) {
 
           // Login container with bounce animation
           Center(
-            child: BounceInDown(
-              duration: Duration(seconds: 1),
-              child: Container(
-                padding: EdgeInsets.all(20),
-                width: MediaQuery.of(context).size.width * 0.85,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black26, blurRadius: 10, spreadRadius: 2),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Login Title with fade effect
-                    FadeInLeft(
-                      child: Text(
-                        'Login',
-                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                BounceInDown(
+                  duration: Duration(seconds: 1),
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 10,
+                            spreadRadius: 2),
+                      ],
                     ),
-                    SizedBox(height: 20),
-
-                    // Email Input Field
-                    FadeInRight(
-                      child: TextField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 15),
-
-                    // Password Input Field with Eye Button
-                    FadeInLeft(
-                      child: TextField(
-                        controller: _passwordController,
-                        obscureText: !_isPasswordVisible,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                          suffixIcon: IconButton(
-                            icon: Icon(_isPasswordVisible ? Icons.visibility_off : Icons.visibility),
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
-                            },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Login Title with fade effect
+                        FadeInLeft(
+                          child: Text(
+                            'Login',
+                            style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black),
                           ),
                         ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
+                        SizedBox(height: 20),
 
-                    // Login Button with pulse animation
-                    Pulse(
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _login,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          shadowColor: Colors.black,
-                          elevation: 5,
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          minimumSize: Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        // Email Input Field
+                        FadeInRight(
+                          child: TextField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            cursorColor:
+                                AppColors.primary, // Cursor (caret) color
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              floatingLabelStyle: TextStyle(
+                                  color: AppColors
+                                      .primary), // Label color when focused
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColors
+                                        .primary), // Default border color
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColors.primary,
+                                    width: 2), // Focused border color
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
                         ),
-                        child: _isLoading
-                            ? CircularProgressIndicator(color: Colors.white)
-                            : Text('Login', style: TextStyle(fontSize: 18)),
-                      ),
+                        SizedBox(height: 15),
+
+                        // Password Input Field with Eye Button
+                        FadeInLeft(
+                          child: TextField(
+                            controller: _passwordController,
+                            obscureText: !_isPasswordVisible,
+                            cursorColor:
+                                AppColors.primary, // Cursor (caret) color
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              floatingLabelStyle: TextStyle(
+                                  color: AppColors
+                                      .primary), // Label color when focused
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColors
+                                        .primary), // Default border color
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: AppColors.primary,
+                                    width: 2), // Focused border color
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(_isPasswordVisible
+                                    ? Icons.visibility_off
+                                    : Icons.visibility),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+
+                        // Login Button with pulse animation
+                        Pulse(
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _login,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shadowColor: Colors.black,
+                              elevation: 5,
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              minimumSize: Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: _isLoading
+                                ? CircularProgressIndicator(color: Colors.white)
+                                : Text('Login', style: TextStyle(fontSize: 18)),
+                          ),
+                        ),
+                      ],
                     ),
-                     SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => NotificationScreen()),
-              );
-            },
-            child: Text('Notifications'),
-          ),
-                  ],
+                  ),
                 ),
-              ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => NotificationScreen()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary, // Button color
+                    foregroundColor: Colors.white, // Text color
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12), // Optional: Padding
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(8), // Optional: Rounded corners
+                    ),
+                  ),
+                  child: const Text("Notifications"),
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
-  
-}
+  }
 }

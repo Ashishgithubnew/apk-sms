@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UpdateAttendanceScreen extends StatefulWidget {
+  const UpdateAttendanceScreen({super.key});
+
   @override
   _UpdateAttendanceScreenState createState() => _UpdateAttendanceScreenState();
 }
