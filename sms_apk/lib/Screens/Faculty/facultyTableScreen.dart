@@ -124,150 +124,150 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
         false;
   }
 
-  Future<void> editFaculty(Map<String, dynamic> faculty) async {
-    try {
-      final response = await http.post(
-        Uri.parse('https://s-m-s-keyw.onrender.com/faculty/Update'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(faculty),
-      );
+  // Future<void> editFaculty(Map<String, dynamic> faculty) async {
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse('https://s-m-s-keyw.onrender.com/faculty/Update'),
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer $token',
+  //       },
+  //       body: json.encode(faculty),
+  //     );
 
-      if (response.statusCode == 200) {
-        setState(() {
-          int index =
-              facultyList.indexWhere((f) => f['fact_id'] == faculty['fact_id']);
-          if (index != -1) {
-            facultyList[index] = faculty;
-          }
-        });
+  //     if (response.statusCode == 200) {
+  //       setState(() {
+  //         int index =
+  //             facultyList.indexWhere((f) => f['fact_id'] == faculty['fact_id']);
+  //         if (index != -1) {
+  //           facultyList[index] = faculty;
+  //         }
+  //       });
 
-        showPopup(context, 'Faculty updated successfully', AppColors.primary);
-      } else {
-        showPopup(context, 'Failed to update faculty: ${response.statusCode}',
-            AppColors.primary);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    }
-  }
+  //       showPopup(context, 'Faculty updated successfully', AppColors.primary);
+  //     } else {
+  //       showPopup(context, 'Failed to update faculty: ${response.statusCode}',
+  //           AppColors.primary);
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Error: $e')),
+  //     );
+  //   }
+  // }
 
-  void showEditForm(Map<String, dynamic> faculty) {
-    final formKey = GlobalKey<FormState>();
-    Map<String, dynamic> updatedFaculty = Map.from(faculty);
+  // void showEditForm(Map<String, dynamic> faculty) {
+  //   final formKey = GlobalKey<FormState>();
+  //   Map<String, dynamic> updatedFaculty = Map.from(faculty);
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppColors.primary, // Use your theme color
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          title: const Text(
-            'Edit Faculty',
-            style: TextStyle(color: Colors.white),
-          ),
-          content: Form(
-            key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    initialValue: faculty['fact_Name'],
-                    decoration: InputDecoration(
-                      labelText: 'Name',
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.2),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: const TextStyle(color: Colors.white),
-                    onChanged: (value) => updatedFaculty['fact_Name'] = value,
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Please enter a name'
-                        : null,
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    initialValue: faculty['fact_email'],
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.2),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: const TextStyle(color: Colors.white),
-                    onChanged: (value) => updatedFaculty['fact_email'] = value,
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Please enter an email'
-                        : null,
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    initialValue: faculty['fact_contact'],
-                    decoration: InputDecoration(
-                      labelText: 'Contact',
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.2),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: const TextStyle(color: Colors.white),
-                    onChanged: (value) =>
-                        updatedFaculty['fact_contact'] = value,
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    initialValue: faculty['fact_address'],
-                    decoration: InputDecoration(
-                      labelText: 'Address',
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.2),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: const TextStyle(color: Colors.white),
-                    onChanged: (value) =>
-                        updatedFaculty['fact_address'] = value,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child:
-                  const Text('Cancel', style: TextStyle(color: Colors.white)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.primary,
-              ),
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  editFaculty(updatedFaculty);
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         backgroundColor: AppColors.primary, // Use your theme color
+  //         shape:
+  //             RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  //         title: const Text(
+  //           'Edit Faculty',
+  //           style: TextStyle(color: Colors.white),
+  //         ),
+  //         content: Form(
+  //           key: formKey,
+  //           child: SingleChildScrollView(
+  //             child: Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 TextFormField(
+  //                   initialValue: faculty['fact_Name'],
+  //                   decoration: InputDecoration(
+  //                     labelText: 'Name',
+  //                     filled: true,
+  //                     fillColor: Colors.white.withOpacity(0.2),
+  //                     border: OutlineInputBorder(
+  //                       borderRadius: BorderRadius.circular(8),
+  //                     ),
+  //                   ),
+  //                   style: const TextStyle(color: Colors.white),
+  //                   onChanged: (value) => updatedFaculty['fact_Name'] = value,
+  //                   validator: (value) => value == null || value.isEmpty
+  //                       ? 'Please enter a name'
+  //                       : null,
+  //                 ),
+  //                 const SizedBox(height: 10),
+  //                 TextFormField(
+  //                   initialValue: faculty['fact_email'],
+  //                   decoration: InputDecoration(
+  //                     labelText: 'Email',
+  //                     filled: true,
+  //                     fillColor: Colors.white.withOpacity(0.2),
+  //                     border: OutlineInputBorder(
+  //                       borderRadius: BorderRadius.circular(8),
+  //                     ),
+  //                   ),
+  //                   style: const TextStyle(color: Colors.white),
+  //                   onChanged: (value) => updatedFaculty['fact_email'] = value,
+  //                   validator: (value) => value == null || value.isEmpty
+  //                       ? 'Please enter an email'
+  //                       : null,
+  //                 ),
+  //                 const SizedBox(height: 10),
+  //                 TextFormField(
+  //                   initialValue: faculty['fact_contact'],
+  //                   decoration: InputDecoration(
+  //                     labelText: 'Contact',
+  //                     filled: true,
+  //                     fillColor: Colors.white.withOpacity(0.2),
+  //                     border: OutlineInputBorder(
+  //                       borderRadius: BorderRadius.circular(8),
+  //                     ),
+  //                   ),
+  //                   style: const TextStyle(color: Colors.white),
+  //                   onChanged: (value) =>
+  //                       updatedFaculty['fact_contact'] = value,
+  //                 ),
+  //                 const SizedBox(height: 10),
+  //                 TextFormField(
+  //                   initialValue: faculty['fact_address'],
+  //                   decoration: InputDecoration(
+  //                     labelText: 'Address',
+  //                     filled: true,
+  //                     fillColor: Colors.white.withOpacity(0.2),
+  //                     border: OutlineInputBorder(
+  //                       borderRadius: BorderRadius.circular(8),
+  //                     ),
+  //                   ),
+  //                   style: const TextStyle(color: Colors.white),
+  //                   onChanged: (value) =>
+  //                       updatedFaculty['fact_address'] = value,
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context),
+  //             child:
+  //                 const Text('Cancel', style: TextStyle(color: Colors.white)),
+  //           ),
+  //           ElevatedButton(
+  //             style: ElevatedButton.styleFrom(
+  //               backgroundColor: Colors.white,
+  //               foregroundColor: AppColors.primary,
+  //             ),
+  //             onPressed: () {
+  //               if (formKey.currentState!.validate()) {
+  //                 editFaculty(updatedFaculty);
+  //                 Navigator.pop(context);
+  //               }
+  //             },
+  //             child: const Text('Save'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -310,12 +310,12 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                _buildActionButton(
-                                  icon: Icons.edit,
-                                  color: Colors.blue,
-                                  tooltip: 'Edit Faculty',
-                                  onTap: () => showEditForm(faculty),
-                                ),
+                                // _buildActionButton(
+                                //   icon: Icons.edit,
+                                //   color: Colors.blue,
+                                //   tooltip: 'Edit Faculty',
+                                //   onTap: () => showEditForm(faculty),
+                                // ),
                                 const SizedBox(width: 8),
                                 _buildActionButton(
                                   icon: Icons.delete,

@@ -180,6 +180,8 @@ class _StudentFormState extends State<StudentForm> {
                 buildInputField(addressController, 'Address', true),
                 buildInputField(cityController, 'City', true),
                 buildDropdownGenderField(),
+                buildDropdownCategoryField(),
+
                 buildInputField(stateController, 'State', true),
                 buildInputField(contactController, 'Contact', true),
                 GestureDetector(
@@ -293,6 +295,33 @@ class _StudentFormState extends State<StudentForm> {
       ),
     );
   }
+
+  Widget buildDropdownCategoryField() {
+  List<String> categoryOptions = ['General', 'SC', 'ST', 'OBC', 'Other'];
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: DropdownButtonFormField<String>(
+      value: categoryController.text.isNotEmpty ? categoryController.text : null,
+      decoration: InputDecoration(
+        labelText: 'Category',
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+      ),
+      items: categoryOptions.map((String category) {
+        return DropdownMenuItem<String>(
+          value: category,
+          child: Text(category),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        setState(() {
+          categoryController.text = newValue!;
+        });
+      },
+      validator: (value) => value == null ? 'Please select a category' : null,
+    ),
+  );
+}
+
 
   Widget buildInputField(
       TextEditingController controller, String label, bool isRequired,

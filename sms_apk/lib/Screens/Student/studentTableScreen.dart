@@ -88,100 +88,100 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
     }
   }
 
-  Future<void> editStudent(Map<String, dynamic> student) async {
-    if (token == null) {
-      showPopup(context, 'Authentication token is missing. Please log in again.', Colors.red);
-      return;
-    }
+  // Future<void> editStudent(Map<String, dynamic> student) async {
+  //   if (token == null) {
+  //     showPopup(context, 'Authentication token is missing. Please log in again.', Colors.red);
+  //     return;
+  //   }
 
-    try {
-      final response = await http.post(
-        Uri.parse('https://s-m-s-keyw.onrender.com/student/update'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(student),
-      );
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse('https://s-m-s-keyw.onrender.com/student/update'),
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer $token',
+  //       },
+  //       body: json.encode(student),
+  //     );
 
-      if (response.statusCode == 200) {
-        showPopup(context, 'Student updated successfully', Colors.green);
-        fetchStudents(); // Refresh data
-      } else {
-        showPopup(context, 'Failed to update student: ${response.statusCode}', Colors.red);
-      }
-    } catch (e) {
-      showPopup(context, 'Error: $e', Colors.red);
-    }
-  }
+  //     if (response.statusCode == 200) {
+  //       showPopup(context, 'Student updated successfully', Colors.green);
+  //       fetchStudents(); // Refresh data
+  //     } else {
+  //       showPopup(context, 'Failed to update student: ${response.statusCode}', Colors.red);
+  //     }
+  //   } catch (e) {
+  //     showPopup(context, 'Error: $e', Colors.red);
+  //   }
+  // }
 
-  void showEditDialog(Map<String, dynamic> student) {
-    TextEditingController nameController = TextEditingController(text: student['name']);
-    TextEditingController cityController = TextEditingController(text: student['city']);
-    TextEditingController contactController = TextEditingController(text: student['contact']);
-    TextEditingController clsController = TextEditingController(text: student['cls']);
+//   void showEditDialog(Map<String, dynamic> student) {
+//     TextEditingController nameController = TextEditingController(text: student['name']);
+//     TextEditingController cityController = TextEditingController(text: student['city']);
+//     TextEditingController contactController = TextEditingController(text: student['contact']);
+//     TextEditingController clsController = TextEditingController(text: student['cls']);
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppColors.primary,
-          title: Text('Edit Student', style: TextStyle(color: Colors.white)),
-          content: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(labelText: 'Name', labelStyle: TextStyle(color: Colors.white)),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: cityController,
-                    decoration: InputDecoration(labelText: 'City', labelStyle: TextStyle(color: Colors.white)),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: contactController,
-                    decoration: InputDecoration(labelText: 'Contact', labelStyle: TextStyle(color: Colors.white)),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: clsController,
-                    decoration: InputDecoration(labelText: 'Class', labelStyle: TextStyle(color: Colors.white)),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel', style: TextStyle(color: Colors.white)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                student['name'] = nameController.text;
-                student['city'] = cityController.text;
-                student['contact'] = contactController.text;
-                student['cls'] = clsController.text;
-                editStudent(student);
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-              child: Text('Save', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
-    );
-  }
+//     showDialog(
+//       context: context,
+//       builder: (context) {
+//         return AlertDialog(
+//           backgroundColor: AppColors.primary,
+//           title: Text('Edit Student', style: TextStyle(color: Colors.white)),
+//           content: SingleChildScrollView(
+//             child: Padding(
+//               padding: const EdgeInsets.all(16.0),
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   TextField(
+//                     controller: nameController,
+//                     decoration: InputDecoration(labelText: 'Name', labelStyle: TextStyle(color: Colors.white)),
+//                     style: TextStyle(color: Colors.white),
+//                   ),
+//                   SizedBox(height: 10),
+//                   TextField(
+//                     controller: cityController,
+//                     decoration: InputDecoration(labelText: 'City', labelStyle: TextStyle(color: Colors.white)),
+//                     style: TextStyle(color: Colors.white),
+//                   ),
+//                   SizedBox(height: 10),
+//                   TextField(
+//                     controller: contactController,
+//                     decoration: InputDecoration(labelText: 'Contact', labelStyle: TextStyle(color: Colors.white)),
+//                     style: TextStyle(color: Colors.white),
+//                   ),
+//                   SizedBox(height: 10),
+//                   TextField(
+//                     controller: clsController,
+//                     decoration: InputDecoration(labelText: 'Class', labelStyle: TextStyle(color: Colors.white)),
+//                     style: TextStyle(color: Colors.white),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ),
+//           actions: [
+//             TextButton(
+//               onPressed: () => Navigator.pop(context),
+//               child: Text('Cancel', style: TextStyle(color: Colors.white)),
+//             ),
+//             ElevatedButton(
+//               onPressed: () {
+//                 Navigator.pop(context);
+//                 student['name'] = nameController.text;
+//                 student['city'] = cityController.text;
+//                 student['contact'] = contactController.text;
+//                 student['cls'] = clsController.text;
+//                 editStudent(student);
+//               },
+//               style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+//               child: Text('Save', style: TextStyle(color: Colors.white)),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
   Future<void> confirmDeleteStudent(String id) async {
   showDialog(
     context: context,
@@ -240,10 +240,10 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(
-                              icon: Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () => showEditDialog(student),
-                            ),
+                            // IconButton(
+                            //   icon: Icon(Icons.edit, color: Colors.blue),
+                            //   onPressed: () => showEditDialog(student),
+                            // ),
                             IconButton(
                              icon: Icon(Icons.delete, color: AppColors.logout),
                              onPressed: () => confirmDeleteStudent(student['id']),
