@@ -176,38 +176,38 @@ class _StudentFormState extends State<StudentForm> {
           child: ListView(
             children: [
               buildCard('Student Details', [
-                buildInputField(nameController, 'Student Name', true),
-                buildInputField(addressController, 'Address', true),
-                buildInputField(cityController, 'City', true),
+                buildInputField(nameController, 'Student Name*', true),
+                buildInputField(addressController, 'Address*', true),
+                buildInputField(cityController, 'City*', true),
                 buildDropdownGenderField(),
                 buildDropdownCategoryField(),
 
-                buildInputField(stateController, 'State', true),
-                buildInputField(contactController, 'Contact', true),
+                buildInputField(stateController, 'State*', true),
+                buildInputField(contactController, 'Contact*', true),
                 GestureDetector(
                   onTap: () => _selectDate(context),
                   child: AbsorbPointer(
                     child:
-                        buildInputField(dobController, 'Date of Birth', true),
+                        buildInputField(dobController, 'Date of Birth*', true),
                   ),
                 ),
-                buildInputField(emailController, 'Email', true),
+                buildInputField(emailController, 'Email', false),
                 buildDropdownField(),
                 buildInputField(totalFeeController, 'Total Fee', true,
                     isNumber: true, readOnly: true),
               ]),
               buildCard('Family Details', [
-                buildInputField(fatherNameController, "Father's Name", true),
-                buildInputField(motherNameController, "Mother's Name", true),
+                buildInputField(fatherNameController, "Father's Name*", true),
+                buildInputField(motherNameController, "Mother's Name", false),
                 buildInputField(
-                    primaryContactController, "Primary Contact", true,
+                    primaryContactController, "Primary Contact*", true,
                     isNumber: true),
                 buildInputField(
                     secondaryContactController, "Secondary Contact", false,
                     isNumber: true),
-                buildInputField(familyCityController, "Family City", true),
-                buildInputField(familyStateController, "Family State", true),
-                buildInputField(familyEmailController, "Family Email", false),
+                buildInputField(familyCityController, "Family City", false),
+                buildInputField(familyStateController, "Family State", false),
+                buildInputField(familyEmailController, "Family Email*", true),
               ]),
               SizedBox(height: 20),
               ElevatedButton(
@@ -277,7 +277,7 @@ class _StudentFormState extends State<StudentForm> {
       child: DropdownButtonFormField<String>(
         value: genderController.text.isNotEmpty ? genderController.text : null,
         decoration: InputDecoration(
-          labelText: 'Gender',
+          labelText: 'Gender*',
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
         ),
         items: genderOptions.map((String gender) {
@@ -303,7 +303,7 @@ class _StudentFormState extends State<StudentForm> {
     child: DropdownButtonFormField<String>(
       value: categoryController.text.isNotEmpty ? categoryController.text : null,
       decoration: InputDecoration(
-        labelText: 'Category',
+        labelText: 'Category*',
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
       ),
       items: categoryOptions.map((String category) {
@@ -338,9 +338,11 @@ class _StudentFormState extends State<StudentForm> {
         ),
         validator: isRequired
             ? (value) =>
-                value == null || value.isEmpty ? 'This field is required' : null
+     value == null || value.isEmpty ? 'This field is required' : null
             : null,
       ),
     );
   }
+
+  
 }
