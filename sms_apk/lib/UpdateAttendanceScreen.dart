@@ -2,339 +2,302 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sms_apk/Screens/homeScreen.dart';
-import 'package:sms_apk/widgets/custom_popup.dart';
-import 'package:sms_apk/utils/app_colors.dart';
 
-class NotificationPage extends StatefulWidget {
-  const NotificationPage({super.key});
-
+class UpdateAttendanceScreen extends StatefulWidget {
   @override
-  _NotificationPageState createState() => _NotificationPageState();
+  _UpdateAttendanceScreenState createState() => _UpdateAttendanceScreenState();
 }
 
-class _NotificationPageState extends State<NotificationPage> {
-  List notifications = [];
+class _UpdateAttendanceScreenState extends State<UpdateAttendanceScreen> {
+  List<Map<String, dynamic>> students = [];
   bool isLoading = true;
+  bool hasError = false;
+  String errorMessage = "";
+  String? selectedClass;
+  String? selectedSubject;
+  DateTime selectedDate = DateTime.now();
+  bool masterAttendance = false;
+  List<Map<String, dynamic>> classData = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchClasses();
+  }
 
   Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('authToken');
   }
 
-  Future<void> fetchNotifications() async {
+  Future<void> fetchClasses() async {
     try {
       final token = await getToken();
       if (token == null) {
-        showPopup(context, "No token found. Please log in.", AppColors.error);
+        showError("No token found. Please log in.");
         return;
       }
 
+      final url = Uri.parse("https://s-m-s-keyw.onrender.com/class/data");
       final response = await http.get(
-        Uri.parse(
-            "https://s-m-s-keyw.onrender.com/notification/getAllNotification"),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        url,
+        headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data is List) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          classData = List<Map<String, dynamic>>.from(data["classData"]);
+        });
+      } else {
+        showError("Failed to load classes");
+      }
+    } catch (e) {
+      showError("Error fetching classes: ${e.toString()}");
+    }
+  }
+
+  Future<void> fetchAttendance() async {
+    try {
+      if (selectedClass == null || selectedSubject == null) {
+        showError("Please select class and subject");
+        return;
+      }
+
+      setState(() {
+        isLoading = true;
+        hasError = false;
+      });
+
+      final token = await getToken();
+      if (token == null) {
+        showError("No token found. Please log in.");
+        return;
+      }
+
+      final formattedDate = "${selectedDate.toLocal()}".split(' ')[0];
+
+      final url = Uri.parse(
+        'https://s-m-s-keyw.onrender.com/attendance/getAttendance'
+        '?cls=$selectedClass'
+        '&fromDate=$formattedDate'
+        '&toDate=$formattedDate'
+        '&subject=$selectedSubject'
+        '&masterAttendance=$masterAttendance',
+      );
+
+      final response = await http.post(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data.isNotEmpty && data[0]["students"] != null) {
           setState(() {
-            notifications = data;
+            students = List<Map<String, dynamic>>.from(data[0]["students"]);
             isLoading = false;
           });
         } else {
-          showPopup(context, "Invalid response format", AppColors.error);
+          setState(() {
+            hasError = true;
+            errorMessage = "No student data available.";
+            isLoading = false;
+          });
         }
       } else {
-        showPopup(context, "Failed to load notifications", AppColors.error);
+        setState(() {
+          hasError = true;
+          errorMessage = "Failed to fetch attendance. Try again later.";
+          isLoading = false;
+        });
       }
     } catch (e) {
-      showPopup(context, "Error fetching notifications: ${e.toString()}",
-          AppColors.error);
+      setState(() {
+        hasError = true;
+        errorMessage = "Error fetching attendance: ${e.toString()}";
+        isLoading = false;
+      });
     }
   }
 
-  Future<void> saveNotification(String startDate, String endDate,
-      String category, List<String> classes, String description) async {
-    try {
-      final token = await getToken();
-      if (token == null) {
-        showPopup(context, "No token found. Please log in.", AppColors.error);
-        return;
-      }
-
-      if (DateTime.parse(endDate).isBefore(DateTime.parse(startDate))) {
-        showPopup(
-            context, "End date cannot be before start date", AppColors.error);
-        return;
-      }
-
-      Map<String, dynamic> requestBody = {
-        "startDate": startDate,
-        "endDate": endDate,
-        "description": description,
-        "cato": category,
-        "className": classes,
-      };
-
-      final response = await http.post(
-        Uri.parse("https://s-m-s-keyw.onrender.com/notification/save"),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(requestBody),
-      );
-
-      if (response.statusCode == 200) {
-        showPopup(
-            context, "Notification saved successfully!", AppColors.success);
-        fetchNotifications();
-      } else {
-        showPopup(context, "Failed to save notification", AppColors.error);
-      }
-    } catch (e) {
-      showPopup(context, "Error saving notification: ${e.toString()}",
-          AppColors.error);
+  Future<void> submitAttendance() async {
+  try {
+    final token = await getToken();
+    if (token == null) {
+      showError("No token found. Please log in.");
+      return;
     }
+
+    if (selectedClass == null || selectedSubject == null) {
+      showError("Please select class and subject before submitting.");
+      return;
+    }
+
+    final formattedDate = "${selectedDate.toLocal()}".split(' ')[0];
+
+    final url = Uri.parse("https://s-m-s-keyw.onrender.com/attendance/update?masterAttendance=$masterAttendance");
+
+    final payload = {
+      "date": formattedDate,
+      "className": selectedClass,
+      "subject": selectedSubject,
+      "studentList": students.map((student) => {
+            "stdId": student["stdId"],
+            "name": student["name"],
+            "attendance": student["attendance"],
+            "remark": student["remark"] ?? "",
+          }).toList(),
+      "masterAttendance": masterAttendance,
+    };
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode == 200) {
+      showSuccess("Attendance updated successfully");
+    } else {
+      showError("Failed to update attendance. Try again.");
+    }
+  } catch (e) {
+    showError("Error updating attendance: ${e.toString()}");
   }
+}
 
-  void openAddNotificationDialog() {
-    DateTime? startDate;
-    DateTime? endDate;
-    String selectedCategory = "All";
-    List<String> selectedClasses = [];
-    TextEditingController descriptionController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Add Notification",
-            style: TextStyle(color: AppColors.primary)),
-        content: StatefulBuilder(
-          builder: (context, setDialogState) {
-            return SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text("Start Date",
-                      style: TextStyle(color: AppColors.primary)),
-                  TextField(
-                    readOnly: true,
-                    onTap: () async {
-                      DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        setDialogState(() => startDate = picked);
-                      }
-                    },
-                    decoration: InputDecoration(
-                      hintText: startDate == null
-                          ? "Pick a date"
-                          : formatDate(startDate!),
-                      suffixIcon: const Icon(Icons.calendar_today,
-                          color: AppColors.primary),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text("End Date",
-                      style: TextStyle(color: AppColors.primary)),
-                  TextField(
-                    readOnly: true,
-                    onTap: () async {
-                      DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        setDialogState(() => endDate = picked);
-                      }
-                    },
-                    decoration: InputDecoration(
-                      hintText: endDate == null
-                          ? "Pick a date"
-                          : formatDate(endDate!),
-                      suffixIcon: const Icon(Icons.calendar_today,
-                          color: AppColors.primary),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text("Classes",
-                      style: TextStyle(color: AppColors.primary)),
-                  Column(
-                    children: ["LKG", "UKG", "Class 1", "Class 2", "Class 3"]
-                        .map((className) => CheckboxListTile(
-                              title: Text(className,
-                                  style: const TextStyle(
-                                      color: AppColors.primary)),
-                              value: selectedClasses.contains(className),
-                              onChanged: (isSelected) {
-                                setDialogState(() {
-                                  if (isSelected == true) {
-                                    selectedClasses.add(className);
-                                  } else {
-                                    selectedClasses.remove(className);
-                                  }
-                                });
-                              },
-                            ))
-                        .toList(),
-                  ),
-                  TextField(
-                    controller: descriptionController,
-                    decoration: InputDecoration(
-                      labelText: "Description",
-                      labelStyle: const TextStyle(color: AppColors.primary),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel",
-                style: TextStyle(color: AppColors.primary)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (startDate == null ||
-                  endDate == null ||
-                  descriptionController.text.isEmpty) {
-                showPopup(context, "Please fill all fields", AppColors.error);
-                return;
-              }
-              saveNotification(
-                formatDate(startDate!),
-                formatDate(endDate!),
-                selectedCategory,
-                selectedClasses,
-                descriptionController.text.trim(),
-              );
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-            ),
-            child: const Text("Save", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message, style: TextStyle(color: Colors.white)), backgroundColor: Colors.red),
     );
   }
 
-  String formatDate(DateTime date) {
-    return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    fetchNotifications();
+  void showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message, style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Notifications",
-          style: TextStyle(color: Colors.white, fontSize: 18),
-        ),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context); // Navigate back if possible
-            } else {
-              // Fallback navigation (e.g., navigate to home screen)
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
-              );
-            }
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: openAddNotificationDialog,
-          ),
-        ],
-      ),
-      body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            )
-          : notifications.isEmpty
-              ? const Center(
-                  child: Text("No notifications available",
-                      style: TextStyle(color: AppColors.primary)),
-                )
-              : ListView.builder(
-                  itemCount: notifications.length,
-                  itemBuilder: (context, index) {
-                    final notification = notifications[index];
-                    return _buildNotificationCard(notification);
+      appBar: AppBar(title: Text("Update Attendance")),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Class Dropdown
+            DropdownButton<String>(
+              value: selectedClass,
+              hint: Text("Select Class"),
+              onChanged: (newValue) {
+                setState(() {
+                  selectedClass = newValue;
+                  selectedSubject = null; // Reset subject selection
+                });
+              },
+              items: classData.map((classItem) {
+                return DropdownMenuItem<String>(
+                  value: classItem["className"],
+                  child: Text(classItem["className"]),
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 10),
+
+            // Subject Dropdown
+            DropdownButton<String>(
+              value: selectedSubject,
+              hint: Text("Select Subject"),
+              onChanged: (newValue) {
+                setState(() {
+                  selectedSubject = newValue;
+                });
+              },
+              items: selectedClass == null
+                  ? []
+                  : classData
+                      .firstWhere((classItem) => classItem["className"] == selectedClass)["subject"]
+                      .map<DropdownMenuItem<String>>((subject) {
+                      return DropdownMenuItem<String>(
+                        value: subject,
+                        child: Text(subject),
+                      );
+                    }).toList(),
+            ),
+            SizedBox(height: 10),
+
+            // Date Picker
+            ElevatedButton(
+              onPressed: () async {
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate,
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2101),
+                );
+                if (pickedDate != null && pickedDate != selectedDate) {
+                  setState(() {
+                    selectedDate = pickedDate;
+                  });
+                }
+              },
+              child: Text("Select Date: ${selectedDate.toLocal()}".split(' ')[0]),
+            ),
+            SizedBox(height: 10),
+
+            // Master Attendance Toggle
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Master Attendance"),
+                Switch(
+                  value: masterAttendance,
+                  onChanged: (value) {
+                    setState(() {
+                      masterAttendance = value;
+                    });
                   },
                 ),
-    );
-  }
+              ],
+            ),
+            SizedBox(height: 20),
 
-  Widget _buildNotificationCard(Map<String, dynamic> notification) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        title: Text(
-          notification['description'] ?? 'No Description',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: AppColors.primary,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Category: ${notification['cato'] ?? 'N/A'}",
-              style: const TextStyle(color: Colors.grey),
+            // Fetch Attendance Button
+            ElevatedButton(
+              onPressed: fetchAttendance,
+              child: Text("Fetch Attendance"),
             ),
-            Text(
-              "Classes: ${(notification['className'] as List?)?.join(', ') ?? 'N/A'}",
-              style: const TextStyle(color: Colors.grey),
+
+            Expanded(
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : hasError
+                      ? Center(child: Text(errorMessage, style: TextStyle(color: Colors.red)))
+                      : students.isEmpty
+                          ? Center(child: Text("No attendance data available"))
+                          : ListView.builder(
+                              itemCount: students.length,
+                              itemBuilder: (context, index) {
+                                return Card(
+                                  child: ListTile(
+                                    title: Text(students[index]['name']),
+                                    subtitle: Text("Attendance: ${students[index]['attendance']}"),
+                                  ),
+                                );
+                              },
+                            ),
             ),
-            Text(
-              "Date: ${notification['startDate']} - ${notification['endDate']}",
-              style: const TextStyle(color: Colors.grey),
+
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: submitAttendance,
+              child: Text("Submit Attendance"),
             ),
           ],
         ),

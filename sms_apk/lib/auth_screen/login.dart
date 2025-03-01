@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:animate_do/animate_do.dart';
+
+import 'package:sms_apk/auth_screen/NotificationScreen.dart';
 import 'package:sms_apk/utils/app_colors.dart';
 import '../Screens/homeScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -218,6 +220,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             : Text('Login', style: TextStyle(fontSize: 18)),
                       ),
                     ),
+                     SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationScreen()),
+              );
+            },
+            child: Text('Notifications'),
+          ),
                   ],
                 ),
               ),
@@ -226,5 +238,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ],
       ),
     );
-  }
+  
+}
 }
