@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:animate_do/animate_do.dart';
-
 import 'package:sms_apk/auth_screen/NotificationScreen.dart';
 import 'package:sms_apk/utils/app_colors.dart';
 import '../Screens/homeScreen.dart';
@@ -64,51 +63,98 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // Function to handle login request
   Future<void> _login() async {
-    String email = _emailController.text.trim();
-    String password = _passwordController.text.trim();
+  String email = _emailController.text.trim();
+  String password = _passwordController.text.trim();
 
-    // Input validation
-    if (email.isEmpty || password.isEmpty) {
-      _showPopupMessage('Please fill in all fields.', false);
-      return;
-    }
-
-    if (!_isValidEmail(email)) {
-      _showPopupMessage('Please enter a valid email address.', false);
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      const String apiUrl = 'https://s-m-s-keyw.onrender.com/auth/login';
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final token = data['token'];
-
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('authToken', token);
-
-        _showPopupMessage('Login Successful!', true);
-      } else {
-        _showPopupMessage('Invalid email or password.', false);
-      }
-    } catch (e) {
-      _showPopupMessage('Network error. Please try again.', false);
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+  if (email.isEmpty || password.isEmpty) {
+    _showPopupMessage('Please fill in all fields.', false);
+    return;
   }
+
+  if (!_isValidEmail(email)) {
+    _showPopupMessage('Please enter a valid email address.', false);
+    return;
+  }
+
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    const String apiUrl = 'https://s-m-s-keyw.onrender.com/auth/login';
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final token = data['token'];
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('authToken', token);
+      await prefs.setString('email', email); // Store email
+      await prefs.setString('password', password); // Store password
+      // Fetch user data and store username
+      await _fetchAndStoreUserData(token);
+
+      _showPopupMessage('Login Successful!', true);
+    } else {
+      _showPopupMessage('Invalid email or password.', false);
+    }
+  } catch (e) {
+    _showPopupMessage('Network error. Please try again.', false);
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
+  }
+}
+
+/// Fetches data from API and stores it in SharedPreferences
+Future<void> _fetchAndStoreUserData(String token) async {
+  try {
+    final response = await http.get(
+      Uri.parse('https://s-m-s-keyw.onrender.com/self'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userData', json.encode(data));
+
+      // Extract username and store it
+      String extractedUserName = _extractUserName(data);
+      String extractedRole = data['role'] ?? "Unknown";
+
+      // Store username and role
+      await prefs.setString('role', extractedRole);
+      await prefs.setString('userName', extractedUserName);
+    } else {
+      throw Exception('Failed to load user data');
+    }
+  } catch (error) {
+    _showPopupMessage('Failed to load user data. Please try again.', false);
+  }
+}
+
+/// Extracts the username based on the user's role
+String _extractUserName(Map<String, dynamic> data) {
+  if (data["role"] == "user") {
+    return data["schoolCreationEntity"]?["ownerName"] ?? "Guest";
+  } else if (data["role"] == "sub-user") {
+    return data["facultyInfo"]?["fact_Name"] ?? "Guest";
+  }
+  return "Guest";
+}
+
+
 
   @override
   Widget build(BuildContext context) {
