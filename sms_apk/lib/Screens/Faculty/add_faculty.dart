@@ -139,7 +139,7 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
     }
   }
 
- void _addQualification() {
+  void _addQualification() {
     setState(() {
       _formData["factQualifications"].add({
         "type": "Graduation",
@@ -161,15 +161,16 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
             _buildTextField("Subject", "factQualifications[$index][grd_sub]"),
             _buildTextField("Branch", "factQualifications[$index][grd_branch]"),
             _buildTextField("Grade", "factQualifications[$index][grd_grade]"),
-            _buildTextField("University", "factQualifications[$index][grd_university]"),
-            _buildTextField("Year of Passing", "factQualifications[$index][grd_yearOfPassing]"),
+            _buildTextField(
+                "University", "factQualifications[$index][grd_university]"),
+            _buildTextField("Year of Passing",
+                "factQualifications[$index][grd_yearOfPassing]"),
             const SizedBox(height: 16),
           ],
         );
       }),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -196,10 +197,20 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
               _buildTextField("State", "state"),
               _buildDateField("Joining Date*", _joiningDateController),
               _buildDateField("Leaving Date", _leavingDateController),
-              _buildDropdownField("Status", ["Active", "Inactive"], "factStatus"),
-               _buildQualificationFields(),
+              _buildDropdownField(
+                  "Status", ["Active", "Inactive"], "factStatus"),
+              _buildQualificationFields(),
               ElevatedButton(
                 onPressed: _addQualification,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary, // Button color
+                  foregroundColor: Colors.white, // Text color
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 12, horizontal: 20), // Button padding
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8), // Rounded corners
+                  ),
+                ),
                 child: const Text("+ Add Qualification"),
               ),
               const SizedBox(height: 32),

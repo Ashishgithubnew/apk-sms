@@ -293,6 +293,7 @@ class _NotificationPageState extends State<NotificationPage> {
                   ],
                   TextField(
                     controller: descriptionController,
+                    cursorColor: AppColors.primary,
                     decoration: InputDecoration(
                       labelText: "Description",
                       labelStyle: const TextStyle(color: AppColors.primary),
