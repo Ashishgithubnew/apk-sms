@@ -16,8 +16,11 @@ class StudentTableScreen extends StatefulWidget {
 
 class _StudentTableScreenState extends State<StudentTableScreen> {
   List<dynamic> students = [];
+  List<dynamic> filteredStudents = [];
   bool isLoading = true;
   String? token;
+  String? selectedClass;
+  List<String> classes = [];
 
   @override
   void initState() {
@@ -50,8 +53,12 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
       );
 
       if (response.statusCode == 200) {
+        List<dynamic> studentList = json.decode(response.body);
+        
         setState(() {
-          students = json.decode(response.body);
+          students = studentList;
+          filteredStudents = students;
+          classes = studentList.map<String>((student) => student['cls'].toString()).toSet().toList();
         });
       } else {
         showPopup(context, 'Failed to load students', Colors.red);
@@ -63,6 +70,103 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
         isLoading = false;
       });
     }
+  }
+
+  void filterStudentsByClass(String? selectedClass) {
+    setState(() {
+      this.selectedClass = selectedClass;
+      if (selectedClass == null || selectedClass.isEmpty) {
+        filteredStudents = students;
+      } else {
+        filteredStudents = students.where((student) => student['cls'] == selectedClass).toList();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: Header(text: "Student Table"),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: DropdownButton<String>(
+                    value: selectedClass,
+                    hint: Text("Select Class"),
+                    isExpanded: true,
+                    items: classes.map((String cls) {
+                      return DropdownMenuItem<String>(
+                        value: cls,
+                        child: Text(cls),
+                      );
+                    }).toList(),
+                    onChanged: filterStudentsByClass,
+                  ),
+                ),
+                Expanded(
+                  child: filteredStudents.isEmpty
+                      ? Center(child: Text('No data available'))
+                      : ListView.builder(
+                          itemCount: filteredStudents.length,
+                          itemBuilder: (context, index) {
+                            final student = filteredStudents[index];
+                            return Card(
+                              color: Colors.white,
+                              shadowColor: AppColors.primary,
+                              elevation: 4,
+                              margin: EdgeInsets.all(8.0),
+                              child: ListTile(
+                                title: Text(student['name'] ?? 'N/A', style: TextStyle(fontWeight: FontWeight.bold)),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('City: ${student['city'] ?? 'N/A'}'),
+                                    Text('Contact: ${student['contact'] ?? 'N/A'}'),
+                                    Text('Class: ${student['cls'] ?? 'N/A'}'),
+                                  ],
+                                ),
+                                trailing: IconButton(
+                                  icon: Icon(Icons.delete, color: AppColors.primary),
+                                  onPressed: () => confirmDeleteStudent(student['id']),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Future<void> confirmDeleteStudent(String id) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Delete Student"),
+          content: Text("Are you sure you want to delete this student?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel", style: TextStyle(color: AppColors.primary)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              onPressed: () {
+                Navigator.pop(context);
+                deleteStudent(id);
+              },
+              child: Text("Delete", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> deleteStudent(String id) async {
@@ -78,6 +182,7 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
       if (response.statusCode == 200) {
         setState(() {
           students.removeWhere((student) => student['id'] == id);
+          filterStudentsByClass(selectedClass);
         });
         showPopup(context, 'Student deleted successfully', Colors.green);
       } else {
@@ -86,174 +191,5 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
     } catch (e) {
       showPopup(context, 'Error: $e', Colors.red);
     }
-  }
-
-  // Future<void> editStudent(Map<String, dynamic> student) async {
-  //   if (token == null) {
-  //     showPopup(context, 'Authentication token is missing. Please log in again.', Colors.red);
-  //     return;
-  //   }
-
-  //   try {
-  //     final response = await http.post(
-  //       Uri.parse('https://s-m-s-keyw.onrender.com/student/update'),
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Authorization': 'Bearer $token',
-  //       },
-  //       body: json.encode(student),
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       showPopup(context, 'Student updated successfully', Colors.green);
-  //       fetchStudents(); // Refresh data
-  //     } else {
-  //       showPopup(context, 'Failed to update student: ${response.statusCode}', Colors.red);
-  //     }
-  //   } catch (e) {
-  //     showPopup(context, 'Error: $e', Colors.red);
-  //   }
-  // }
-
-//   void showEditDialog(Map<String, dynamic> student) {
-//     TextEditingController nameController = TextEditingController(text: student['name']);
-//     TextEditingController cityController = TextEditingController(text: student['city']);
-//     TextEditingController contactController = TextEditingController(text: student['contact']);
-//     TextEditingController clsController = TextEditingController(text: student['cls']);
-
-//     showDialog(
-//       context: context,
-//       builder: (context) {
-//         return AlertDialog(
-//           backgroundColor: AppColors.primary,
-//           title: Text('Edit Student', style: TextStyle(color: Colors.white)),
-//           content: SingleChildScrollView(
-//             child: Padding(
-//               padding: const EdgeInsets.all(16.0),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   TextField(
-//                     controller: nameController,
-//                     decoration: InputDecoration(labelText: 'Name', labelStyle: TextStyle(color: Colors.white)),
-//                     style: TextStyle(color: Colors.white),
-//                   ),
-//                   SizedBox(height: 10),
-//                   TextField(
-//                     controller: cityController,
-//                     decoration: InputDecoration(labelText: 'City', labelStyle: TextStyle(color: Colors.white)),
-//                     style: TextStyle(color: Colors.white),
-//                   ),
-//                   SizedBox(height: 10),
-//                   TextField(
-//                     controller: contactController,
-//                     decoration: InputDecoration(labelText: 'Contact', labelStyle: TextStyle(color: Colors.white)),
-//                     style: TextStyle(color: Colors.white),
-//                   ),
-//                   SizedBox(height: 10),
-//                   TextField(
-//                     controller: clsController,
-//                     decoration: InputDecoration(labelText: 'Class', labelStyle: TextStyle(color: Colors.white)),
-//                     style: TextStyle(color: Colors.white),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//           actions: [
-//             TextButton(
-//               onPressed: () => Navigator.pop(context),
-//               child: Text('Cancel', style: TextStyle(color: Colors.white)),
-//             ),
-//             ElevatedButton(
-//               onPressed: () {
-//                 Navigator.pop(context);
-//                 student['name'] = nameController.text;
-//                 student['city'] = cityController.text;
-//                 student['contact'] = contactController.text;
-//                 student['cls'] = clsController.text;
-//                 editStudent(student);
-//               },
-//               style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-//               child: Text('Save', style: TextStyle(color: Colors.white)),
-//             ),
-//           ],
-//         );
-//       },
-//     );
-//   }
-  Future<void> confirmDeleteStudent(String id) async {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text("Delete Student"),
-        content: Text("Are you sure you want to delete this student?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context), // Cancel
-            child: Text("Cancel", style: TextStyle(color: AppColors.primary)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            onPressed: () {
-              Navigator.pop(context); // Close the dialog
-              deleteStudent(id); // Call the delete function
-            },
-            child: Text("Delete", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: Header(text: "Student Table"),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : students.isEmpty
-              ? Center(child: Text('No data available'))
-              : ListView.builder(
-                  itemCount: students.length,
-                  itemBuilder: (context, index) {
-                    final student = students[index];
-                    return Card(
-                      color: Colors.white,
-                      shadowColor: AppColors.primary,
-                      elevation: 4,
-                      margin: EdgeInsets.all(8.0),
-                      child: ListTile(
-                        title: Text(student['name'] ?? 'N/A', style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('City: ${student['city'] ?? 'N/A'}'),
-                            Text('Contact: ${student['contact'] ?? 'N/A'}'),
-                            Text('Class: ${student['cls'] ?? 'N/A'}'),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // IconButton(
-                            //   icon: Icon(Icons.edit, color: Colors.blue),
-                            //   onPressed: () => showEditDialog(student),
-                            // ),
-                            IconButton(
-                             icon: Icon(Icons.delete, color: AppColors.primary),
-                             onPressed: () => confirmDeleteStudent(student['id']),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-    );
   }
 }
