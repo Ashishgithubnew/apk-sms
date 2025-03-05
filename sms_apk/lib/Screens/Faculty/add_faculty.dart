@@ -174,66 +174,94 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: Header(text: "Add Faculty"),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              _buildTextField("Full Name*", "fullName"),
-              _buildTextField("Email*", "email", isEmail: false),
-              _buildTextField("Faculty Email*", "factEmail", isEmail: true),
-              _buildTextField("Password*", "password", isPassword: true),
-              _buildTextField("Contact*", "contact"),
-              _buildDropdownField(
-                  "Gender*", ["Male", "Female", "Other"], "gender"),
-              _buildTextField("Address", "address"),
-              _buildTextField("City*", "city"),
-              _buildTextField("State", "state"),
-              _buildDateField("Joining Date*", _joiningDateController),
-              _buildDateField("Leaving Date", _leavingDateController),
-              _buildDropdownField(
-                  "Status", ["Active", "Inactive"], "factStatus"),
-              _buildQualificationFields(),
-              ElevatedButton(
-                onPressed: _addQualification,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary, // Button color
-                  foregroundColor: Colors.white, // Text color
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 12, horizontal: 20), // Button padding
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8), // Rounded corners
-                  ),
+  return Scaffold(
+    backgroundColor: Color.fromARGB(255, 238, 235, 235),
+    appBar: Header(text: "Add Faculty"),
+    body: SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Form(
+            key: _formKey,
+            child: Card(
+              color: Colors.white,
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Faculty Details",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField("Full Name*", "fullName"),
+                    _buildTextField("Email*", "email", isEmail: false),
+                    _buildTextField("Faculty Email*", "factEmail", isEmail: true),
+                    _buildTextField("Password*", "password", isPassword: true),
+                    _buildTextField("Contact*", "contact"),
+                    _buildDropdownField(
+                        "Gender*", ["Male", "Female", "Other"], "gender"),
+                    _buildTextField("Address", "address"),
+                    _buildTextField("City*", "city"),
+                    _buildTextField("State", "state"),
+                    _buildDateField("Joining Date*", _joiningDateController),
+                    _buildDateField("Leaving Date", _leavingDateController),
+                    _buildDropdownField(
+                        "Status", ["Active", "Inactive"], "factStatus"),
+                    _buildQualificationFields(),
+                    ElevatedButton(
+                      onPressed: _addQualification,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary, // Button color
+                        foregroundColor: Colors.white, // Text color
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 20), // Button padding
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(8), // Rounded corners
+                        ),
+                      ),
+                      child: const Text("+ Add Qualification"),
+                    ),
+                  ],
                 ),
-                child: const Text("+ Add Qualification"),
               ),
-              const SizedBox(height: 32),
-              Center(
-                child: ElevatedButton(
-                  onPressed: _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 16),
-                  ),
-                  child: const Text(
-                    "Submit",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(height: 24),
+          // Submit Button (Outside Card, Full Width)
+          SizedBox(
+            width: double.infinity, // Full width button
+            child: ElevatedButton(
+              onPressed: _submitForm,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary, // Primary color
+                foregroundColor: Colors.white, // White text color
+                padding: const EdgeInsets.symmetric(vertical: 16), // More padding
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12), // Smooth rounded corners
+                ),
+                elevation: 4, // Shadow for better visibility
+              ),
+              child: const Text(
+                "Submit",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget _buildTextField(String label, String key,
       {bool isEmail = false, bool isPassword = false}) {

@@ -441,7 +441,7 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                                     subtitle: Text(
                                         "Attendance: ${student['attendance']}, \nRemark: ${student['remark'] ?? 'N/A'}"),
                                   );
-                                }).toList(),
+                                }),
                               ],
                             ),
                           ),

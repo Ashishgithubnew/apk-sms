@@ -274,6 +274,7 @@ class _StudentFormState extends State<StudentForm> {
 
   Widget buildCard(String title, List<Widget> children) {
     return Card(
+      color: Colors.white,
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(

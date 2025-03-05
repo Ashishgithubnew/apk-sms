@@ -8,7 +8,7 @@ class AddStudentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color.fromARGB(255, 238, 235, 235),
       appBar: Header(text: "Add Student"),
       body: const StudentForm(),
     );

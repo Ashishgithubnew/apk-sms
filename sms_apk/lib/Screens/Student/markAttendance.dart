@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:sms_apk/utils/app_colors.dart';
+import 'package:sms_apk/widgets/custom_popup.dart';
 import 'package:sms_apk/widgets/header.dart';
 
 class MarkAttendanceScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
   List<Map<String, dynamic>> students = [];
   bool masterAttendance = true;
   String? globalAttendance;
+  bool studentsFetched = false;
 
   @override
   void initState() {
@@ -36,7 +38,7 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
     try {
       final token = await getToken();
       if (token == null) {
-        showSnackbar("No token found. Please log in.");
+        showPopup(context, "No token found. Please log in.", AppColors.primary);
         return;
       }
 
@@ -56,10 +58,10 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
           classData = fetchedClasses;
         });
       } else {
-        showSnackbar("Failed to load classes");
+        showPopup(context, "Failed to load classes", AppColors.primary);
       }
     } catch (e) {
-      showSnackbar("Error: $e");
+      showPopup(context, "Error: $e", AppColors.primary);
     }
   }
 
@@ -94,14 +96,14 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
 
   Future<void> fetchStudents() async {
     if (selectedClass == null) {
-      showSnackbar("Please select a class first.");
+      showPopup(context, "Please select a class first.", AppColors.primary);
       return;
     }
 
     try {
       final token = await getToken();
       if (token == null) {
-        showSnackbar("No token found. Please log in.");
+        showPopup(context, "No token found. Please log in.", AppColors.primary);
         return;
       }
 
@@ -122,40 +124,53 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
             'name': student['name'],
             'attendance': globalAttendance ?? 'Present',
             'remark': '',
+            'controller': TextEditingController(),
           };
         }).toList();
 
         setState(() {
           students = fetchedStudents;
+          studentsFetched = true;
         });
       } else {
-        showSnackbar("Failed to fetch students");
+        showPopup(context, "Failed to fetch students", AppColors.primary);
       }
     } catch (e) {
-      showSnackbar("Error: $e");
+      showPopup(context, "Error: $e", AppColors.primary);
     }
   }
 
   Future<void> submitAttendance() async {
     if (selectedClass == null) {
-      showSnackbar("Please select a class first.");
+      showPopup(context, "Please select a class first.", AppColors.primary);
       return;
     }
     if (!masterAttendance && selectedSubject == null) {
-      showSnackbar("Please select a subject.");
+      showPopup(context, "Please select a subject.", AppColors.primary);
       return;
     }
     if (students.isEmpty) {
-      showSnackbar("No students to submit attendance.");
+      showPopup(
+          context, "No students to submit attendance.", AppColors.primary);
       return;
     }
 
     try {
       final token = await getToken();
       if (token == null) {
-        showSnackbar("No token found. Please log in.");
+        showPopup(context, "No token found. Please log in.", AppColors.primary);
         return;
       }
+
+      // ✅ Extracting remark values and creating clean student list
+      List<Map<String, dynamic>> cleanedStudents = students.map((student) {
+        return {
+          'stdId': student['stdId'],
+          'name': student['name'],
+          'attendance': student['attendance'],
+          'remark': student['controller'].text, // Extract text from controller
+        };
+      }).toList();
 
       final response = await http.post(
         Uri.parse(
@@ -167,26 +182,23 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
         body: jsonEncode({
           "className": selectedClass,
           "subject": masterAttendance ? "" : selectedSubject,
-          "studentList": students,
+          "studentList": cleanedStudents,
           "masterAttendance": masterAttendance,
         }),
       );
 
       if (response.statusCode == 200) {
-        showSnackbar("Attendance submitted successfully!");
+        showPopup(
+            context, "Attendance submitted successfully!", AppColors.primary);
       } else {
         final errorMessage =
             jsonDecode(response.body)['message'] ?? "Unknown error";
-        showSnackbar("Failed to submit attendance: $errorMessage");
+        showPopup(context, "Failed to submit attendance: $errorMessage",
+            AppColors.primary);
       }
     } catch (e) {
-      showSnackbar("Error: $e");
+      showPopup(context, "Error: $e", AppColors.primary);
     }
-  }
-
-  void showSnackbar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -326,18 +338,33 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
             SizedBox(
               height: 20,
             ),
-            DropdownButton<String>(
-              hint: Text("Apply Attendance to All"),
-              isExpanded: true,
-              items: ["Present", "Absent", "Half Day", "Late", "Leave"]
-                  .map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: applyAttendanceToAll,
-            ),
+            if (studentsFetched)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(color: Colors.grey.shade300, blurRadius: 6)
+                  ],
+                ),
+                child: DropdownButton<String>(
+                  hint: Text("Apply Attendance to All",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  isExpanded: true,
+                  value: globalAttendance,
+                  items: ["Present", "Absent", "Half Day", "Late", "Leave"]
+                      .map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: applyAttendanceToAll,
+                  dropdownColor: Colors.white,
+                ),
+              ),
             SizedBox(
               height: 20,
             ),
@@ -346,6 +373,7 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                 itemCount: students.length,
                 itemBuilder: (context, index) {
                   var student = students[index];
+
                   return ListTile(
                     title: Text(student['name']),
                     subtitle: DropdownButton<String>(
@@ -359,36 +387,66 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
-                          student['attendance'] = value!;
+                          students[index]['attendance'] = value!;
                         });
                       },
                     ),
                     trailing: SizedBox(
                       width: 150,
-                      child: TextField(
-                        decoration: InputDecoration(hintText: "Enter remarks"),
-                        onChanged: (value) {
-                          student['remark'] = value;
-                        },
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: TextField(
+                          cursorColor:
+                              AppColors.primary, // Cursor (caret) color
+                          controller: students[index]
+                              ['controller'], // ✅ Assign controller
+                          decoration: InputDecoration(
+                            hintText: "Enter remarks",
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: AppColors
+                                      .primary), // Default border color
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: AppColors.primary,
+                                  width: 2), // Focused border color
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            students[index]['remark'] = value;
+                          },
+                        ),
                       ),
                     ),
                   );
                 },
               ),
             ),
-            ElevatedButton(
-              onPressed: submitAttendance,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary, // Button color
-                foregroundColor: Colors.white, // Text color
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12), // Optional: Padding
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(8), // Optional: Rounded corners
+            SizedBox(
+              width: double.infinity, // Full width
+              child: ElevatedButton(
+                onPressed: submitAttendance,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary, // Primary color
+                  foregroundColor: Colors.white, // White text color
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 14), // Comfortable padding
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(12), // Smooth rounded corners
+                  ),
+                  elevation: 4, // Slight shadow for better visibility
+                ),
+                child: const Text(
+                  "Submit Attendance",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
-              child: const Text("Submit Attendance"),
             ),
           ],
         ),
