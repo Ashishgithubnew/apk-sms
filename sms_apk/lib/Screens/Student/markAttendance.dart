@@ -273,9 +273,12 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                 ],
               ),
             ),
-            SizedBox(
-              height: 20,
-            ),
+
+            if (!masterAttendance)
+              SizedBox(
+                height: 10,
+              ),
+
             if (!masterAttendance)
               Container(
                 padding: EdgeInsets.all(12),
@@ -392,7 +395,7 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                       },
                     ),
                     trailing: SizedBox(
-                      width: 150,
+                      width: 200,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.vertical,
                         child: TextField(
