@@ -20,18 +20,18 @@ class _NotificationPageState extends State<NotificationPage> {
   bool isLoading = true;
   List filteredNotifications = [];
 
-List<String> categories = [
-  "Select a category",  
-  "All Categories",
-  "student",
-  "teacher",
-  "staff",
-  "holiday",
-  "exam",
-  "event"
-];
+  List<String> categories = [
+    "Select a category",
+    "All Categories",
+    "student",
+    "teacher",
+    "staff",
+    "holiday",
+    "exam",
+    "event"
+  ];
 
-String selectedCategory = "Select a category";  
+  String selectedCategory = "Select a category";
 
   Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -264,7 +264,8 @@ String selectedCategory = "Select a category";
                             ))
                         .toList(),
                   ),
-                  if (selectedCategory == "Student" || selectedCategory == "Exam" ) ...[
+                  if (selectedCategory == "Student" ||
+                      selectedCategory == "Exam") ...[
                     const SizedBox(height: 10),
                     const Text("Classes",
                         style: TextStyle(color: AppColors.primary)),
@@ -372,17 +373,22 @@ String selectedCategory = "Select a category";
     super.initState();
     fetchNotifications();
   }
-void filterNotifications(String category) {
+
+  void filterNotifications(String category) {
     setState(() {
       selectedCategory = category;
-    if (category == "All Categories") {
+      if (category == "All Categories") {
         filteredNotifications = notifications;
       } else {
-        filteredNotifications = notifications.where((notification) =>
-            notification['cato'].toString().toLowerCase() == category.toLowerCase()).toList();
+        filteredNotifications = notifications
+            .where((notification) =>
+                notification['cato'].toString().toLowerCase() ==
+                category.toLowerCase())
+            .toList();
       }
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -390,48 +396,17 @@ void filterNotifications(String category) {
       appBar: Header(text: "Notifications"),
       body: Column(
         children: [
-         Padding(
-  padding: const EdgeInsets.all(16.0),
-  child: DropdownButtonFormField(
-    decoration: InputDecoration(
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: AppColors.primary),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    ),
-    value: selectedCategory,
-    items: categories.map((category) {
-      return DropdownMenuItem(
-        value: category,
-        child: Text(
-          category,
-          style: TextStyle(
-            color: category == "Select a category" ? Colors.grey : AppColors.primary, // Grey for default
-          ),
-        ),
-      );
-    }).toList(),
-    onChanged: (value) {
-      if (value is String) {
-        filterNotifications(value);
-      }
-    },
-  ),
-),
-
-          // Add Notification Button Container
-          GestureDetector(
-            onTap: openAddNotificationDialog, // Opens dialog on tap
+          Padding(
+            padding: const EdgeInsets.all(8.0),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white, // Background color
                 borderRadius: BorderRadius.circular(12), // Rounded edges
                 border: Border.all(
                   color: Colors.grey.shade300, // Light border for a clean look
-                  width: 1,
+                  width: 1, // Full width
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -441,43 +416,96 @@ void filterNotifications(String category) {
                   ),
                 ],
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Add Notification",
-                    style: TextStyle(color: Colors.black, fontSize: 16),
+              child: DropdownButtonFormField(
+                decoration: InputDecoration(
+                  border: InputBorder.none, // Remove default border
+                  contentPadding: EdgeInsets.zero,
+                ),
+                value: selectedCategory,
+                items: categories.map((category) {
+                  return DropdownMenuItem(
+                    value: category,
+                    child: Text(
+                      category,
+                      style: TextStyle(
+                        color: category == "Select a category"
+                            ? Colors.grey
+                            : Colors.black, // Grey for default
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value is String) {
+                    filterNotifications(value);
+                  }
+                },
+              ),
+            ),
+          ),
+
+          // Add Notification Button Container
+          GestureDetector(
+            onTap: openAddNotificationDialog, // Opens dialog on tap
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white, // Background color
+                  borderRadius: BorderRadius.circular(12), // Rounded edges
+                  border: Border.all(
+                    color:
+                        Colors.grey.shade300, // Light border for a clean look
+                    width: 1,
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.add, color: AppColors.primary),
-                    onPressed:
-                        openAddNotificationDialog, // Also triggers on button tap
-                  ),
-                ],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1), // Soft shadow
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Add Notification",
+                      style: TextStyle(color: Colors.black, fontSize: 16),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add, color: AppColors.primary),
+                      onPressed:
+                          openAddNotificationDialog, // Also triggers on button tap
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
 
           // Main Content (Loading, No Notifications, or List)
-         Expanded(
-  child: isLoading
-      ? const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        )
-      : filteredNotifications.isEmpty
-          ? const Center(
-              child: Text("No notifications available",
-                  style: TextStyle(color: AppColors.primary)),
-            )
-          : ListView.builder(
-              itemCount: filteredNotifications.length,
-              itemBuilder: (context, index) {
-                final notification = filteredNotifications[index];
-                return _buildNotificationCard(notification);
-              },
-            ),
-),
-
+          Expanded(
+            child: isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  )
+                : filteredNotifications.isEmpty
+                    ? const Center(
+                        child: Text("No notifications available",
+                            style: TextStyle(color: AppColors.primary)),
+                      )
+                    : ListView.builder(
+                        itemCount: filteredNotifications.length,
+                        itemBuilder: (context, index) {
+                          final notification = filteredNotifications[index];
+                          return _buildNotificationCard(notification);
+                        },
+                      ),
+          ),
         ],
       ),
     );
@@ -485,37 +513,61 @@ void filterNotifications(String category) {
 
   Widget _buildNotificationCard(Map<String, dynamic> notification) {
     return Card(
-      elevation: 4,
+      elevation: 4, // Shadow effect
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        title: Text(
-          notification['description'] ?? 'No Description',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: AppColors.primary,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Category: ${notification['cato'] ?? 'N/A'}",
-              style: const TextStyle(color: Colors.grey),
-            ),
-            Text(
-              "Classes: ${(notification['className'] as List?)?.join(', ') ?? 'N/A'}",
-              style: const TextStyle(color: Colors.grey),
-            ),
-            Text(
-              "Date: ${notification['startDate']} - ${notification['endDate']}",
-              style: const TextStyle(color: Colors.grey),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.primary, // Container background color
+          borderRadius: BorderRadius.circular(12), // Rounded corners
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2), // Shadow color
+              blurRadius: 6, // Shadow blur
+              offset: const Offset(0, 3), // Shadow position
             ),
           ],
+        ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.all(16),
+          title: Text(
+            notification['description'] ?? 'No Description',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20, // Larger font size for title
+              color: Colors.white, // Title color white
+            ),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Category: ${notification['cato'] ?? 'N/A'}",
+                style: const TextStyle(
+                  color: Colors.white, // Content color white
+                  fontSize: 14, // Smaller font size for content
+                ),
+              ),
+              const SizedBox(height: 4), // Spacing between lines
+              Text(
+                "Classes: ${(notification['className'] as List?)?.join(', ') ?? 'N/A'}",
+                style: const TextStyle(
+                  color: Colors.white, // Content color white
+                  fontSize: 14, // Smaller font size for content
+                ),
+              ),
+              const SizedBox(height: 4), // Spacing between lines
+              Text(
+                "Date: ${formatDate(DateTime.parse(notification['startDate']))} - ${formatDate(DateTime.parse(notification['endDate']))}",
+                style: const TextStyle(
+                  color: Colors.white, // Content color white
+                  fontSize: 14, // Smaller font size for content
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

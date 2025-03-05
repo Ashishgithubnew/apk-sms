@@ -29,182 +29,185 @@ class _DrawerMenuState extends State<DrawerMenu> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E7878),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                      child: const Text(
-                        'EasyWaySolution',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
+      child: Container(
+        color: Colors.white,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E7878),
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                        child: const Text(
+                          'EasyWaySolution',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                    ),
+                  ],
+                ),
+              ),
+              _buildDrawerItem(Icons.home, 'Home', () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomeScreen()),
+                );
+              }),
+              _buildExpandableSection(
+                title: 'Student',
+                isExpanded: isStudentDropdownOpen,
+                onTap: () {
+                  setState(() {
+                    isStudentDropdownOpen = !isStudentDropdownOpen;
+                  });
+                },
+                children: [
+                  _buildDrawerSubItem(Icons.table_rows, 'Student Table', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => StudentTableScreen(),
+                      ),
+                    );
+                  }),
+                  _buildDrawerSubItem(Icons.person_add, 'Add Student', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddStudentScreen(),
+                      ),
+                    );
+                  }),
+                  _buildExpandableSection(
+                    title: 'Student Attendance',
+                    isExpanded: isStudentAttendanceDropdownOpen,
+                    onTap: () {
+                      setState(() {
+                        isStudentAttendanceDropdownOpen =
+                            !isStudentAttendanceDropdownOpen;
+                      });
+                    },
+                    children: [
+                      _buildDrawerSubItem(Icons.visibility, 'View Attendance',
+                          () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ViewAttendanceScreen(),
+                          ),
+                        );
+                      }),
+                      _buildDrawerSubItem(Icons.edit, 'Mark Attendance', () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MarkAttendanceScreen(),
+                          ),
+                        );
+                      }),
+                    ],
                   ),
                 ],
               ),
-            ),
-            _buildDrawerItem(Icons.home, 'Home', () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
-              );
-            }),
-            _buildExpandableSection(
-              title: 'Student',
-              isExpanded: isStudentDropdownOpen,
-              onTap: () {
-                setState(() {
-                  isStudentDropdownOpen = !isStudentDropdownOpen;
-                });
-              },
-              children: [
-                _buildDrawerSubItem(Icons.table_rows, 'Student Table', () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => StudentTableScreen(),
-                    ),
-                  );
-                }),
-                _buildDrawerSubItem(Icons.person_add, 'Add Student', () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AddStudentScreen(),
-                    ),
-                  );
-                }),
-                _buildExpandableSection(
-                  title: 'Student Attendance',
-                  isExpanded: isStudentAttendanceDropdownOpen,
-                  onTap: () {
-                    setState(() {
-                      isStudentAttendanceDropdownOpen =
-                          !isStudentAttendanceDropdownOpen;
-                    });
-                  },
-                  children: [
-                    _buildDrawerSubItem(Icons.visibility, 'View Attendance',
-                        () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ViewAttendanceScreen(),
-                        ),
-                      );
-                    }),
-                    _buildDrawerSubItem(Icons.edit, 'Mark Attendance', () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MarkAttendanceScreen(),
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-              ],
-            ),
-            _buildExpandableSection(
-              title: 'Faculty',
-              isExpanded: isFacultyDropdownOpen,
-              onTap: () {
-                setState(() {
-                  isFacultyDropdownOpen = !isFacultyDropdownOpen;
-                });
-              },
-              children: [
-                _buildDrawerSubItem(Icons.table_rows, 'Faculty Table', () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FacultyTableScreen(),
-                    ),
-                  );
-                }),
-                _buildDrawerSubItem(Icons.person_add, 'Add Faculty', () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const FacultyDetailsForm(),
-                    ),
-                  );
-                }),
-                _buildExpandableSection(
-                  title: 'Faculty Attendance',
-                  isExpanded: isFacultyAttendanceDropdownOpen,
-                  onTap: () {
-                    setState(() {
-                      isFacultyAttendanceDropdownOpen =
-                          !isFacultyAttendanceDropdownOpen;
-                    });
-                  },
-                  children: [
-                    _buildDrawerSubItem(Icons.visibility, 'View Attendance',
-                        () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ViewAttendance(),
-                        ),
-                      );
-                    }),
-                    _buildDrawerSubItem(Icons.edit, 'Mark Attendance', () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MarkAttendance(),
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-              ],
-            ),
-            _buildDrawerItem(Icons.notification_add, 'Notifications', () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => NotificationPage()),
-              );
-            }),
-            const Divider(),
-            ListTile(
-              leading: Icon(Icons.logout, color: AppColors.logout),
-              title: Text(
-                'Logout',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.logout,
-                ),
+              _buildExpandableSection(
+                title: 'Faculty',
+                isExpanded: isFacultyDropdownOpen,
+                onTap: () {
+                  setState(() {
+                    isFacultyDropdownOpen = !isFacultyDropdownOpen;
+                  });
+                },
+                children: [
+                  _buildDrawerSubItem(Icons.table_rows, 'Faculty Table', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FacultyTableScreen(),
+                      ),
+                    );
+                  }),
+                  _buildDrawerSubItem(Icons.person_add, 'Add Faculty', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FacultyDetailsForm(),
+                      ),
+                    );
+                  }),
+                  _buildExpandableSection(
+                    title: 'Faculty Attendance',
+                    isExpanded: isFacultyAttendanceDropdownOpen,
+                    onTap: () {
+                      setState(() {
+                        isFacultyAttendanceDropdownOpen =
+                            !isFacultyAttendanceDropdownOpen;
+                      });
+                    },
+                    children: [
+                      _buildDrawerSubItem(Icons.visibility, 'View Attendance',
+                          () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ViewAttendance(),
+                          ),
+                        );
+                      }),
+                      _buildDrawerSubItem(Icons.edit, 'Mark Attendance', () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MarkAttendance(),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ],
               ),
-              onTap: () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.remove('authToken');
-                Navigator.pushReplacement(
+              _buildDrawerItem(Icons.notification_add, 'Notifications', () {
+                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                  MaterialPageRoute(builder: (context) => NotificationPage()),
                 );
-              },
-            ),
-          ],
+              }),
+              const Divider(),
+              ListTile(
+                leading: Icon(Icons.logout, color: AppColors.logout),
+                title: Text(
+                  'Logout',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.logout,
+                  ),
+                ),
+                onTap: () async {
+                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  await prefs.remove('authToken');
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
