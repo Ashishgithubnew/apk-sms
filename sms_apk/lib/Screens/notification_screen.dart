@@ -18,6 +18,20 @@ class NotificationPage extends StatefulWidget {
 class _NotificationPageState extends State<NotificationPage> {
   List notifications = [];
   bool isLoading = true;
+  List filteredNotifications = [];
+
+List<String> categories = [
+  "Select a category",  
+  "All Categories",
+  "student",
+  "teacher",
+  "staff",
+  "holiday",
+  "exam",
+  "event"
+];
+
+String selectedCategory = "Select a category";  
 
   Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -110,7 +124,7 @@ class _NotificationPageState extends State<NotificationPage> {
   void openAddNotificationDialog() {
     DateTime? startDate;
     DateTime? endDate;
-    String selectedCategory = "All";
+    String selectedCategory = "All ";
     List<String> selectedClasses = [];
     TextEditingController descriptionController = TextEditingController();
 
@@ -250,7 +264,7 @@ class _NotificationPageState extends State<NotificationPage> {
                             ))
                         .toList(),
                   ),
-                  if (selectedCategory == "Student") ...[
+                  if (selectedCategory == "Student" || selectedCategory == "Exam" ) ...[
                     const SizedBox(height: 10),
                     const Text("Classes",
                         style: TextStyle(color: AppColors.primary)),
@@ -358,7 +372,17 @@ class _NotificationPageState extends State<NotificationPage> {
     super.initState();
     fetchNotifications();
   }
-
+void filterNotifications(String category) {
+    setState(() {
+      selectedCategory = category;
+    if (category == "All Categories") {
+        filteredNotifications = notifications;
+      } else {
+        filteredNotifications = notifications.where((notification) =>
+            notification['cato'].toString().toLowerCase() == category.toLowerCase()).toList();
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -366,6 +390,36 @@ class _NotificationPageState extends State<NotificationPage> {
       appBar: Header(text: "Notifications"),
       body: Column(
         children: [
+         Padding(
+  padding: const EdgeInsets.all(16.0),
+  child: DropdownButtonFormField(
+    decoration: InputDecoration(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: AppColors.primary),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    ),
+    value: selectedCategory,
+    items: categories.map((category) {
+      return DropdownMenuItem(
+        value: category,
+        child: Text(
+          category,
+          style: TextStyle(
+            color: category == "Select a category" ? Colors.grey : AppColors.primary, // Grey for default
+          ),
+        ),
+      );
+    }).toList(),
+    onChanged: (value) {
+      if (value is String) {
+        filterNotifications(value);
+      }
+    },
+  ),
+),
+
           // Add Notification Button Container
           GestureDetector(
             onTap: openAddNotificationDialog, // Opens dialog on tap
@@ -405,24 +459,25 @@ class _NotificationPageState extends State<NotificationPage> {
           ),
 
           // Main Content (Loading, No Notifications, or List)
-          Expanded(
-            child: isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  )
-                : notifications.isEmpty
-                    ? const Center(
-                        child: Text("No notifications available",
-                            style: TextStyle(color: AppColors.primary)),
-                      )
-                    : ListView.builder(
-                        itemCount: notifications.length,
-                        itemBuilder: (context, index) {
-                          final notification = notifications[index];
-                          return _buildNotificationCard(notification);
-                        },
-                      ),
-          ),
+         Expanded(
+  child: isLoading
+      ? const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        )
+      : filteredNotifications.isEmpty
+          ? const Center(
+              child: Text("No notifications available",
+                  style: TextStyle(color: AppColors.primary)),
+            )
+          : ListView.builder(
+              itemCount: filteredNotifications.length,
+              itemBuilder: (context, index) {
+                final notification = filteredNotifications[index];
+                return _buildNotificationCard(notification);
+              },
+            ),
+),
+
         ],
       ),
     );
