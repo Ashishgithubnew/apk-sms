@@ -1,0 +1,2 @@
+C:/Users/Adi/OneDrive/Desktop/flutter/apk-sms/sms_apk/android/app/.cxx/RelWithDebInfo/6s470495/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/Adi/OneDrive/Desktop/flutter/apk-sms/sms_apk/android/app/.cxx/RelWithDebInfo/6s470495/arm64-v8a/CMakeFiles/rebuild_cache.dir

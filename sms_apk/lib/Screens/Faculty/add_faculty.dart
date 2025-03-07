@@ -127,6 +127,11 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
 
         if (response.statusCode == 200) {
           showPopup(context, "Form submitted successfully!", AppColors.primary);
+        } else if (response.statusCode == 400) {
+           // Parse the response body to extract the error message
+        final responseBody = jsonDecode(response.body);
+        final errorMessage = responseBody["detail"] ?? "Invalid request. Please check your input.";
+        showPopup(context, errorMessage, AppColors.primary);
         } else {
           showPopup(
               context,
@@ -142,6 +147,8 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
   void _addQualification() {
     setState(() {
       _formData["factQualifications"].add({
+        "id": DateTime.now()
+            .millisecondsSinceEpoch, // Unique ID for each qualification
         "type": "Graduation",
         "grd_sub": "",
         "grd_branch": "",
@@ -154,114 +161,154 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
 
   Widget _buildQualificationFields() {
     return Column(
-      children: List.generate(_formData["factQualifications"].length, (index) {
-        return Column(
-          children: [
-            _buildTextField("Degree Type", "factQualifications[$index][type]"),
-            _buildTextField("Subject", "factQualifications[$index][grd_sub]"),
-            _buildTextField("Branch", "factQualifications[$index][grd_branch]"),
-            _buildTextField("Grade", "factQualifications[$index][grd_grade]"),
-            _buildTextField(
-                "University", "factQualifications[$index][grd_university]"),
-            _buildTextField("Year of Passing",
-                "factQualifications[$index][grd_yearOfPassing]"),
-            const SizedBox(height: 16),
-          ],
-        );
-      }),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_formData["factQualifications"]
+            .isNotEmpty) // Conditionally show "Qualifications" text
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.close,
+                    color: Colors.black, size: 24), // Cross icon
+                padding: EdgeInsets.zero, // Remove default padding
+                onPressed: () {
+                  setState(() {
+                    _formData["factQualifications"]
+                        .clear(); // Remove all qualification sets
+                  });
+                },
+              ),
+              Text(
+                "Qualifications",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ...List.generate(_formData["factQualifications"].length, (index) {
+          return Column(
+            children: [
+              Column(
+                children: [
+                  _buildTextField(
+                      "Degree Type", "factQualifications[$index][type]"),
+                  _buildTextField(
+                      "Subject", "factQualifications[$index][grd_sub]"),
+                  _buildTextField(
+                      "Branch", "factQualifications[$index][grd_branch]"),
+                  _buildTextField(
+                      "Grade", "factQualifications[$index][grd_grade]"),
+                  _buildTextField("University",
+                      "factQualifications[$index][grd_university]"),
+                  _buildTextField("Year of Passing",
+                      "factQualifications[$index][grd_yearOfPassing]"), // Fixed typo
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          );
+        }),
+      ],
     );
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Color.fromARGB(255, 238, 235, 235),
-    appBar: Header(text: "Add Faculty"),
-    body: SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Form(
-            key: _formKey,
-            child: Card(
-              color: Colors.white,
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Faculty Details",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField("Full Name*", "fullName"),
-                    _buildTextField("Email*", "email", isEmail: false),
-                    _buildTextField("Faculty Email*", "factEmail", isEmail: true),
-                    _buildTextField("Password*", "password", isPassword: true),
-                    _buildTextField("Contact*", "contact"),
-                    _buildDropdownField(
-                        "Gender*", ["Male", "Female", "Other"], "gender"),
-                    _buildTextField("Address", "address"),
-                    _buildTextField("City*", "city"),
-                    _buildTextField("State", "state"),
-                    _buildDateField("Joining Date*", _joiningDateController),
-                    _buildDateField("Leaving Date", _leavingDateController),
-                    _buildDropdownField(
-                        "Status", ["Active", "Inactive"], "factStatus"),
-                    _buildQualificationFields(),
-                    ElevatedButton(
-                      onPressed: _addQualification,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary, // Button color
-                        foregroundColor: Colors.white, // Text color
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 20), // Button padding
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(8), // Rounded corners
+    return Scaffold(
+      backgroundColor: Color.fromARGB(255, 238, 235, 235),
+      appBar: Header(text: "Add Faculty"),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Form(
+              key: _formKey,
+              child: Card(
+                color: Colors.white,
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Faculty Details",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      child: const Text("+ Add Qualification"),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      _buildTextField("Full Name*", "fullName"),
+                      _buildTextField("Email*", "email", isEmail: false),
+                      _buildTextField("Faculty Email*", "factEmail",
+                          isEmail: true),
+                      _buildTextField("Password*", "password",
+                          isPassword: true),
+                      _buildTextField("Contact*", "contact"),
+                      _buildDropdownField(
+                          "Gender*", ["Male", "Female", "Other"], "gender"),
+                      _buildTextField("Address", "address"),
+                      _buildTextField("City*", "city"),
+                      _buildTextField("State", "state"),
+                      _buildDateField("Joining Date*", _joiningDateController),
+                      _buildDateField("Leaving Date", _leavingDateController),
+                      _buildDropdownField(
+                          "Status", ["Active", "Inactive"], "factStatus"),
+                      _buildQualificationFields(), // Render qualification fields
+                      ElevatedButton(
+                        onPressed: _addQualification,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary, // Button color
+                          foregroundColor: Colors.white, // Text color
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 20), // Button padding
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(8), // Rounded corners
+                          ),
+                        ),
+                        child: const Text("+ Add Qualification"),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 24),
-          // Submit Button (Outside Card, Full Width)
-          SizedBox(
-            width: double.infinity, // Full width button
-            child: ElevatedButton(
-              onPressed: _submitForm,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary, // Primary color
-                foregroundColor: Colors.white, // White text color
-                padding: const EdgeInsets.symmetric(vertical: 16), // More padding
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12), // Smooth rounded corners
+            const SizedBox(height: 24),
+            // Submit Button (Outside Card, Full Width)
+            SizedBox(
+              width: double.infinity, // Full width button
+              child: ElevatedButton(
+                onPressed: _submitForm,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary, // Primary color
+                  foregroundColor: Colors.white, // White text color
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 16), // More padding
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(12), // Smooth rounded corners
+                  ),
+                  elevation: 4, // Shadow for better visibility
                 ),
-                elevation: 4, // Shadow for better visibility
-              ),
-              child: const Text(
-                "Submit",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                child: const Text(
+                  "Submit",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   Widget _buildTextField(String label, String key,
       {bool isEmail = false, bool isPassword = false}) {
@@ -270,22 +317,19 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
       child: TextFormField(
         initialValue: _formData[key],
         obscureText: isPassword,
-        cursorColor: AppColors.primary, // Cursor (caret) color
+        cursorColor: AppColors.primary,
         decoration: InputDecoration(
           labelText: label,
-          floatingLabelStyle:
-              TextStyle(color: AppColors.primary), // Label color when focused
+          floatingLabelStyle: TextStyle(color: AppColors.primary),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: AppColors.primary), // Default border color
+            borderSide: BorderSide(color: AppColors.primary),
             borderRadius: BorderRadius.circular(8),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-                color: AppColors.primary, width: 2), // Focused border color
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
             borderRadius: BorderRadius.circular(8),
           ),
         ),

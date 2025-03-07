@@ -191,8 +191,11 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
         showPopup(
             context, "Attendance submitted successfully!", AppColors.primary);
       } else if (response.statusCode == 400) {
-        // Handle 400 status code specifically
-        showPopup(context, "Attendance is already present.", AppColors.primary);
+        // Parse the response body to extract the error message
+        final responseBody = jsonDecode(response.body);
+        final errorMessage = responseBody["detail"] ??
+            "Invalid request. Please check your input.";
+        showPopup(context, errorMessage, AppColors.primary);
       } else {
         final errorMessage =
             jsonDecode(response.body)['message'] ?? "Unknown error";

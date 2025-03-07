@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sms_apk/utils/app_colors.dart';
+import 'package:sms_apk/widgets/custom_popup.dart';
 
 void main() {
   runApp(MyApp());
@@ -47,7 +48,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Future<void> fetchNotifications() async {
     final String code = _codeController.text.trim();
     if (code.isEmpty) {
-      _showSnackbar('Please enter a code');
+      showPopup(context,'Please enter a code',AppColors.primary);
       return;
     }
 
@@ -60,17 +61,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
           notifications = json.decode(response.body);
         });
       } else {
-        _showSnackbar('Failed to load notifications');
+        showPopup(context,'Failed to load notifications',AppColors.primary);
       }
     } catch (e) {
-      _showSnackbar('Error fetching notifications');
+      showPopup(context,'Error fetching notifications',AppColors.primary);
     }
   }
 
-  void _showSnackbar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -103,6 +103,12 @@ class _MarkAttendanceState extends State<MarkAttendance> {
       if (response.statusCode == 200) {
         showPopup(
             context, 'Attendance updated successfully', AppColors.success);
+      } else if (response.statusCode == 400) {
+        // Parse the response body to extract the error message
+        final responseBody = jsonDecode(response.body);
+        final errorMessage = responseBody["detail"] ??
+            "Invalid request. Please check your input.";
+        showPopup(context, errorMessage, AppColors.primary);
       } else {
         showPopup(context, 'Failed to update attendance', AppColors.error);
       }
@@ -130,7 +136,8 @@ class _MarkAttendanceState extends State<MarkAttendance> {
                     controller: searchController,
                     decoration: InputDecoration(
                       labelText: 'Search Faculty',
-                      prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+                      prefixIcon:
+                          const Icon(Icons.search, color: AppColors.primary),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(color: AppColors.primary),
@@ -200,7 +207,8 @@ class _MarkAttendanceState extends State<MarkAttendance> {
         ),
         trailing: DropdownButton<String>(
           value: attendance[faculty['fact_id']],
-          hint: const Text('Select', style: TextStyle(color: AppColors.primary)),
+          hint:
+              const Text('Select', style: TextStyle(color: AppColors.primary)),
           items: ['Present', 'Absent', 'Leave']
               .map((status) => DropdownMenuItem(
                     value: status,

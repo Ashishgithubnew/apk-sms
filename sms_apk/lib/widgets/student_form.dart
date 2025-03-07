@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sms_apk/widgets/custom_popup.dart';
 import '../utils/app_colors.dart';
 
 class StudentForm extends StatefulWidget {
@@ -48,7 +49,7 @@ class _StudentFormState extends State<StudentForm> {
     try {
       final token = await getToken();
       if (token == null) {
-        showSnackbar('No token found. Please log in.');
+        showPopup(context,'No token found. Please log in.',AppColors.primary);
         return;
       }
       final response = await http.get(
@@ -69,10 +70,10 @@ class _StudentFormState extends State<StudentForm> {
               .toList();
         });
       } else {
-        showSnackbar('Failed to load classes');
+        showPopup(context,'Failed to load classes',AppColors.primary);
       }
     } catch (e) {
-      showSnackbar('Error fetching classes: $e');
+      showPopup(context,'Error fetching classes: $e',AppColors.primary);
     }
   }
 
@@ -116,7 +117,7 @@ class _StudentFormState extends State<StudentForm> {
     try {
       final token = await getToken();
       if (token == null) {
-        showSnackbar('No token found. Please log in.');
+        showPopup(context,'No token found. Please log in.',AppColors.primary);
         return;
       }
 
@@ -130,13 +131,19 @@ class _StudentFormState extends State<StudentForm> {
       );
 
       if (response.statusCode == 200) {
-        showSnackbar('Student added successfully!');
+        showPopup(context,'Student added successfully!',AppColors.primary);
         Navigator.pop(context);
+      } else if (response.statusCode == 400) {
+        // Parse the response body to extract the error message
+        final responseBody = jsonDecode(response.body);
+        final errorMessage = responseBody["detail"] ??
+            "Invalid request. Please check your input.";
+        showPopup(context, errorMessage, AppColors.primary);
       } else {
-        showSnackbar('Failed to add student: ${response.body}');
+        showPopup(context,'Failed to add student: ${response.body}',AppColors.primary);
       }
     } catch (e) {
-      showSnackbar('Error: $e');
+      showPopup(context,'Error: $e',AppColors.primary);
     } finally {
       setState(() => isLoading = false);
     }
