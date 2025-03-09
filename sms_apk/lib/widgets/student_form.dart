@@ -49,7 +49,7 @@ class _StudentFormState extends State<StudentForm> {
     try {
       final token = await getToken();
       if (token == null) {
-        showPopup(context,'No token found. Please log in.',AppColors.primary);
+        showPopup(context, 'No token found. Please log in.', AppColors.primary);
         return;
       }
       final response = await http.get(
@@ -69,11 +69,17 @@ class _StudentFormState extends State<StudentForm> {
                   })
               .toList();
         });
+      } else if (response.statusCode == 400) {
+        // Parse the response body to extract the error message
+        final responseBody = jsonDecode(response.body);
+        final errorMessage = responseBody["detail"] ??
+            "Invalid request. Please check your input.";
+        showPopup(context, errorMessage, AppColors.primary);
       } else {
-        showPopup(context,'Failed to load classes',AppColors.primary);
+        showPopup(context, 'Failed to load classes', AppColors.primary);
       }
     } catch (e) {
-      showPopup(context,'Error fetching classes: $e',AppColors.primary);
+      showPopup(context, 'Error fetching classes: $e', AppColors.primary);
     }
   }
 
@@ -117,7 +123,7 @@ class _StudentFormState extends State<StudentForm> {
     try {
       final token = await getToken();
       if (token == null) {
-        showPopup(context,'No token found. Please log in.',AppColors.primary);
+        showPopup(context, 'No token found. Please log in.', AppColors.primary);
         return;
       }
 
@@ -131,7 +137,7 @@ class _StudentFormState extends State<StudentForm> {
       );
 
       if (response.statusCode == 200) {
-        showPopup(context,'Student added successfully!',AppColors.primary);
+        showPopup(context, 'Student added successfully!', AppColors.primary);
         Navigator.pop(context);
       } else if (response.statusCode == 400) {
         // Parse the response body to extract the error message
@@ -140,10 +146,11 @@ class _StudentFormState extends State<StudentForm> {
             "Invalid request. Please check your input.";
         showPopup(context, errorMessage, AppColors.primary);
       } else {
-        showPopup(context,'Failed to add student: ${response.body}',AppColors.primary);
+        showPopup(context, 'Failed to add student: ${response.body}',
+            AppColors.primary);
       }
     } catch (e) {
-      showPopup(context,'Error: $e',AppColors.primary);
+      showPopup(context, 'Error: $e', AppColors.primary);
     } finally {
       setState(() => isLoading = false);
     }

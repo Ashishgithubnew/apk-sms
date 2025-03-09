@@ -12,8 +12,12 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   String userName = "Guest";
-  String email = "example@mail.com"; // Default email
-  String role = "User"; // Default role
+  String email = "example@mail.com";
+  String role = "User";
+  String schoolAddress = "N/A";
+  String adminContact = "N/A";
+  String factAddress = "N/A";
+  String factContact = "N/A";
 
   @override
   void initState() {
@@ -21,14 +25,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUserData();
   }
 
-  /// Fetches stored user data from SharedPreferences
+  /// Fetch stored user data from SharedPreferences
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     setState(() {
       userName = prefs.getString('userName') ?? "Guest";
-      email = prefs.getString('email') ?? "example@mail.com"; 
-      role = prefs.getString('role') ?? "User"; 
+      email = prefs.getString('email') ?? "example@mail.com";
+      role = prefs.getString('role') ?? "User";
+      schoolAddress = prefs.getString('schoolAddress') ?? "N/A";
+      adminContact = prefs.getString('adminContact') ?? "N/A";
+      factAddress = prefs.getString('factAddress') ?? "N/A";
+      factContact = prefs.getString('factContact') ?? "N/A";
     });
   }
 
@@ -66,7 +73,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // Role
             Text(
-              role,
+              "Role : $role",
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
             const SizedBox(height: 20),
@@ -83,7 +90,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _profileDetailRow(Icons.email, "Email", email),
-                    _profileDetailRow(Icons.work, "Role", role),
+                    // _profileDetailRow(Icons.work, "Role", role),
+                    if (role == "user") ...[
+                      _profileDetailRow(
+                          Icons.location_on, "Address", schoolAddress),
+                      _profileDetailRow(
+                          Icons.phone, "Contact", adminContact),
+                    ],
+                    if (role == "sub-user") ...[
+                      _profileDetailRow(
+                          Icons.location_city, "Address", factAddress),
+                      _profileDetailRow(
+                          Icons.phone_android, "Contact", factContact),
+                    ],
                   ],
                 ),
               ),
@@ -102,15 +121,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    Colors.white, // Set button background color if needed
-                elevation: 2, // Optional: Adjust button shadow
+                backgroundColor: Colors.white,
+                elevation: 2,
               ),
               onPressed: () async {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.remove('authToken'); // Clear stored token
-                await prefs.remove('email');
-                await prefs.remove('role');
+                await prefs.clear(); // Clear all stored user data
 
                 Navigator.pushReplacement(
                   context,
@@ -118,7 +134,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
             ),
-
             const SizedBox(height: 20),
           ],
         ),

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:animate_do/animate_do.dart';
 import 'package:sms_apk/auth_screen/NotificationScreen.dart';
 import 'package:sms_apk/utils/app_colors.dart';
+import 'package:sms_apk/widgets/custom_popup.dart';
 import '../Screens/homeScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -132,13 +133,27 @@ class _LoginScreenState extends State<LoginScreen> {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('userData', json.encode(data));
 
-        // Extract username and store it
-        String extractedUserName = _extractUserName(data);
+        // Extract user details
+        Map<String, dynamic> extractedData = _extractUserData(data);
         String extractedRole = data['role'] ?? "Unknown";
 
-        // Store username and role
+        // Store extracted data in SharedPreferences
         await prefs.setString('role', extractedRole);
-        await prefs.setString('userName', extractedUserName);
+        await prefs.setString('userName', extractedData['name']);
+        await prefs.setString(
+            'schoolAddress', extractedData['schoolAddress'] ?? "N/A");
+        await prefs.setString(
+            'adminContact', extractedData['adminContact'] ?? "N/A");
+        await prefs.setString(
+            'factAddress', extractedData['factAddress'] ?? "N/A");
+        await prefs.setString(
+            'factContact', extractedData['factContact'] ?? "N/A");
+      } else if (response.statusCode == 400) {
+        // Parse the response body to extract the error message
+        final responseBody = jsonDecode(response.body);
+        final errorMessage = responseBody["detail"] ??
+            "Invalid request. Please check your input.";
+        showPopup(context, errorMessage, AppColors.primary);
       } else {
         throw Exception('Failed to load user data');
       }
@@ -148,13 +163,28 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   /// Extracts the username based on the user's role
-  String _extractUserName(Map<String, dynamic> data) {
+  Map<String, dynamic> _extractUserData(Map<String, dynamic> data) {
     if (data["role"] == "user") {
-      return data["schoolCreationEntity"]?["ownerName"] ?? "Guest";
+      return {
+        "name": data["schoolCreationEntity"]?["ownerName"] ?? "Guest",
+        "schoolAddress":
+            data["schoolCreationEntity"]?["schoolAddress"] ?? "N/A",
+        "adminContact": data["schoolCreationEntity"]?["adminContact"] ?? "N/A",
+      };
     } else if (data["role"] == "sub-user") {
-      return data["facultyInfo"]?["fact_Name"] ?? "Guest";
+      return {
+        "name": data["facultyInfo"]?["fact_Name"] ?? "Guest",
+        "factAddress": data["facultyInfo"]?["fact_address"] ?? "N/A",
+        "factContact": data["facultyInfo"]?["fact_contact"] ?? "N/A",
+      };
     }
-    return "Guest";
+    return {
+      "name": "Guest",
+      "schoolAddress": "N/A",
+      "adminContact": "N/A",
+      "factAddress": "N/A",
+      "factContact": "N/A",
+    };
   }
 
   @override
@@ -180,13 +210,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Color.fromARGB(255, 30, 120, 120),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(
-                    'EasyWaySolution',
-                    style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
-                    textAlign: TextAlign.center,
+                  child: Image.asset(
+                    'assets/ews-full-white.png',
+                    height: 70, // Adjust height as needed
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),

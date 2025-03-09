@@ -82,6 +82,12 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                 null; // Reset if previously selected class is invalid
           }
         });
+      } else if (response.statusCode == 400) {
+        // Parse the response body to extract the error message
+        final responseBody = jsonDecode(response.body);
+        final errorMessage = responseBody["detail"] ??
+            "Invalid request. Please check your input.";
+        showPopup(context, errorMessage, AppColors.primary);
       } else if (response.statusCode == 401) {
         showPopup(
             context, "Unauthorized. Please log in again.", AppColors.primary);
@@ -144,6 +150,12 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
 
       if (response.statusCode == 200) {
         setState(() => attendanceData = jsonDecode(response.body));
+      } else if (response.statusCode == 400) {
+        // Parse the response body to extract the error message
+        final responseBody = jsonDecode(response.body);
+        final errorMessage = responseBody["detail"] ??
+            "Invalid request. Please check your input.";
+        showPopup(context, errorMessage, AppColors.primary);
       } else {
         showPopup(context, "Failed to fetch attendance.", AppColors.primary);
       }

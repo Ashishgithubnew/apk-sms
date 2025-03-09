@@ -49,15 +49,11 @@ class _DrawerMenuState extends State<DrawerMenu> {
                         color: const Color(0xFF1E7878),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                        child: const Text(
-                          'EasyWaySolution',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                      child: Image.asset(
+                        'assets/ews-full-white.png',
+                        height: 70, // Adjust height as needed
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ],
                 ),
@@ -198,7 +194,8 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   ),
                 ),
                 onTap: () async {
-                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
                   await prefs.remove('authToken');
                   Navigator.pushReplacement(
                     context,

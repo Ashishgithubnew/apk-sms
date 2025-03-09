@@ -36,20 +36,19 @@ class _SplashScreenState extends State<SplashScreen> {
                 Container(
                   padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                   decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 30, 120, 120), // Slightly lighter shade
+                    color: Color.fromARGB(
+                        255, 30, 120, 120), // Slightly lighter shade
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    'EasyWaySolution',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
+                  child: Image.asset(
+                    'assets/ews-full-white.png',
+                    height: 70, // Adjust height as needed
+                    fit: BoxFit.contain,
                   ),
                 ),
-                SizedBox(height: 12), // Adds spacing between text box and version text
+                SizedBox(
+                    height:
+                        12), // Adds spacing between text box and version text
                 Text(
                   'Version 1.0.1',
                   style: TextStyle(
