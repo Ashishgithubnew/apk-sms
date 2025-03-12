@@ -200,13 +200,16 @@ class _StudentFormState extends State<StudentForm> {
           child: ListView(
             children: [
               buildCard('Student Details', [
-                buildInputField(
-                    nameController, 'Full Name*', true, "Full Name"),
-                buildInputField(addressController, 'Address*', true, "Address"),
-                buildInputField(cityController, 'City*', true, "City"),
+                buildInputField(nameController, 'Full Name*', true, "Full Name",
+                    isNumber: false),
+                buildInputField(addressController, 'Address*', true, "Address",
+                    isNumber: false),
+                buildInputField(cityController, 'City*', true, "City",
+                    isNumber: false),
                 buildDropdownGenderField(),
                 buildDropdownCategoryField(),
-                buildInputField(stateController, 'State*', true, "State"),
+                buildInputField(stateController, 'State*', true, "State",
+                    isNumber: false),
                 buildInputField(contactController, 'Contact*', true, "Contact",
                     isNumber: true, isPhone: true),
                 GestureDetector(
@@ -216,14 +219,16 @@ class _StudentFormState extends State<StudentForm> {
                         dobController, 'Date of Birth*', true, "Date of Birth"),
                   ),
                 ),
-                buildInputField(emailController, 'Email', false, ""),
+                buildInputField(emailController, 'Email', false, "",
+                    isNumber: false),
                 buildDropdownField(),
                 buildInputField(totalFeeController, 'Total Fee*', false, "",
                     isNumber: true, readOnly: true),
               ]),
               buildCard('Family Details', [
                 buildInputField(fatherNameController, "Father's Name*", true,
-                    "Father's Name"),
+                    "Father's Name",
+                    isNumber: false),
                 buildInputField(
                     motherNameController, "Mother's Name", false, ""),
                 buildInputField(primaryContactController, "Primary Contact*",
@@ -236,7 +241,8 @@ class _StudentFormState extends State<StudentForm> {
                 buildInputField(
                     familyStateController, "Family State", false, ""),
                 buildInputField(familyEmailController, "Family Email*", true,
-                    "Family Email"),
+                    "Family Email",
+                    isNumber: false),
               ]),
               SizedBox(height: 20),
               ElevatedButton(
@@ -422,10 +428,10 @@ class _StudentFormState extends State<StudentForm> {
                 if (value == null || value.isEmpty) {
                   return "$s Is Required";
                 }
-                if (isNumber &&
-                    double.tryParse(value) == null &&
-                    (value.length != 10)) {
-                  return 'Enter a valid number';
+                if (isNumber) {
+                  if (double.tryParse(value) == null || (value.length != 10)) {
+                    return 'Enter a valid number';
+                  }
                 }
                 return null;
               }
