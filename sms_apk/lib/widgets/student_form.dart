@@ -107,7 +107,9 @@ class _StudentFormState extends State<StudentForm> {
       'email': emailController.text,
       'cls': selectedClass,
       'category': categoryController.text,
-      'totalFee': totalFeeController.text,
+      'totalFee':
+          int.tryParse(totalFeeController.text.split('.')[0])?.toString() ??
+              '0',
       'gender': genderController.text,
       'familyDetails': {
         'stdo_FatherName': fatherNameController.text,
@@ -198,18 +200,14 @@ class _StudentFormState extends State<StudentForm> {
           child: ListView(
             children: [
               buildCard('Student Details', [
-                buildInputField(nameController, 'Full Name*', true, "Full Name",
-                    isName: true),
-                buildInputField(addressController, 'Address*', true, "Address",
-                    isAddress: true),
-                buildInputField(cityController, 'City*', true, "City",
-                    isCity: true),
+                buildInputField(
+                    nameController, 'Full Name*', true, "Full Name"),
+                buildInputField(addressController, 'Address*', true, "Address"),
+                buildInputField(cityController, 'City*', true, "City"),
                 buildDropdownGenderField(),
                 buildDropdownCategoryField(),
-                buildInputField(stateController, 'State*', true, "State",
-                    isState: true),
-                buildInputField(contactController, 'Contact*', true, "Contact",
-                    isNumber: true),
+                buildInputField(stateController, 'State*', true, "State"),
+                buildInputField(contactController, 'Contact*', true, "Contact"),
                 GestureDetector(
                   onTap: () => _selectDate(context),
                   child: AbsorbPointer(
@@ -217,33 +215,29 @@ class _StudentFormState extends State<StudentForm> {
                         dobController, 'Date of Birth*', true, "Date of Birth"),
                   ),
                 ),
-                buildInputField(emailController, 'Email', false, "",
-                    isEmail: true),
+                buildInputField(emailController, 'Email', false, ""),
                 buildDropdownField(),
                 buildInputField(totalFeeController, 'Total Fee*', false, "",
                     isNumber: true, readOnly: true),
               ]),
               buildCard('Family Details', [
                 buildInputField(fatherNameController, "Father's Name*", true,
-                    "Father's Name",
-                    isName: true),
+                    "Father's Name"),
                 buildInputField(
                     motherNameController, "Mother's Name", false, "",
                     isName: true),
                 buildInputField(primaryContactController, "Primary Contact*",
                     true, "Primary Contact",
-                    isNumber: true),
+                    isNumber: true, isPhone: true),
                 buildInputField(
                     secondaryContactController, "Secondary Contact", false, "",
                     isNumber: true),
-                buildInputField(familyCityController, "Family City", false, "",
-                    isCity: true),
+                buildInputField(familyCityController, "Family City", false, ""),
                 buildInputField(
                     familyStateController, "Family State", false, "",
                     isState: true),
                 buildInputField(familyEmailController, "Family Email*", true,
-                    "Family Email",
-                    isEmail: true),
+                    "Family Email"),
               ]),
               SizedBox(height: 20),
               ElevatedButton(
@@ -398,14 +392,7 @@ class _StudentFormState extends State<StudentForm> {
 
   Widget buildInputField(
       TextEditingController controller, String label, bool isRequired, String s,
-      {bool isNumber = false,
-      bool readOnly = false,
-      bool isEmail = false,
-      bool isPassword = false,
-      bool isName = false,
-      bool isAddress = false,
-      bool isCity = false,
-      bool isState = false}) {
+      {bool isNumber = false, bool readOnly = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -433,30 +420,10 @@ class _StudentFormState extends State<StudentForm> {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return isRequired ? '$s is required' : null;
-          }
-          if (isEmail && !RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value)) {
-            return 'Enter a valid email address';
-          }
-          if (isNumber && !RegExp(r'^\d+$').hasMatch(value)) {
-            return 'Only numeric values are allowed';
-          }
-          if (isName && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
-            return 'Name should contain only alphabets and spaces';
-          }
-          if (isAddress && value.length < 5) {
-            return 'Address should be at least 5 characters long';
-          }
-          if (isCity && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
-            return 'City should contain only alphabets and spaces';
-          }
-          if (isState && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
-            return 'State should contain only alphabets and spaces';
-          }
-          return null;
-        },
+        validator: isRequired
+            ? (value) =>
+                value == null || value.isEmpty ? '$s is required' : null
+            : null,
       ),
     );
   }
