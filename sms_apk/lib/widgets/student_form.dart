@@ -107,7 +107,9 @@ class _StudentFormState extends State<StudentForm> {
       'email': emailController.text,
       'cls': selectedClass,
       'category': categoryController.text,
-      'totalFee': totalFeeController.text,
+      'totalFee':
+          int.tryParse(totalFeeController.text.split('.')[0])?.toString() ??
+              '0',
       'gender': genderController.text,
       'familyDetails': {
         'stdo_FatherName': fatherNameController.text,
