@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 
-void showPopup(BuildContext context, String message, Color bgColor) {
-  showDialog(
+Future<void> showPopup(BuildContext context, String message, Color bgColor) async {
+  return showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
@@ -29,7 +29,7 @@ void showPopup(BuildContext context, String message, Color bgColor) {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.of(context).pop(), // Close popup
                 child: Text('OK', style: TextStyle(fontSize: 16)),
               ),
             ),
@@ -39,3 +39,4 @@ void showPopup(BuildContext context, String message, Color bgColor) {
     },
   );
 }
+

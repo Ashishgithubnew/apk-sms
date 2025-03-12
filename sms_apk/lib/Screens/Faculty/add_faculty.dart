@@ -16,6 +16,7 @@ class FacultyDetailsForm extends StatefulWidget {
 
 class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
   final _formKey = GlobalKey<FormState>();
+  bool isLoading = false;
 
   // Form data
   final Map<String, dynamic> _formData = {
@@ -94,6 +95,8 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
         return;
       }
 
+      setState(() => isLoading = true);
+
       final url = Uri.parse("https://s-m-s-keyw.onrender.com/faculty/save");
 
       Map<String, dynamic> requestData = {
@@ -126,12 +129,17 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
         );
 
         if (response.statusCode == 200) {
-          showPopup(context, "Form submitted successfully!", AppColors.primary);
+          await showPopup(
+              context, "Form submitted successfully!", AppColors.primary);
+          if (mounted) {
+            Navigator.pop(context);
+          }
         } else if (response.statusCode == 400) {
-           // Parse the response body to extract the error message
-        final responseBody = jsonDecode(response.body);
-        final errorMessage = responseBody["detail"] ?? "Invalid request. Please check your input.";
-        showPopup(context, errorMessage, AppColors.primary);
+          // Parse the response body to extract the error message
+          final responseBody = jsonDecode(response.body);
+          final errorMessage = responseBody["detail"] ??
+              "Invalid request. Please check your input.";
+          showPopup(context, errorMessage, AppColors.primary);
         } else {
           showPopup(
               context,
@@ -193,18 +201,22 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
             children: [
               Column(
                 children: [
+                  _buildTextField("Degree Type",
+                      "factQualifications[$index][type]", "Degree Type"),
+                  _buildTextField("Subject",
+                      "factQualifications[$index][grd_sub]", "Subject"),
+                  _buildTextField("Branch",
+                      "factQualifications[$index][grd_branch]", "Branch"),
+                  _buildTextField("Grade",
+                      "factQualifications[$index][grd_grade]", "Grade"),
                   _buildTextField(
-                      "Degree Type", "factQualifications[$index][type]"),
+                      "University",
+                      "factQualifications[$index][grd_university]",
+                      "University"),
                   _buildTextField(
-                      "Subject", "factQualifications[$index][grd_sub]"),
-                  _buildTextField(
-                      "Branch", "factQualifications[$index][grd_branch]"),
-                  _buildTextField(
-                      "Grade", "factQualifications[$index][grd_grade]"),
-                  _buildTextField("University",
-                      "factQualifications[$index][grd_university]"),
-                  _buildTextField("Year of Passing",
-                      "factQualifications[$index][grd_yearOfPassing]"), // Fixed typo
+                      "Year of Passing",
+                      "factQualifications[$index][grd_yearOfPassing]",
+                      "Passing Year"), // Fixed typo
                 ],
               ),
               const SizedBox(height: 16),
@@ -221,13 +233,13 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 238, 235, 235),
       appBar: Header(text: "Add Faculty"),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Form(
-              key: _formKey,
-              child: Card(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              Card(
                 color: Colors.white,
                 elevation: 3,
                 shape: RoundedRectangleBorder(
@@ -245,22 +257,24 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildTextField("Full Name*", "fullName"),
-                      _buildTextField("Email*", "email", isEmail: false),
-                      _buildTextField("Faculty Email*", "factEmail",
+                      _buildTextField("Full Name*", "fullName", "Full Name"),
+                      _buildTextField(
+                          "Email*", "email", isEmail: false, "Email"),
+                      _buildTextField(
+                          "Faculty Email*", "factEmail", "Faculty Email",
                           isEmail: true),
-                      _buildTextField("Password*", "password",
+                      _buildTextField("Password*", "password", "Password",
                           isPassword: true),
-                      _buildTextField("Contact*", "contact"),
-                      _buildDropdownField(
-                          "Gender*", ["Male", "Female", "Other"], "gender"),
-                      _buildTextField("Address", "address"),
-                      _buildTextField("City*", "city"),
-                      _buildTextField("State", "state"),
+                      _buildTextField("Contact*", "contact", "Contact"),
+                      _buildDropdownField("Gender*",
+                          ["Male", "Female", "Other"], "gender", "Gender"),
+                      _buildTextField("Address", "address", "Address"),
+                      _buildTextField("City*", "city", "City"),
+                      _buildTextField("State", "state", "State"),
                       _buildDateField("Joining Date*", _joiningDateController),
                       _buildDateField("Leaving Date", _leavingDateController),
-                      _buildDropdownField(
-                          "Status", ["Active", "Inactive"], "factStatus"),
+                      _buildDropdownField("Status", ["Active", "Inactive"],
+                          "factStatus", "Status"),
                       _buildQualificationFields(), // Render qualification fields
                       ElevatedButton(
                         onPressed: _addQualification,
@@ -280,13 +294,9 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            // Submit Button (Outside Card, Full Width)
-            SizedBox(
-              width: double.infinity, // Full width button
-              child: ElevatedButton(
-                onPressed: _submitForm,
+              const SizedBox(height: 24),
+              // Submit Button (Outside Card, Full Width)
+              ElevatedButton(                
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary, // Primary color
                   foregroundColor: Colors.white, // White text color
@@ -298,19 +308,20 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                   ),
                   elevation: 4, // Shadow for better visibility
                 ),
-                child: const Text(
-                  "Submit",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+                onPressed: isLoading ? null : _submitForm,
+                child: isLoading
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : Text('Submit',
+                        style: TextStyle(color: Colors.white, fontSize: 18)),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTextField(String label, String key,
+  Widget _buildTextField(String label, String key, String s,
       {bool isEmail = false, bool isPassword = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -337,7 +348,7 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
         onChanged: (value) => _formData[key] = value,
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return 'This field is required';
+            return '$s is required';
           }
           if (isEmail && !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
             return 'Enter a valid email address';
@@ -348,7 +359,8 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
     );
   }
 
-  Widget _buildDropdownField(String label, List<String> items, String key) {
+  Widget _buildDropdownField(
+      String label, List<String> items, String key, String s) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: DropdownButtonFormField<String>(
@@ -376,7 +388,7 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
             .toList(),
         onChanged: (value) => setState(() => _formData[key] = value ?? ""),
         validator: (value) =>
-            value == null || value.isEmpty ? 'This field is required' : null,
+            value == null || value.isEmpty ? '$s is required' : null,
       ),
     );
   }

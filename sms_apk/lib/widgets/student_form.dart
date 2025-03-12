@@ -137,8 +137,11 @@ class _StudentFormState extends State<StudentForm> {
       );
 
       if (response.statusCode == 200) {
-        showPopup(context, 'Student added successfully!', AppColors.primary);
-        Navigator.pop(context);
+        await showPopup(
+            context, 'Student added successfully!', AppColors.primary);
+        if (mounted) {
+          Navigator.pop(context);
+        }
       } else if (response.statusCode == 400) {
         // Parse the response body to extract the error message
         final responseBody = jsonDecode(response.body);
@@ -159,11 +162,6 @@ class _StudentFormState extends State<StudentForm> {
   Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('authToken');
-  }
-
-  void showSnackbar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -200,37 +198,42 @@ class _StudentFormState extends State<StudentForm> {
           child: ListView(
             children: [
               buildCard('Student Details', [
-                buildInputField(nameController, 'Student Name*', true),
-                buildInputField(addressController, 'Address*', true),
-                buildInputField(cityController, 'City*', true),
+                buildInputField(
+                    nameController, 'Full Name*', true, "Full Name"),
+                buildInputField(addressController, 'Address*', true, "Address"),
+                buildInputField(cityController, 'City*', true, "City"),
                 buildDropdownGenderField(),
                 buildDropdownCategoryField(),
-                buildInputField(stateController, 'State*', true),
-                buildInputField(contactController, 'Contact*', true),
+                buildInputField(stateController, 'State*', true, "State"),
+                buildInputField(contactController, 'Contact*', true, "Contact"),
                 GestureDetector(
                   onTap: () => _selectDate(context),
                   child: AbsorbPointer(
-                    child:
-                        buildInputField(dobController, 'Date of Birth*', true),
+                    child: buildInputField(
+                        dobController, 'Date of Birth*', true, "Date of Birth"),
                   ),
                 ),
-                buildInputField(emailController, 'Email', false),
+                buildInputField(emailController, 'Email', false, ""),
                 buildDropdownField(),
-                buildInputField(totalFeeController, 'Total Fee', true,
+                buildInputField(totalFeeController, 'Total Fee*', false, "",
                     isNumber: true, readOnly: true),
               ]),
               buildCard('Family Details', [
-                buildInputField(fatherNameController, "Father's Name*", true),
-                buildInputField(motherNameController, "Mother's Name", false),
+                buildInputField(fatherNameController, "Father's Name*", true,
+                    "Father's Name"),
                 buildInputField(
-                    primaryContactController, "Primary Contact*", true,
+                    motherNameController, "Mother's Name", false, ""),
+                buildInputField(primaryContactController, "Primary Contact*",
+                    true, "Primary Contact",
                     isNumber: true),
                 buildInputField(
-                    secondaryContactController, "Secondary Contact", false,
+                    secondaryContactController, "Secondary Contact", false, "",
                     isNumber: true),
-                buildInputField(familyCityController, "Family City", false),
-                buildInputField(familyStateController, "Family State", false),
-                buildInputField(familyEmailController, "Family Email*", true),
+                buildInputField(familyCityController, "Family City", false, ""),
+                buildInputField(
+                    familyStateController, "Family State", false, ""),
+                buildInputField(familyEmailController, "Family Email*", true,
+                    "Family Email"),
               ]),
               SizedBox(height: 20),
               ElevatedButton(
@@ -384,7 +387,7 @@ class _StudentFormState extends State<StudentForm> {
   }
 
   Widget buildInputField(
-      TextEditingController controller, String label, bool isRequired,
+      TextEditingController controller, String label, bool isRequired, String s,
       {bool isNumber = false, bool readOnly = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -413,7 +416,7 @@ class _StudentFormState extends State<StudentForm> {
         ),
         validator: isRequired
             ? (value) =>
-                value == null || value.isEmpty ? 'This field is required' : null
+                value == null || value.isEmpty ? '$s is required' : null
             : null,
       ),
     );
