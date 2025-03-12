@@ -227,11 +227,12 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: Header(text: 'View Attendance'),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Master Attendance Switch
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -239,7 +240,7 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                   masterAttendance
                       ? "Master Attendance"
                       : "Subject-wise Attendance",
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Switch(
                   value: masterAttendance,
@@ -252,7 +253,7 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 20),
 
             // Class Selection Container
             Container(
@@ -261,22 +262,23 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
-                  BoxShadow(color: Colors.grey.shade300, blurRadius: 6)
+                  BoxShadow(color: Colors.grey.shade300, blurRadius: 6),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Select Class",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(
+                    "Select Class",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(height: 8),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     child: DropdownButton<String>(
                       value: selectedClass?.isNotEmpty == true
                           ? selectedClass
-                          : null, // ✅ Safe check
+                          : null,
                       isExpanded: true,
                       items: classData.map((c) {
                         return DropdownMenuItem<String>(
@@ -291,8 +293,7 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                               null; // Reset subject when class changes
                         });
                       },
-                      hint: Text(
-                          "Select a class"), // ✅ Shows hint when nothing is selected
+                      hint: Text("Select a class"),
                       dropdownColor: Colors.white,
                     ),
                   ),
@@ -310,15 +311,17 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
-                    BoxShadow(color: Colors.grey.shade300, blurRadius: 6)
+                    BoxShadow(color: Colors.grey.shade300, blurRadius: 6),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Select Subject",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(
+                      "Select Subject",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
                     SizedBox(height: 8),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
@@ -405,62 +408,72 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
               ),
             ),
 
-            SizedBox(height: 10),
+            SizedBox(height: 20),
 
             // Attendance List
-            Expanded(
-              child: attendanceData.isEmpty
-                  ? Center(
-                      child: Text(
-                        "No attendance records found.",
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      itemCount: attendanceData.length,
-                      itemBuilder: (context, index) {
-                        final entry = attendanceData[index];
-                        final String formattedDate = entry['date']
-                            .split('T')[0]; // Extracting only the date
-                        final List students = entry['students'];
+            if (attendanceData.isNotEmpty)
+              Column(
+                children: attendanceData.map((entry) {
+                  final String formattedDate =
+                      entry['date'].split('T')[0]; // Extracting only the date
+                  final List students = entry['students'];
 
-                        return Card(
-                          margin: EdgeInsets.symmetric(vertical: 6),
-                          elevation: 3,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Date: $formattedDate",
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                SizedBox(height: 8),
-                                ...students.map((student) {
-                                  return ListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    leading: Icon(
-                                      Icons.person,
-                                      color: AppColors.primary,
-                                    ),
-                                    title: Text("Name: ${student['name']}"),
-                                    subtitle: Text(
-                                        "Attendance: ${student['attendance']}, \nRemark: ${student['remark'] ?? 'N/A'}"),
-                                  );
-                                }),
-                              ],
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 10),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Date: $formattedDate",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
                             ),
                           ),
-                        );
-                      },
+                          SizedBox(height: 10),
+                          ...students.map((student) {
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                Icons.person,
+                                color: AppColors.primary,
+                              ),
+                              title: Text(
+                                "Name: ${student['name']}",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("Attendance: ${student['attendance']}"),
+                                  Text("Remark: ${student['remark'] ?? 'N/A'}"),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ],
+                      ),
                     ),
-            ),
+                  );
+                }).toList(),
+              ),
+            if (attendanceData.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    "No attendance records found.",
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

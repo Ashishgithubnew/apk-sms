@@ -89,15 +89,32 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
     if (_formKey.currentState!.validate()) {
       if (token == null) {
         showPopup(
-            context,
-            "Authentication token is missing. Please log in again.",
-            AppColors.primary);
+          context,
+          "Authentication token is missing. Please log in again.",
+          AppColors.primary,
+        );
         return;
       }
 
       setState(() => isLoading = true);
 
       final url = Uri.parse("https://s-m-s-keyw.onrender.com/faculty/save");
+
+      // Convert `factQualifications` controllers to their text values
+      List<Map<String, dynamic>> factQualifications =
+          _formData["factQualifications"]
+              .map<Map<String, dynamic>>((qualification) {
+        return {
+          "id": qualification["id"],
+          "type": qualification["type"],
+          "grd_sub": qualification["grd_sub"],
+          "grd_branch": qualification["grd_branch"],
+          "grd_grade": qualification["grd_grade"],
+          "grd_university": qualification["grd_university"],
+          "grd_yearOfPassing":
+              qualification["yearOfPassingController"]?.text ?? "",
+        };
+      }).toList();
 
       Map<String, dynamic> requestData = {
         "fact_id": "",
@@ -106,14 +123,13 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
         "fact_email": _formData["factEmail"],
         "password": _formData["password"],
         "fact_contact": _formData["contact"],
-        "fact_gender":
-            _formData["gender"].isEmpty ? "Other" : _formData["gender"][0],
+        "fact_gender": _formData["gender"] ?? "Other",
         "fact_address": _formData["address"],
         "fact_city": _formData["city"],
         "fact_state": _formData["state"],
         "fact_joiningDate": _formData["joiningDate"],
         "fact_leavingDate": _formData["leavingDate"],
-        "fact_qualifications": _formData["factQualifications"],
+        "fact_qualifications": factQualifications, // Use the updated list
         "Fact_cls": [],
         "Fact_status": _formData["factStatus"],
       };
@@ -135,7 +151,6 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
             Navigator.pop(context);
           }
         } else if (response.statusCode == 400) {
-          // Parse the response body to extract the error message
           final responseBody = jsonDecode(response.body);
           final errorMessage = responseBody["detail"] ??
               "Invalid request. Please check your input.";
@@ -162,7 +177,8 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
         "grd_branch": "",
         "grd_grade": "",
         "grd_university": "",
-        "grd_yearOfPassing": ""
+        "grd_yearOfPassing": "",
+        "yearOfPassingController": TextEditingController(), // Add controller
       });
     });
   }
@@ -197,6 +213,10 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
             ],
           ),
         ...List.generate(_formData["factQualifications"].length, (index) {
+          // Ensure each qualification entry has a controller for the date field
+          _formData["factQualifications"][index]["yearOfPassingController"] ??=
+              TextEditingController();
+
           return Column(
             children: [
               Column(
@@ -213,10 +233,11 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                       "University",
                       "factQualifications[$index][grd_university]",
                       "University"),
-                  _buildTextField(
-                      "Year of Passing",
-                      "factQualifications[$index][grd_yearOfPassing]",
-                      "Passing Year"), // Fixed typo
+                  _buildDateField(
+                    "Year of Passing",
+                    _formData["factQualifications"][index]
+                        ["yearOfPassingController"], // Pass the controller
+                  ), // Fixed typo
                 ],
               ),
               const SizedBox(height: 16),
@@ -257,20 +278,23 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildTextField("Full Name*", "fullName", "Full Name" , isName: true),
+                      _buildTextField("Full Name*", "fullName", "Full Name",
+                          isName: true),
                       _buildTextField(
-                          "Email*", "email", isEmail: false, "Email"),
+                          "Email*", "email", isEmail: true, "Email"),
                       _buildTextField(
                           "Faculty Email*", "factEmail", "Faculty Email",
                           isEmail: true),
                       _buildTextField("Password*", "password", "Password",
                           isPassword: true),
-                      _buildTextField("Contact*", "contact", "Contact" , isContact: true),
+                      _buildTextField("Contact*", "contact", "Contact",
+                          isContact: true),
                       _buildDropdownField("Gender*",
                           ["Male", "Female", "Other"], "gender", "Gender"),
-                      _buildTextField("Address", "address", "Address" , isAddress: true),
-                      _buildTextField("City*", "city", "City" , isCity: true),
-                      _buildTextField("State", "state", "State" , isState: true),
+                      _buildTextField("Address", "address", "Address",
+                          isAddress: true),
+                      _buildTextField("City*", "city", "City", isCity: true),
+                      _buildTextField("State", "state", "State", isState: true),
                       _buildDateField("Joining Date*", _joiningDateController),
                       _buildDateField("Leaving Date", _leavingDateController),
                       _buildDropdownField("Status", ["Active", "Inactive"],
@@ -389,7 +413,7 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: DropdownButtonFormField<String>(
-        value: _formData[key].isEmpty ? null : _formData[key],
+        value: (_formData[key] != "") ? _formData[key] : null,
         decoration: InputDecoration(
           labelText: label,
           floatingLabelStyle:
