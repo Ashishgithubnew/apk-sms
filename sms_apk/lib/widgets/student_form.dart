@@ -207,7 +207,8 @@ class _StudentFormState extends State<StudentForm> {
                 buildDropdownGenderField(),
                 buildDropdownCategoryField(),
                 buildInputField(stateController, 'State*', true, "State"),
-                buildInputField(contactController, 'Contact*', true, "Contact"),
+                buildInputField(contactController, 'Contact*', true, "Contact",
+                    isNumber: true, isPhone: true),
                 GestureDetector(
                   onTap: () => _selectDate(context),
                   child: AbsorbPointer(
@@ -227,10 +228,10 @@ class _StudentFormState extends State<StudentForm> {
                     motherNameController, "Mother's Name", false, ""),
                 buildInputField(primaryContactController, "Primary Contact*",
                     true, "Primary Contact",
-                    isNumber: true),
+                    isNumber: true, isPhone: true),
                 buildInputField(
                     secondaryContactController, "Secondary Contact", false, "",
-                    isNumber: true),
+                    isNumber: true, isPhone: true),
                 buildInputField(familyCityController, "Family City", false, ""),
                 buildInputField(
                     familyStateController, "Family State", false, ""),
@@ -390,7 +391,7 @@ class _StudentFormState extends State<StudentForm> {
 
   Widget buildInputField(
       TextEditingController controller, String label, bool isRequired, String s,
-      {bool isNumber = false, bool readOnly = false}) {
+      {bool isNumber = false, bool readOnly = false, bool isPhone = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -417,8 +418,17 @@ class _StudentFormState extends State<StudentForm> {
           ),
         ),
         validator: isRequired
-            ? (value) =>
-                value == null || value.isEmpty ? '$s is required' : null
+            ? (value) {
+                if (value == null || value.isEmpty) {
+                  return "$s Is Required";
+                }
+                if (isNumber &&
+                    double.tryParse(value) == null &&
+                    (value.length != 10)) {
+                  return 'Enter a valid number';
+                }
+                return null;
+              }
             : null,
       ),
     );
