@@ -198,14 +198,18 @@ class _StudentFormState extends State<StudentForm> {
           child: ListView(
             children: [
               buildCard('Student Details', [
-                buildInputField(
-                    nameController, 'Full Name*', true, "Full Name"),
-                buildInputField(addressController, 'Address*', true, "Address"),
-                buildInputField(cityController, 'City*', true, "City"),
+                buildInputField(nameController, 'Full Name*', true, "Full Name",
+                    isName: true),
+                buildInputField(addressController, 'Address*', true, "Address",
+                    isAddress: true),
+                buildInputField(cityController, 'City*', true, "City",
+                    isCity: true),
                 buildDropdownGenderField(),
                 buildDropdownCategoryField(),
-                buildInputField(stateController, 'State*', true, "State"),
-                buildInputField(contactController, 'Contact*', true, "Contact"),
+                buildInputField(stateController, 'State*', true, "State",
+                    isState: true),
+                buildInputField(contactController, 'Contact*', true, "Contact",
+                    isNumber: true),
                 GestureDetector(
                   onTap: () => _selectDate(context),
                   child: AbsorbPointer(
@@ -213,27 +217,33 @@ class _StudentFormState extends State<StudentForm> {
                         dobController, 'Date of Birth*', true, "Date of Birth"),
                   ),
                 ),
-                buildInputField(emailController, 'Email', false, ""),
+                buildInputField(emailController, 'Email', false, "",
+                    isEmail: true),
                 buildDropdownField(),
                 buildInputField(totalFeeController, 'Total Fee*', false, "",
                     isNumber: true, readOnly: true),
               ]),
               buildCard('Family Details', [
                 buildInputField(fatherNameController, "Father's Name*", true,
-                    "Father's Name"),
+                    "Father's Name",
+                    isName: true),
                 buildInputField(
-                    motherNameController, "Mother's Name", false, ""),
+                    motherNameController, "Mother's Name", false, "",
+                    isName: true),
                 buildInputField(primaryContactController, "Primary Contact*",
                     true, "Primary Contact",
                     isNumber: true),
                 buildInputField(
                     secondaryContactController, "Secondary Contact", false, "",
                     isNumber: true),
-                buildInputField(familyCityController, "Family City", false, ""),
+                buildInputField(familyCityController, "Family City", false, "",
+                    isCity: true),
                 buildInputField(
-                    familyStateController, "Family State", false, ""),
+                    familyStateController, "Family State", false, "",
+                    isState: true),
                 buildInputField(familyEmailController, "Family Email*", true,
-                    "Family Email"),
+                    "Family Email",
+                    isEmail: true),
               ]),
               SizedBox(height: 20),
               ElevatedButton(
@@ -388,37 +398,111 @@ class _StudentFormState extends State<StudentForm> {
 
   Widget buildInputField(
       TextEditingController controller, String label, bool isRequired, String s,
-      {bool isNumber = false, bool readOnly = false}) {
+      {bool isNumber = false,
+      bool readOnly = false,
+      bool isEmail = false,
+      bool isPassword = false,
+      bool isName = false,
+      bool isAddress = false,
+      bool isCity = false,
+      bool isState = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         controller: controller,
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        keyboardType: isNumber
+            ? TextInputType.number
+            : isEmail
+                ? TextInputType.emailAddress
+                : TextInputType.text,
         readOnly: readOnly,
-        cursorColor: AppColors.primary, // Cursor (caret) color
+        obscureText: isPassword,
+        cursorColor: AppColors.primary,
         decoration: InputDecoration(
           labelText: label,
-          floatingLabelStyle:
-              TextStyle(color: AppColors.primary), // Label color when focused
+          floatingLabelStyle: TextStyle(color: AppColors.primary),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: AppColors.primary), // Default border color
+            borderSide: BorderSide(color: AppColors.primary),
             borderRadius: BorderRadius.circular(8),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-                color: AppColors.primary, width: 2), // Focused border color
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        validator: isRequired
-            ? (value) =>
-                value == null || value.isEmpty ? '$s is required' : null
-            : null,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return isRequired ? '$s is required' : null;
+          }
+          if (isEmail && !RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value)) {
+            return 'Enter a valid email address';
+          }
+          if (isNumber && !RegExp(r'^\d+$').hasMatch(value)) {
+            return 'Only numeric values are allowed';
+          }
+          if (isName && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+            return 'Name should contain only alphabets and spaces';
+          }
+          if (isAddress && value.length < 5) {
+            return 'Address should be at least 5 characters long';
+          }
+          if (isCity && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+            return 'City should contain only alphabets and spaces';
+          }
+          if (isState && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+            return 'State should contain only alphabets and spaces';
+          }
+          return null;
+        },
       ),
     );
   }
 }
+
+
+//   Widget buildInputField(
+//       TextEditingController controller, String label, bool isRequired, String s,
+//       {bool isNumber = false,
+//       bool readOnly = false,
+//       bool isEmail = false,
+//       bool isPassword = false,
+//       bool isName = false,
+//       bool isAddress = false,
+//       bool isCity = false,
+//       bool isState = false}) {
+//     return Padding(
+//       padding: const EdgeInsets.symmetric(vertical: 8.0),
+//       child: TextFormField(
+//         controller: controller,
+//         keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+//         readOnly: readOnly,
+//         cursorColor: AppColors.primary, // Cursor (caret) color
+//         decoration: InputDecoration(
+//           labelText: label,
+//           floatingLabelStyle:
+//               TextStyle(color: AppColors.primary), // Label color when focused
+//           border: OutlineInputBorder(
+//             borderRadius: BorderRadius.circular(8.0),
+//           ),
+//           enabledBorder: OutlineInputBorder(
+//             borderSide:
+//                 BorderSide(color: AppColors.primary), // Default border color
+//             borderRadius: BorderRadius.circular(8),
+//           ),
+//           focusedBorder: OutlineInputBorder(
+//             borderSide: BorderSide(
+//                 color: AppColors.primary, width: 2), // Focused border color
+//             borderRadius: BorderRadius.circular(8),
+//           ),
+//         ),
+//         validator: isRequired
+//             ? (value) =>
+//                 value == null || value.isEmpty ? '$s is required' : null
+//             : null,
+//       ),
+//     );
+//   }
+// }

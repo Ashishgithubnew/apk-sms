@@ -257,7 +257,7 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildTextField("Full Name*", "fullName", "Full Name"),
+                      _buildTextField("Full Name*", "fullName", "Full Name" , isName: true),
                       _buildTextField(
                           "Email*", "email", isEmail: false, "Email"),
                       _buildTextField(
@@ -265,12 +265,12 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                           isEmail: true),
                       _buildTextField("Password*", "password", "Password",
                           isPassword: true),
-                      _buildTextField("Contact*", "contact", "Contact"),
+                      _buildTextField("Contact*", "contact", "Contact" , isContact: true),
                       _buildDropdownField("Gender*",
                           ["Male", "Female", "Other"], "gender", "Gender"),
-                      _buildTextField("Address", "address", "Address"),
-                      _buildTextField("City*", "city", "City"),
-                      _buildTextField("State", "state", "State"),
+                      _buildTextField("Address", "address", "Address" , isAddress: true),
+                      _buildTextField("City*", "city", "City" , isCity: true),
+                      _buildTextField("State", "state", "State" , isState: true),
                       _buildDateField("Joining Date*", _joiningDateController),
                       _buildDateField("Leaving Date", _leavingDateController),
                       _buildDropdownField("Status", ["Active", "Inactive"],
@@ -296,7 +296,7 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
               ),
               const SizedBox(height: 24),
               // Submit Button (Outside Card, Full Width)
-              ElevatedButton(                
+              ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary, // Primary color
                   foregroundColor: Colors.white, // White text color
@@ -322,7 +322,13 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
   }
 
   Widget _buildTextField(String label, String key, String s,
-      {bool isEmail = false, bool isPassword = false}) {
+      {bool isEmail = false,
+      bool isPassword = false,
+      bool isName = false,
+      bool isContact = false,
+      bool isAddress = false,
+      bool isCity = false,
+      bool isState = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextFormField(
@@ -344,7 +350,11 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
+        keyboardType: isEmail
+            ? TextInputType.emailAddress
+            : isContact
+                ? TextInputType.phone
+                : TextInputType.text,
         onChanged: (value) => _formData[key] = value,
         validator: (value) {
           if (value == null || value.isEmpty) {
@@ -352,6 +362,21 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
           }
           if (isEmail && !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
             return 'Enter a valid email address';
+          }
+          if (isName && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+            return 'Name should contain only alphabets and spaces';
+          }
+          if (isContact && !RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+            return 'Enter a valid 10-digit contact number';
+          }
+          if (isAddress && value.length < 5) {
+            return 'Address should be at least 5 characters long';
+          }
+          if (isCity && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+            return 'State should contain only alphabets and spaces';
+          }
+          if (isState && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+            return 'State should contain only alphabets and spaces';
           }
           return null;
         },
