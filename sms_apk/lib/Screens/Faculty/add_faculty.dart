@@ -294,7 +294,41 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                       _buildTextField("Address", "address", "Address",
                           isAddress: true),
                       _buildTextField("City*", "city", "City", isCity: true),
-                      _buildTextField("State", "state", "State", isState: true),
+                      // _buildTextField("State", "state", "State", isState: true),
+                      _buildDropdownField(
+                          "State*",
+                          [
+                            "Andhra Pradesh",
+                            "Arunachal Pradesh",
+                            "Assam",
+                            "Bihar",
+                            "Chattisgarh",
+                            "Goa",
+                            "Gujarat",
+                            "Haryana",
+                            "Himachal Pradesh",
+                            "Jharkhand",
+                            "Karnataka",
+                            "Kerala",
+                            "Madhya Pradesh",
+                            "Maharashtra",
+                            "Manipur",
+                            "Meghalaya",
+                            "Mizoram",
+                            "Nagaland",
+                            "Odisha",
+                            "Punjab",
+                            "Rajasthan",
+                            "Sikkim",
+                            "Tamil Nadu",
+                            "Telangana",
+                            "Tripura",
+                            "Uttar Pradesh",
+                            "Uttarakhand",
+                            "West Bengal"
+                          ],
+                          "state",
+                          "State"),
                       _buildDateField("Joining Date*", _joiningDateController),
                       _buildDateField("Leaving Date", _leavingDateController),
                       _buildDropdownField("Status", ["Active", "Inactive"],
@@ -351,8 +385,7 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
       bool isName = false,
       bool isContact = false,
       bool isAddress = false,
-      bool isCity = false,
-      bool isState = false}) {
+      bool isCity = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextFormField(
@@ -387,9 +420,12 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
           if (isEmail && !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
             return 'Enter a valid email address';
           }
-          if (isName && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
-            return 'Name should contain only alphabets and spaces';
+          if (isName &&
+              (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value) ||
+                  value.length <= 3)) {
+            return 'Name should contain only alphabets and spaces and be more than 3 characters long';
           }
+
           if (isContact && !RegExp(r'^[0-9]{10}$').hasMatch(value)) {
             return 'Enter a valid 10-digit contact number';
           }
@@ -397,9 +433,6 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
             return 'Address should be at least 5 characters long';
           }
           if (isCity && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
-            return 'State should contain only alphabets and spaces';
-          }
-          if (isState && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
             return 'State should contain only alphabets and spaces';
           }
           return null;

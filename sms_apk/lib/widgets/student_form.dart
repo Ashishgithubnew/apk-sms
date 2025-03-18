@@ -317,8 +317,44 @@ class _StudentFormState extends State<StudentForm> {
                     validator: (value) =>
                         value == null ? 'Please select a category' : null,
                   ),
-                  buildInputField(stateController, 'State*', true, "State",
-                      isState: true),
+                  // buildInputField(stateController, 'State*', true, "State",
+                  //     isState: true),
+                  buildDropdownField(
+                    label: "State*",
+                    options: [
+                      "Andhra Pradesh",
+                      "Arunachal Pradesh",
+                      "Assam",
+                      "Bihar",
+                      "Chattisgarh",
+                      "Goa",
+                      "Gujarat",
+                      "Haryana",
+                      "Himachal Pradesh",
+                      "Jharkhand",
+                      "Karnataka",
+                      "Kerala",
+                      "Madhya Pradesh",
+                      "Maharashtra",
+                      "Manipur",
+                      "Meghalaya",
+                      "Mizoram",
+                      "Nagaland",
+                      "Odisha",
+                      "Punjab",
+                      "Rajasthan",
+                      "Sikkim",
+                      "Tamil Nadu",
+                      "Telangana",
+                      "Tripura",
+                      "Uttar Pradesh",
+                      "Uttarakhand",
+                      "West Bengal"
+                    ],
+                    controller: stateController,
+                    validator: (value) =>
+                        value == null ? 'Please select a category' : null,
+                  ),
                   buildInputField(
                       contactController, 'Contact*', true, "Contact",
                       isContact: true),
@@ -359,9 +395,45 @@ class _StudentFormState extends State<StudentForm> {
                   buildInputField(
                       familyCityController, "Family City", false, "",
                       isCity: true),
-                  buildInputField(
-                      familyStateController, "Family State", false, "",
-                      isState: true),
+                  // buildInputField(
+                  //     familyStateController, "Family State", false, "",
+                  //     isState: true),
+                  buildDropdownField(
+                    label: "State*",
+                    options: [
+                      "Andhra Pradesh",
+                      "Arunachal Pradesh",
+                      "Assam",
+                      "Bihar",
+                      "Chattisgarh",
+                      "Goa",
+                      "Gujarat",
+                      "Haryana",
+                      "Himachal Pradesh",
+                      "Jharkhand",
+                      "Karnataka",
+                      "Kerala",
+                      "Madhya Pradesh",
+                      "Maharashtra",
+                      "Manipur",
+                      "Meghalaya",
+                      "Mizoram",
+                      "Nagaland",
+                      "Odisha",
+                      "Punjab",
+                      "Rajasthan",
+                      "Sikkim",
+                      "Tamil Nadu",
+                      "Telangana",
+                      "Tripura",
+                      "Uttar Pradesh",
+                      "Uttarakhand",
+                      "West Bengal"
+                    ],
+                    controller: familyStateController,
+                    validator: (value) =>
+                        value == null ? 'Please select a state' : null,
+                  ),
                   buildInputField(familyEmailController, "Family Email*", true,
                       "Family Email",
                       isEmail: true),
@@ -462,7 +534,6 @@ class _StudentFormState extends State<StudentForm> {
     bool isContact = false,
     bool isAddress = false,
     bool isCity = false,
-    bool isState = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -499,17 +570,17 @@ class _StudentFormState extends State<StudentForm> {
           if (isContact && !RegExp(r'^\d{10}$').hasMatch(value)) {
             return 'Contact must be exactly 10 digits';
           }
-          if (isName && !RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
-            return 'Name should contain only alphabets and spaces';
+          if (isName &&
+              (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value) ||
+                  value.length <= 3)) {
+            return 'Name should contain only alphabets and spaces and be more than 3 characters long';
           }
+
           if (isAddress && value.length < 5) {
             return 'Address should be at least 5 characters long';
           }
           if (isCity && !RegExp(r'^[a-zA-Z\s\-]+$').hasMatch(value)) {
             return 'City should contain only alphabets, spaces, and hyphens';
-          }
-          if (isState && !RegExp(r'^[a-zA-Z\s\-]+$').hasMatch(value)) {
-            return 'State should contain only alphabets, spaces, and hyphens';
           }
           return null;
         },

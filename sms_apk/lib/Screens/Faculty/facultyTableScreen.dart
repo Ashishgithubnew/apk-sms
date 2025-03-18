@@ -103,171 +103,25 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
     return await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            backgroundColor: AppColors.primary,
             title:
-                Text('Confirm Delete', style: TextStyle(color: Colors.white)),
-            content: Text('Are you sure you want to delete this faculty?',
-                style: TextStyle(color: Colors.white70)),
+                Text('Delete Faculty'),
+            content: Text('Are you sure you want to delete this faculty?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: Text('Cancel', style: TextStyle(color: Colors.white)),
+                child:
+                    Text('Cancel', style: TextStyle(color: AppColors.primary)),
               ),
               TextButton(
+                style: TextButton.styleFrom(backgroundColor: AppColors.primary),
                 onPressed: () => Navigator.pop(context, true),
-                child:
-                    Text('Delete', style: TextStyle(color: Colors.redAccent)),
+                child: Text('Delete', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
         ) ??
         false;
   }
-
-  // Future<void> editFaculty(Map<String, dynamic> faculty) async {
-  //   try {
-  //     final response = await http.post(
-  //       Uri.parse('https://s-m-s-keyw.onrender.com/faculty/Update'),
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Authorization': 'Bearer $token',
-  //       },
-  //       body: json.encode(faculty),
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       setState(() {
-  //         int index =
-  //             facultyList.indexWhere((f) => f['fact_id'] == faculty['fact_id']);
-  //         if (index != -1) {
-  //           facultyList[index] = faculty;
-  //         }
-  //       });
-
-  //       showPopup(context, 'Faculty updated successfully', AppColors.primary);
-  //     } else {
-  //       showPopup(context, 'Failed to update faculty: ${response.statusCode}',
-  //           AppColors.primary);
-  //     }
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Error: $e')),
-  //     );
-  //   }
-  // }
-
-  // void showEditForm(Map<String, dynamic> faculty) {
-  //   final formKey = GlobalKey<FormState>();
-  //   Map<String, dynamic> updatedFaculty = Map.from(faculty);
-
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return AlertDialog(
-  //         backgroundColor: AppColors.primary, // Use your theme color
-  //         shape:
-  //             RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-  //         title: const Text(
-  //           'Edit Faculty',
-  //           style: TextStyle(color: Colors.white),
-  //         ),
-  //         content: Form(
-  //           key: formKey,
-  //           child: SingleChildScrollView(
-  //             child: Column(
-  //               mainAxisSize: MainAxisSize.min,
-  //               children: [
-  //                 TextFormField(
-  //                   initialValue: faculty['fact_Name'],
-  //                   decoration: InputDecoration(
-  //                     labelText: 'Name',
-  //                     filled: true,
-  //                     fillColor: Colors.white.withOpacity(0.2),
-  //                     border: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(8),
-  //                     ),
-  //                   ),
-  //                   style: const TextStyle(color: Colors.white),
-  //                   onChanged: (value) => updatedFaculty['fact_Name'] = value,
-  //                   validator: (value) => value == null || value.isEmpty
-  //                       ? 'Please enter a name'
-  //                       : null,
-  //                 ),
-  //                 const SizedBox(height: 10),
-  //                 TextFormField(
-  //                   initialValue: faculty['fact_email'],
-  //                   decoration: InputDecoration(
-  //                     labelText: 'Email',
-  //                     filled: true,
-  //                     fillColor: Colors.white.withOpacity(0.2),
-  //                     border: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(8),
-  //                     ),
-  //                   ),
-  //                   style: const TextStyle(color: Colors.white),
-  //                   onChanged: (value) => updatedFaculty['fact_email'] = value,
-  //                   validator: (value) => value == null || value.isEmpty
-  //                       ? 'Please enter an email'
-  //                       : null,
-  //                 ),
-  //                 const SizedBox(height: 10),
-  //                 TextFormField(
-  //                   initialValue: faculty['fact_contact'],
-  //                   decoration: InputDecoration(
-  //                     labelText: 'Contact',
-  //                     filled: true,
-  //                     fillColor: Colors.white.withOpacity(0.2),
-  //                     border: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(8),
-  //                     ),
-  //                   ),
-  //                   style: const TextStyle(color: Colors.white),
-  //                   onChanged: (value) =>
-  //                       updatedFaculty['fact_contact'] = value,
-  //                 ),
-  //                 const SizedBox(height: 10),
-  //                 TextFormField(
-  //                   initialValue: faculty['fact_address'],
-  //                   decoration: InputDecoration(
-  //                     labelText: 'Address',
-  //                     filled: true,
-  //                     fillColor: Colors.white.withOpacity(0.2),
-  //                     border: OutlineInputBorder(
-  //                       borderRadius: BorderRadius.circular(8),
-  //                     ),
-  //                   ),
-  //                   style: const TextStyle(color: Colors.white),
-  //                   onChanged: (value) =>
-  //                       updatedFaculty['fact_address'] = value,
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () => Navigator.pop(context),
-  //             child:
-  //                 const Text('Cancel', style: TextStyle(color: Colors.white)),
-  //           ),
-  //           ElevatedButton(
-  //             style: ElevatedButton.styleFrom(
-  //               backgroundColor: Colors.white,
-  //               foregroundColor: AppColors.primary,
-  //             ),
-  //             onPressed: () {
-  //               if (formKey.currentState!.validate()) {
-  //                 editFaculty(updatedFaculty);
-  //                 Navigator.pop(context);
-  //               }
-  //             },
-  //             child: const Text('Save'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -284,49 +138,71 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
                   itemCount: facultyList.length,
                   itemBuilder: (context, index) {
                     final faculty = facultyList[index];
+                    // return Card(
+                    //   elevation: 5,
+                    //   shape: RoundedRectangleBorder(
+                    //     borderRadius: BorderRadius.circular(12),
+                    //   ),
+                    //   color: const Color.fromARGB(237, 255, 255, 255),
+                    //   child: Padding(
+                    //     padding: const EdgeInsets.all(12),
+                    //     child: Column(
+                    //       crossAxisAlignment: CrossAxisAlignment.start,
+                    //       children: [
+                    //         Text(
+                    //           faculty['fact_Name'] ?? 'N/A',
+                    //           style: const TextStyle(
+                    //             fontWeight: FontWeight.bold,
+                    //             fontSize: 18,
+                    //           ),
+                    //         ),
+                    //         const SizedBox(height: 5),
+                    //         _buildInfoRow('City', faculty['fact_city']),
+                    //         _buildInfoRow('Contact', faculty['fact_contact']),
+                    //         _buildInfoRow('Gender', faculty['fact_gender']),
+                    //         Row(
+                    //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //           children: [
+                    //             const SizedBox(), // This keeps space to push the button to the right
+                    //             _buildActionButton(
+                    //               icon: Icons.delete,
+                    //               color: AppColors.primary,
+                    //               tooltip: 'Delete Faculty',
+                    //               onTap: () =>
+                    //                   deleteFaculty(faculty['fact_id']),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // );
                     return Card(
                       elevation: 5,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      color: const Color.fromARGB(237, 255, 255, 255),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
+                      color: Colors.white,
+                      shadowColor: AppColors.primary,
+                      margin: const EdgeInsets.all(8.0),
+                      child: ListTile(
+                        title: Text(
+                          faculty['fact_Name'] ?? 'N/A',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              faculty['fact_Name'] ?? 'N/A',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
                             _buildInfoRow('City', faculty['fact_city']),
                             _buildInfoRow('Contact', faculty['fact_contact']),
                             _buildInfoRow('Gender', faculty['fact_gender']),
-                            const Divider(),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                // _buildActionButton(
-                                //   icon: Icons.edit,
-                                //   color: Colors.blue,
-                                //   tooltip: 'Edit Faculty',
-                                //   onTap: () => showEditForm(faculty),
-                                // ),
-                                const SizedBox(width: 8),
-                                _buildActionButton(
-                                  icon: Icons.delete,
-                                  color: AppColors.primary,
-                                  tooltip: 'Delete Faculty',
-                                  onTap: () =>
-                                      deleteFaculty(faculty['fact_id']),
-                                ),
-                              ],
-                            ),
                           ],
+                        ),
+                        trailing: _buildActionButton(
+                          icon: Icons.delete,
+                          color: AppColors.primary,
+                          tooltip: 'Delete Faculty',
+                          onTap: () => deleteFaculty(faculty['fact_id']),
                         ),
                       ),
                     );
