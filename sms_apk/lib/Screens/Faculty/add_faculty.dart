@@ -56,33 +56,61 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
   }
 
   // Date picker helper
-  Future<void> _selectDate(
-      BuildContext context, TextEditingController controller) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: AppColors.primary,
-            colorScheme: ColorScheme.light(primary: AppColors.primary),
-            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setState(() {
-        controller.text = DateFormat('dd/MM/yyyy').format(picked);
-        _formData[controller == _joiningDateController
-            ? "joiningDate"
-            : "leavingDate"] = controller.text;
-      });
+ Future<void> _selectDate(
+    BuildContext context, TextEditingController controller) async {
+  DateTime? initialDate = DateTime.now();
+  DateTime? firstDate = DateTime(2000);
+
+  // If selecting leaving date, ensure it comes after the joining date
+  if (controller == _leavingDateController) {
+    if (_joiningDateController.text.isEmpty) {
+      showPopup(context, "Please select a joining date first!", AppColors.primary);
+      return;
     }
+    
+    DateTime joiningDate = DateFormat('dd/MM/yyyy').parse(_joiningDateController.text);
+    initialDate = joiningDate;
+    firstDate = joiningDate;
   }
+
+  final DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: initialDate,
+    firstDate: firstDate,
+    lastDate: DateTime(2101),
+    builder: (context, child) {
+      return Theme(
+        data: ThemeData.light().copyWith(
+          primaryColor: AppColors.primary,
+          colorScheme: ColorScheme.light(primary: AppColors.primary),
+          buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+        ),
+        child: child!,
+      );
+    },
+  );
+
+  if (picked != null) {
+    setState(() {
+      String formattedDate = DateFormat('dd/MM/yyyy').format(picked);
+      
+      // Ensure leaving date is after joining date
+      if (controller == _leavingDateController) {
+        DateTime joiningDate = DateFormat('dd/MM/yyyy').parse(_joiningDateController.text);
+        if (picked.isBefore(joiningDate)) {
+          showPopup(context, "Leaving date cannot be before joining date!", AppColors.primary);
+          return;
+        }
+      }
+
+      controller.text = formattedDate;
+      _formData[controller == _joiningDateController
+          ? "joiningDate"
+          : "leavingDate"] = formattedDate;
+    });
+  }
+}
+
 
   // Submit Form with Token Authentication
   Future<void> _submitForm() async {
@@ -222,16 +250,16 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
               Column(
                 children: [
                   _buildTextField("Degree Type",
-                      "factQualifications[$index][type]", "Degree Type"),
+                      "factQualifications[$index][type]",false, "Degree Type"),
                   _buildTextField("Subject",
-                      "factQualifications[$index][grd_sub]", "Subject"),
+                      "factQualifications[$index][grd_sub]",false, "Subject"),
                   _buildTextField("Branch",
-                      "factQualifications[$index][grd_branch]", "Branch"),
+                      "factQualifications[$index][grd_branch]",false, "Branch"),
                   _buildTextField("Grade",
-                      "factQualifications[$index][grd_grade]", "Grade"),
+                      "factQualifications[$index][grd_grade]",false, "Grade"),
                   _buildTextField(
                       "University",
-                      "factQualifications[$index][grd_university]",
+                      "factQualifications[$index][grd_university]",false,
                       "University"),
                   _buildDateField(
                     "Year of Passing",
@@ -278,22 +306,22 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildTextField("Full Name*", "fullName", "Full Name",
+                      _buildTextField("Full Name*", "fullName",true , "Full Name",
                           isName: true),
                       _buildTextField(
-                          "Email*", "email", isEmail: true, "Email"),
+                          "Email*", "email", isEmail: true,true , "Email"),
                       _buildTextField(
-                          "Faculty Email*", "factEmail", "Faculty Email",
+                          "Faculty Email*", "factEmail",true , "Faculty Email",
                           isEmail: true),
-                      _buildTextField("Password*", "password", "Password",
+                      _buildTextField("Password*", "password",true , "Password",
                           isPassword: true),
-                      _buildTextField("Contact*", "contact", "Contact",
+                      _buildTextField("Contact*", "contact",true , "Contact",
                           isContact: true),
                       _buildDropdownField("Gender*",
                           ["Male", "Female", "Other"], "gender", "Gender"),
-                      _buildTextField("Address", "address", "Address",
+                      _buildTextField("Address", "address",true , "Address",
                           isAddress: true),
-                      _buildTextField("City*", "city", "City", isCity: true),
+                      _buildTextField("City*", "city",true , "City", isCity: true),
                       // _buildTextField("State", "state", "State", isState: true),
                       _buildDropdownField(
                           "State*",
@@ -379,7 +407,7 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
     );
   }
 
-  Widget _buildTextField(String label, String key, String s,
+  Widget _buildTextField(String label, String key,bool isRequired, String s,
       {bool isEmail = false,
       bool isPassword = false,
       bool isName = false,
@@ -415,10 +443,13 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
         onChanged: (value) => _formData[key] = value,
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return '$s is required';
+            return isRequired ? '$s is required' : null;
           }
           if (isEmail && !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
             return 'Enter a valid email address';
+          }
+          if (isPassword && value.length < 6) {
+            return 'Address should be at least 5 characters long';
           }
           if (isName &&
               (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value) ||

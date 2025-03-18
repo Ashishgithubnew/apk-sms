@@ -140,114 +140,118 @@ class _NotificationPageState extends State<NotificationPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   /*----------------------------------------------------------------------------*/
-                 const Text("Start Date",
-    style: TextStyle(color: AppColors.primary)),
-TextField(
-  readOnly: true,
-  onTap: () async {
-    DateTime currentDate = DateTime.now();
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: currentDate, // Start from today
-      firstDate: currentDate, // Restrict past dates
-      lastDate: DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: AppColors.primary,
-            colorScheme: ColorScheme.light(primary: AppColors.primary),
-            buttonTheme:
-                ButtonThemeData(textTheme: ButtonTextTheme.primary),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setDialogState(() {
-        startDate = picked;
-        // Reset endDate if it is before startDate
-        if (endDate != null && endDate!.isBefore(startDate!)) {
-          endDate = null;
-        }
-      });
-    }
-  },
-  decoration: InputDecoration(
-    hintText: startDate == null
-        ? "Pick a date"
-        : formatDate(startDate!),
-    suffixIcon: const Icon(Icons.calendar_today,
-        color: AppColors.primary),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderSide: BorderSide(color: AppColors.primary),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderSide:
-          BorderSide(color: AppColors.primary, width: 2),
-      borderRadius: BorderRadius.circular(8),
-    ),
-  ),
-),
-const SizedBox(height: 10),
-const Text("End Date",
-    style: TextStyle(color: AppColors.primary)),
-TextField(
-  readOnly: true,
-  onTap: () async {
-    if (startDate == null) {
-      // Ensure the user selects a start date first
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please select a start date first!")),
-      );
-      return;
-    }
+                  const Text("Start Date",
+                      style: TextStyle(color: AppColors.primary)),
+                  TextField(
+                    readOnly: true,
+                    onTap: () async {
+                      DateTime currentDate = DateTime.now();
+                      DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: currentDate, // Start from today
+                        firstDate: currentDate, // Restrict past dates
+                        lastDate: DateTime(2100),
+                        builder: (context, child) {
+                          return Theme(
+                            data: ThemeData.light().copyWith(
+                              primaryColor: AppColors.primary,
+                              colorScheme:
+                                  ColorScheme.light(primary: AppColors.primary),
+                              buttonTheme: ButtonThemeData(
+                                  textTheme: ButtonTextTheme.primary),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (picked != null) {
+                        setDialogState(() {
+                          startDate = picked;
+                          // Reset endDate if it is before startDate
+                          if (endDate != null &&
+                              endDate!.isBefore(startDate!)) {
+                            endDate = null;
+                          }
+                        });
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText: startDate == null
+                          ? "Pick a date"
+                          : formatDate(startDate!),
+                      suffixIcon: const Icon(Icons.calendar_today,
+                          color: AppColors.primary),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.primary),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: AppColors.primary, width: 2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text("End Date",
+                      style: TextStyle(color: AppColors.primary)),
+                  TextField(
+                    readOnly: true,
+                    onTap: () async {
+                      if (startDate == null) {
+                        // Ensure the user selects a start date first
 
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: startDate!, // Default to Start Date
-      firstDate: startDate!, // Ensure End Date is after Start Date
-      lastDate: DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: AppColors.primary,
-            colorScheme: ColorScheme.light(primary: AppColors.primary),
-            buttonTheme:
-                ButtonThemeData(textTheme: ButtonTextTheme.primary),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setDialogState(() => endDate = picked);
-    }
-  },
-  decoration: InputDecoration(
-    hintText: endDate == null
-        ? "Pick a date"
-        : formatDate(endDate!),
-    suffixIcon: const Icon(Icons.calendar_today,
-        color: AppColors.primary),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderSide: BorderSide(color: AppColors.primary),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderSide:
-          BorderSide(color: AppColors.primary, width: 2),
-      borderRadius: BorderRadius.circular(8),
-    ),
-  ),
-),
+                        showPopup(context, "Please select a start date first!",
+                            AppColors.primary);
+                        return;
+                      }
+
+                      DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: startDate!, // Default to Start Date
+                        firstDate:
+                            startDate!, // Ensure End Date is after Start Date
+                        lastDate: DateTime(2100),
+                        builder: (context, child) {
+                          return Theme(
+                            data: ThemeData.light().copyWith(
+                              primaryColor: AppColors.primary,
+                              colorScheme:
+                                  ColorScheme.light(primary: AppColors.primary),
+                              buttonTheme: ButtonThemeData(
+                                  textTheme: ButtonTextTheme.primary),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (picked != null) {
+                        setDialogState(() => endDate = picked);
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText: endDate == null
+                          ? "Pick a date"
+                          : formatDate(endDate!),
+                      suffixIcon: const Icon(Icons.calendar_today,
+                          color: AppColors.primary),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.primary),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: AppColors.primary, width: 2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
 
                   /*--------------------------------------------------------------------*/
                   const SizedBox(height: 10),
