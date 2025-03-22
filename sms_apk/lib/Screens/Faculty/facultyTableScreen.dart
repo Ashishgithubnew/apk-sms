@@ -129,7 +129,7 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
       backgroundColor: Colors.white,
       appBar: Header(text: "Faculty Table"),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary,))
           : facultyList.isEmpty
               ? _buildEmptyState() // Improved "No Data" UI
               : ListView.builder(
@@ -138,45 +138,6 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
                   itemCount: facultyList.length,
                   itemBuilder: (context, index) {
                     final faculty = facultyList[index];
-                    // return Card(
-                    //   elevation: 5,
-                    //   shape: RoundedRectangleBorder(
-                    //     borderRadius: BorderRadius.circular(12),
-                    //   ),
-                    //   color: const Color.fromARGB(237, 255, 255, 255),
-                    //   child: Padding(
-                    //     padding: const EdgeInsets.all(12),
-                    //     child: Column(
-                    //       crossAxisAlignment: CrossAxisAlignment.start,
-                    //       children: [
-                    //         Text(
-                    //           faculty['fact_Name'] ?? 'N/A',
-                    //           style: const TextStyle(
-                    //             fontWeight: FontWeight.bold,
-                    //             fontSize: 18,
-                    //           ),
-                    //         ),
-                    //         const SizedBox(height: 5),
-                    //         _buildInfoRow('City', faculty['fact_city']),
-                    //         _buildInfoRow('Contact', faculty['fact_contact']),
-                    //         _buildInfoRow('Gender', faculty['fact_gender']),
-                    //         Row(
-                    //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //           children: [
-                    //             const SizedBox(), // This keeps space to push the button to the right
-                    //             _buildActionButton(
-                    //               icon: Icons.delete,
-                    //               color: AppColors.primary,
-                    //               tooltip: 'Delete Faculty',
-                    //               onTap: () =>
-                    //                   deleteFaculty(faculty['fact_id']),
-                    //             ),
-                    //           ],
-                    //         ),
-                    //       ],
-                    //     ),
-                    //   ),
-                    // );
                     return Card(
                       elevation: 5,
                       shape: RoundedRectangleBorder(

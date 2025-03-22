@@ -143,7 +143,7 @@ class _ViewAttendanceState extends State<ViewAttendance> {
             const SizedBox(height: 16),
             Expanded(
               child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.primary,))
                   : attendanceData.isEmpty
                       ? const Center(
                           child: Text(

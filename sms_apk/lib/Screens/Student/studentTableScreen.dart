@@ -89,7 +89,7 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
       backgroundColor: Colors.white,
       appBar: Header(text: "Student Table"),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: AppColors.primary,))
           : Column(
               children: [
                 Padding(

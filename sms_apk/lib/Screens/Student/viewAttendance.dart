@@ -49,13 +49,6 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
     return prefs.getString('authToken');
   }
 
-  // Future<void> fetchUserName() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   setState(() {
-  //     userName = prefs.getString('userName');
-  //   });
-  // }
-
   Future<void> fetchClassData() async {
     setState(() => isFetchingClasses = true);
 
@@ -457,7 +450,7 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                                 ],
                               ),
                             );
-                          }).toList(),
+                          }),
                         ],
                       ),
                     ),
