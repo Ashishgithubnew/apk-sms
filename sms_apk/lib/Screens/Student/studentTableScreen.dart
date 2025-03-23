@@ -54,11 +54,14 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
 
       if (response.statusCode == 200) {
         List<dynamic> studentList = json.decode(response.body);
-        
+
         setState(() {
           students = studentList;
           filteredStudents = students;
-          classes = studentList.map<String>((student) => student['cls'].toString()).toSet().toList();
+          classes = studentList
+              .map<String>((student) => student['cls'].toString())
+              .toSet()
+              .toList();
           classes.sort((a, b) => compareClassNames(a, b)); // Sort classes here
         });
       } else {
@@ -74,49 +77,49 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
   }
 
   // Custom sorting function for class names
-int compareClassNames(String classA, String classB) {
-  // Define priority order for special classes
-  List<String> priorityClasses = ["Nursery", "LKG", "UKG"];
+  int compareClassNames(String classA, String classB) {
+    // Define priority order for special classes
+    List<String> priorityClasses = ["Nursery", "LKG", "UKG"];
 
-  int indexA = priorityClasses.indexOf(classA);
-  int indexB = priorityClasses.indexOf(classB);
+    int indexA = priorityClasses.indexOf(classA);
+    int indexB = priorityClasses.indexOf(classB);
 
-  // If both classes are in the priority list, sort by their order in the list
-  if (indexA != -1 && indexB != -1) {
-    return indexA.compareTo(indexB);
-  }
-
-  // If only classA is in the priority list, it should come first
-  if (indexA != -1) return -1;
-
-  // If only classB is in the priority list, it should come first
-  if (indexB != -1) return 1;
-
-  // Regular sorting for remaining classes
-  RegExp regex = RegExp(r'(\d+)|(\D+)');
-  Iterable<RegExpMatch> matchesA = regex.allMatches(classA);
-  Iterable<RegExpMatch> matchesB = regex.allMatches(classB);
-
-  List<String> partsA = matchesA.map((m) => m.group(0)!).toList();
-  List<String> partsB = matchesB.map((m) => m.group(0)!).toList();
-
-  int minLength = partsA.length < partsB.length ? partsA.length : partsB.length;
-
-  for (int i = 0; i < minLength; i++) {
-    if (RegExp(r'^\d+$').hasMatch(partsA[i]) && RegExp(r'^\d+$').hasMatch(partsB[i])) {
-      int numA = int.parse(partsA[i]);
-      int numB = int.parse(partsB[i]);
-      if (numA != numB) return numA.compareTo(numB);
-    } else {
-      int result = partsA[i].compareTo(partsB[i]);
-      if (result != 0) return result;
+    // If both classes are in the priority list, sort by their order in the list
+    if (indexA != -1 && indexB != -1) {
+      return indexA.compareTo(indexB);
     }
+
+    // If only classA is in the priority list, it should come first
+    if (indexA != -1) return -1;
+
+    // If only classB is in the priority list, it should come first
+    if (indexB != -1) return 1;
+
+    // Regular sorting for remaining classes
+    RegExp regex = RegExp(r'(\d+)|(\D+)');
+    Iterable<RegExpMatch> matchesA = regex.allMatches(classA);
+    Iterable<RegExpMatch> matchesB = regex.allMatches(classB);
+
+    List<String> partsA = matchesA.map((m) => m.group(0)!).toList();
+    List<String> partsB = matchesB.map((m) => m.group(0)!).toList();
+
+    int minLength =
+        partsA.length < partsB.length ? partsA.length : partsB.length;
+
+    for (int i = 0; i < minLength; i++) {
+      if (RegExp(r'^\d+$').hasMatch(partsA[i]) &&
+          RegExp(r'^\d+$').hasMatch(partsB[i])) {
+        int numA = int.parse(partsA[i]);
+        int numB = int.parse(partsB[i]);
+        if (numA != numB) return numA.compareTo(numB);
+      } else {
+        int result = partsA[i].compareTo(partsB[i]);
+        if (result != 0) return result;
+      }
+    }
+
+    return partsA.length.compareTo(partsB.length);
   }
-
-  return partsA.length.compareTo(partsB.length);
-}
-
-
 
   void filterStudentsByClass(String? selectedClass) {
     setState(() {
@@ -124,7 +127,9 @@ int compareClassNames(String classA, String classB) {
       if (selectedClass == null || selectedClass.isEmpty) {
         filteredStudents = students;
       } else {
-        filteredStudents = students.where((student) => student['cls'] == selectedClass).toList();
+        filteredStudents = students
+            .where((student) => student['cls'] == selectedClass)
+            .toList();
       }
     });
   }
@@ -135,45 +140,57 @@ int compareClassNames(String classA, String classB) {
       backgroundColor: Colors.white,
       appBar: Header(text: "Student Table"),
       body: isLoading
-          ? Center(child: CircularProgressIndicator(color: AppColors.primary,))
+          ? Center(
+              child: CircularProgressIndicator(
+              color: AppColors.primary,
+            ))
           : Column(
               children: [
                 Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-  child: DropdownButtonFormField<String>(
-    value: selectedClass,
-    decoration: InputDecoration(
-      labelText: "Select Class",
-      labelStyle: TextStyle(color: Colors.grey), // Default label color
-      floatingLabelStyle: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        borderSide: BorderSide(color: AppColors.primary), // Use your theme color
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        borderSide: BorderSide(color: AppColors.secondary, width: 2), // Highlight effect
-      ),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-    ),
-    isExpanded: true,
-    dropdownColor: Colors.white,
-    icon: Icon(Icons.arrow_drop_down, color: AppColors.primary), // Custom dropdown icon
-    items: classes.map((String cls) {
-      return DropdownMenuItem<String>(
-        value: cls,
-        child: Text(
-          cls,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-      );
-    }).toList(),
-    onChanged: filterStudentsByClass,
-  ),
-),
-
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 8.0),
+                  child: DropdownButtonFormField<String>(
+                    value: selectedClass,
+                    decoration: InputDecoration(
+                      labelText: "Select Class",
+                      labelStyle:
+                          TextStyle(color: Colors.grey), // Default label color
+                      floatingLabelStyle: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(
+                            color: AppColors.primary), // Use your theme color
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(
+                            color: AppColors.secondary,
+                            width: 2), // Highlight effect
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 12.0),
+                    ),
+                    isExpanded: true,
+                    dropdownColor: Colors.white,
+                    icon: Icon(Icons.arrow_drop_down,
+                        color: AppColors.primary), // Custom dropdown icon
+                    items: classes.map((String cls) {
+                      return DropdownMenuItem<String>(
+                        value: cls,
+                        child: Text(
+                          cls,
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: filterStudentsByClass,
+                  ),
+                ),
                 Expanded(
                   child: filteredStudents.isEmpty
                       ? Center(child: Text('No data available'))
@@ -187,18 +204,23 @@ int compareClassNames(String classA, String classB) {
                               elevation: 4,
                               margin: EdgeInsets.all(8.0),
                               child: ListTile(
-                                title: Text(student['name'] ?? 'N/A', style: TextStyle(fontWeight: FontWeight.bold)),
+                                title: Text(student['name'] ?? 'N/A',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text('City: ${student['city'] ?? 'N/A'}'),
-                                    Text('Contact: ${student['contact'] ?? 'N/A'}'),
+                                    Text(
+                                        'Contact: ${student['contact'] ?? 'N/A'}'),
                                     Text('Class: ${student['cls'] ?? 'N/A'}'),
                                   ],
                                 ),
                                 trailing: IconButton(
-                                  icon: Icon(Icons.delete, color: AppColors.primary),
-                                  onPressed: () => confirmDeleteStudent(student['id']),
+                                  icon: Icon(Icons.delete,
+                                      color: AppColors.primary),
+                                  onPressed: () =>
+                                      confirmDeleteStudent(student['id']),
                                 ),
                               ),
                             );
@@ -223,7 +245,8 @@ int compareClassNames(String classA, String classB) {
               child: Text("Cancel", style: TextStyle(color: AppColors.primary)),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
               onPressed: () {
                 Navigator.pop(context);
                 deleteStudent(id);

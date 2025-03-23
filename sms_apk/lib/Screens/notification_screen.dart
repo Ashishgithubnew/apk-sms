@@ -60,11 +60,18 @@ class _NotificationPageState extends State<NotificationPage> {
         if (data is List) {
           setState(() {
             notifications = data;
+            filteredNotifications =
+                data; // Initialize filteredNotifications with all notifications
             isLoading = false;
           });
         } else {
           showPopup(context, "Invalid response format", AppColors.error);
         }
+      } else if (response.statusCode == 400) {
+        final responseBody = jsonDecode(response.body);
+        final errorMessage = responseBody["detail"] ??
+            "Invalid request. Please check your input.";
+        showPopup(context, errorMessage, AppColors.primary);
       } else {
         showPopup(context, "Failed to load notifications", AppColors.error);
       }
@@ -398,7 +405,7 @@ class _NotificationPageState extends State<NotificationPage> {
     setState(() {
       selectedCategory = category;
       if (category == "All Categories") {
-        filteredNotifications = notifications;
+        filteredNotifications = notifications; // Show all notifications
       } else {
         filteredNotifications = notifications
             .where((notification) =>
@@ -422,15 +429,15 @@ class _NotificationPageState extends State<NotificationPage> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white, // Background color
-                borderRadius: BorderRadius.circular(12), // Rounded edges
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.grey.shade300, // Light border for a clean look
-                  width: 1, // Full width
+                  color: Colors.grey.shade300,
+                  width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1), // Soft shadow
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -438,7 +445,7 @@ class _NotificationPageState extends State<NotificationPage> {
               ),
               child: DropdownButtonFormField(
                 decoration: InputDecoration(
-                  border: InputBorder.none, // Remove default border
+                  border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),
                 value: selectedCategory,
@@ -450,7 +457,7 @@ class _NotificationPageState extends State<NotificationPage> {
                       style: TextStyle(
                         color: category == "Select a category"
                             ? Colors.grey
-                            : Colors.black, // Grey for default
+                            : Colors.black,
                       ),
                     ),
                   );
@@ -466,7 +473,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
           // Add Notification Button Container
           GestureDetector(
-            onTap: openAddNotificationDialog, // Opens dialog on tap
+            onTap: openAddNotificationDialog,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Container(
@@ -474,16 +481,15 @@ class _NotificationPageState extends State<NotificationPage> {
                 padding:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white, // Background color
-                  borderRadius: BorderRadius.circular(12), // Rounded edges
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color:
-                        Colors.grey.shade300, // Light border for a clean look
+                    color: Colors.grey.shade300,
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1), // Soft shadow
+                      color: Colors.black.withOpacity(0.1),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -498,8 +504,7 @@ class _NotificationPageState extends State<NotificationPage> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.add, color: AppColors.primary),
-                      onPressed:
-                          openAddNotificationDialog, // Also triggers on button tap
+                      onPressed: openAddNotificationDialog,
                     ),
                   ],
                 ),

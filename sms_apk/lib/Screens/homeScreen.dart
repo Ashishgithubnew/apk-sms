@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     MenuCard(
                       icon: Icons.check_circle,
-                      title: 'Mark Attendance',
+                      title: 'Mark Student Attendance',
                       color: AppColors.primary,
                       onTap: () {
                         Navigator.push(
@@ -77,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     MenuCard(
                       icon: Icons.bar_chart,
-                      title: 'View Attendance',
+                      title: 'View Student Attendance',
                       color: AppColors.primary,
                       onTap: () {
                         Navigator.push(

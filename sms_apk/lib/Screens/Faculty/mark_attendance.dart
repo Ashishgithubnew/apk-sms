@@ -136,6 +136,11 @@ class _MarkAttendanceState extends State<MarkAttendance> {
                     controller: searchController,
                     decoration: InputDecoration(
                       labelText: 'Search Faculty',
+                      labelStyle:
+                          TextStyle(color: Colors.grey), // Default label color
+                      floatingLabelStyle: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold),
                       prefixIcon:
                           const Icon(Icons.search, color: AppColors.primary),
                       border: OutlineInputBorder(
