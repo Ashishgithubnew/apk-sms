@@ -505,8 +505,8 @@ class _StudentFormState extends State<StudentForm> {
           }
           if (isName &&
               (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value) ||
-                  value.length <= 3)) {
-            return 'Name should contain only alphabets and spaces and be more than 3 characters long';
+                  value.length <= 2)) {
+            return 'Name should contain only alphabets and spaces';
           }
 
           if (isAddress && value.length < 5) {

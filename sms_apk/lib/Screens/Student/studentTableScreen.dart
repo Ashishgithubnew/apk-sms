@@ -59,6 +59,7 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
           students = studentList;
           filteredStudents = students;
           classes = studentList.map<String>((student) => student['cls'].toString()).toSet().toList();
+          classes.sort((a, b) => compareClassNames(a, b)); // Sort classes here
         });
       } else {
         showPopup(context, 'Failed to load students', Colors.red);
@@ -71,6 +72,51 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
       });
     }
   }
+
+  // Custom sorting function for class names
+int compareClassNames(String classA, String classB) {
+  // Define priority order for special classes
+  List<String> priorityClasses = ["Nursery", "LKG", "UKG"];
+
+  int indexA = priorityClasses.indexOf(classA);
+  int indexB = priorityClasses.indexOf(classB);
+
+  // If both classes are in the priority list, sort by their order in the list
+  if (indexA != -1 && indexB != -1) {
+    return indexA.compareTo(indexB);
+  }
+
+  // If only classA is in the priority list, it should come first
+  if (indexA != -1) return -1;
+
+  // If only classB is in the priority list, it should come first
+  if (indexB != -1) return 1;
+
+  // Regular sorting for remaining classes
+  RegExp regex = RegExp(r'(\d+)|(\D+)');
+  Iterable<RegExpMatch> matchesA = regex.allMatches(classA);
+  Iterable<RegExpMatch> matchesB = regex.allMatches(classB);
+
+  List<String> partsA = matchesA.map((m) => m.group(0)!).toList();
+  List<String> partsB = matchesB.map((m) => m.group(0)!).toList();
+
+  int minLength = partsA.length < partsB.length ? partsA.length : partsB.length;
+
+  for (int i = 0; i < minLength; i++) {
+    if (RegExp(r'^\d+$').hasMatch(partsA[i]) && RegExp(r'^\d+$').hasMatch(partsB[i])) {
+      int numA = int.parse(partsA[i]);
+      int numB = int.parse(partsB[i]);
+      if (numA != numB) return numA.compareTo(numB);
+    } else {
+      int result = partsA[i].compareTo(partsB[i]);
+      if (result != 0) return result;
+    }
+  }
+
+  return partsA.length.compareTo(partsB.length);
+}
+
+
 
   void filterStudentsByClass(String? selectedClass) {
     setState(() {
@@ -93,20 +139,41 @@ class _StudentTableScreenState extends State<StudentTableScreen> {
           : Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: DropdownButton<String>(
-                    value: selectedClass,
-                    hint: Text("Select Class"),
-                    isExpanded: true,
-                    items: classes.map((String cls) {
-                      return DropdownMenuItem<String>(
-                        value: cls,
-                        child: Text(cls),
-                      );
-                    }).toList(),
-                    onChanged: filterStudentsByClass,
-                  ),
-                ),
+  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+  child: DropdownButtonFormField<String>(
+    value: selectedClass,
+    decoration: InputDecoration(
+      labelText: "Select Class",
+      labelStyle: TextStyle(color: Colors.grey), // Default label color
+      floatingLabelStyle: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: BorderSide(color: AppColors.primary), // Use your theme color
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: BorderSide(color: AppColors.secondary, width: 2), // Highlight effect
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+    ),
+    isExpanded: true,
+    dropdownColor: Colors.white,
+    icon: Icon(Icons.arrow_drop_down, color: AppColors.primary), // Custom dropdown icon
+    items: classes.map((String cls) {
+      return DropdownMenuItem<String>(
+        value: cls,
+        child: Text(
+          cls,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+      );
+    }).toList(),
+    onChanged: filterStudentsByClass,
+  ),
+),
+
                 Expanded(
                   child: filteredStudents.isEmpty
                       ? Center(child: Text('No data available'))

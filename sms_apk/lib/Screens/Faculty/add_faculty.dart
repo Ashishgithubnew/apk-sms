@@ -114,86 +114,84 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
 
   // Submit Form with Token Authentication
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      if (token == null) {
-        showPopup(
-          context,
-          "Authentication token is missing. Please log in again.",
-          AppColors.primary,
-        );
-        return;
-      }
+  if (_formKey.currentState!.validate()) {
+    if (token == null) {
+      showPopup(
+        context,
+        "Authentication token is missing. Please log in again.",
+        AppColors.primary,
+      );
+      return;
+    }
 
-      setState(() => isLoading = true);
+    setState(() => isLoading = true); // Start loading
 
-      final url = Uri.parse("https://s-m-s-keyw.onrender.com/faculty/save");
+    final url = Uri.parse("https://s-m-s-keyw.onrender.com/faculty/save");
 
-      // Convert `factQualifications` controllers to their text values
-      List<Map<String, dynamic>> factQualifications =
-          _formData["factQualifications"]
-              .map<Map<String, dynamic>>((qualification) {
-        return {
-          "id": qualification["id"],
-          "type": qualification["type"],
-          "grd_sub": qualification["grd_sub"],
-          "grd_branch": qualification["grd_branch"],
-          "grd_grade": qualification["grd_grade"],
-          "grd_university": qualification["grd_university"],
-          "grd_yearOfPassing":
-              qualification["yearOfPassingController"]?.text ?? "",
-        };
-      }).toList();
-
-      Map<String, dynamic> requestData = {
-        "fact_id": "",
-        "fact_Name": _formData["fullName"],
-        "email": _formData["email"],
-        "fact_email": _formData["factEmail"],
-        "password": _formData["password"],
-        "fact_contact": _formData["contact"],
-        "fact_gender": _formData["gender"] ?? "Other",
-        "fact_address": _formData["address"],
-        "fact_city": _formData["city"],
-        "fact_state": _formData["state"],
-        "fact_joiningDate": _formData["joiningDate"],
-        "fact_leavingDate": _formData["leavingDate"],
-        "fact_qualifications": factQualifications, // Use the updated list
-        "Fact_cls": [],
-        "Fact_status": _formData["factStatus"],
+    // Convert `factQualifications` controllers to their text values
+    List<Map<String, dynamic>> factQualifications =
+        _formData["factQualifications"].map<Map<String, dynamic>>((qualification) {
+      return {
+        "id": qualification["id"],
+        "type": qualification["type"],
+        "grd_sub": qualification["grd_sub"],
+        "grd_branch": qualification["grd_branch"],
+        "grd_grade": qualification["grd_grade"],
+        "grd_university": qualification["grd_university"],
+        "grd_yearOfPassing": qualification["yearOfPassingController"]?.text ?? "",
       };
+    }).toList();
 
-      try {
-        final response = await http.post(
-          url,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-          body: jsonEncode(requestData),
-        );
+    Map<String, dynamic> requestData = {
+      "fact_id": "",
+      "fact_Name": _formData["fullName"],
+      "email": _formData["email"],
+      "fact_email": _formData["factEmail"],
+      "password": _formData["password"],
+      "fact_contact": _formData["contact"],
+      "fact_gender": _formData["gender"] ?? "Other",
+      "fact_address": _formData["address"],
+      "fact_city": _formData["city"],
+      "fact_state": _formData["state"],
+      "fact_joiningDate": _formData["joiningDate"],
+      "fact_leavingDate": _formData["leavingDate"],
+      "fact_qualifications": factQualifications,
+      "Fact_cls": [],
+      "Fact_status": _formData["factStatus"],
+    };
 
-        if (response.statusCode == 200) {
-          await showPopup(
-              context, "Form submitted successfully!", AppColors.primary);
-          if (mounted) {
-            Navigator.pop(context);
-          }
-        } else if (response.statusCode == 400) {
-          final responseBody = jsonDecode(response.body);
-          final errorMessage = responseBody["detail"] ??
-              "Invalid request. Please check your input.";
-          showPopup(context, errorMessage, AppColors.primary);
-        } else {
-          showPopup(
-              context,
-              "Failed to submit. Try again! Error: ${response.statusCode}",
-              AppColors.primary);
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode(requestData),
+      );
+
+      if (response.statusCode == 200) {
+        await showPopup(context, "Form submitted successfully!", AppColors.primary);
+        if (mounted) {
+          Navigator.pop(context);
         }
-      } catch (e) {
-        showPopup(context, "Error: $e", AppColors.primary);
+      } else if (response.statusCode == 400) {
+        final responseBody = jsonDecode(response.body);
+        final errorMessage = responseBody["detail"] ?? "Invalid request. Please check your input.";
+        showPopup(context, errorMessage, AppColors.primary);
+      } else {
+        showPopup(context, "Failed to submit. Try again! Error: ${response.statusCode}", AppColors.primary);
+      }
+    } catch (e) {
+      showPopup(context, "Error: $e", AppColors.primary);
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false); // Stop loading in all cases
       }
     }
   }
+}
+
 
   void _addQualification() {
     setState(() {
@@ -310,11 +308,6 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                           isName: true),
                       _buildTextField(
                           "Email*", "email", isEmail: true,true , "Email"),
-                      _buildTextField(
-                          "Faculty Email*", "factEmail",true , "Faculty Email",
-                          isEmail: true),
-                      _buildTextField("Password*", "password",true , "Password",
-                          isPassword: true),
                       _buildTextField("Contact*", "contact",true , "Contact",
                           isContact: true),
                       _buildDropdownField("Gender*",
@@ -361,6 +354,11 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                       _buildDateField("Leaving Date", _leavingDateController),
                       _buildDropdownField("Status", ["Active", "Inactive"],
                           "factStatus", "Status"),
+                      _buildTextField(
+                          "Faculty Email*", "factEmail",true , "Faculty Email",
+                          isEmail: true),
+                      _buildTextField("Password*", "password",true , "Password",
+                          isPassword: true),
                       _buildQualificationFields(), // Render qualification fields
                       ElevatedButton(
                         onPressed: _addQualification,
@@ -396,7 +394,7 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
                 ),
                 onPressed: isLoading ? null : _submitForm,
                 child: isLoading
-                    ? CircularProgressIndicator(color: Colors.white)
+                    ? CircularProgressIndicator(color: AppColors.primary)
                     : Text('Submit',
                         style: TextStyle(color: Colors.white, fontSize: 18)),
               ),
@@ -453,8 +451,8 @@ class _FacultyDetailsFormState extends State<FacultyDetailsForm> {
           }
           if (isName &&
               (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value) ||
-                  value.length <= 3)) {
-            return 'Name should contain only alphabets and spaces and be more than 3 characters long';
+                  value.length <= 2)) {
+            return 'Name should contain only alphabets and spaces';
           }
 
           if (isContact && !RegExp(r'^[0-9]{10}$').hasMatch(value)) {

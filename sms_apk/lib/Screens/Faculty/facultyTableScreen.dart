@@ -56,10 +56,15 @@ class _FacultyTableScreenState extends State<FacultyTableScreen> {
         setState(() {
           facultyList = json.decode(response.body);
         });
-      } else {
+      } else if (response.statusCode == 400) {
+          final responseBody = jsonDecode(response.body);
+          final errorMessage = responseBody["detail"] ??
+              "Invalid request. Please check your input.";
+          showPopup(context, errorMessage, AppColors.primary);
+        } else {
         showPopup(
             context,
-            'Failed to load faculty data: ${response.statusCode}',
+            'No Data Available',
             AppColors.primary);
       }
     } catch (e) {
