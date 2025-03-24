@@ -107,12 +107,26 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
   }
 
   Future<void> fetchAttendance() async {
-    if (selectedClass == null) {
-      showPopup(context, "Please select a class.", AppColors.primary);
-      return;
-    }
+    if (masterAttendance) {
+      if (selectedClass == null) {
+        showPopup(context, "Please select a class.", AppColors.primary);
+        return;
+      }
 
-    setState(() => isFetchingAttendance = true);
+      setState(() => isFetchingAttendance = true);
+    } else {
+      if (selectedClass == null || selectedSubject == null) {
+        if (selectedClass == null) {
+          showPopup(context, "Please select a class.", AppColors.primary);
+          return;
+        }
+        if (selectedSubject == null) {
+          showPopup(context, "Please select a subject.", AppColors.primary);
+          return;
+        }
+        setState(() => isFetchingAttendance = true);
+      }
+    }
 
     if (token == null) {
       setState(() => isFetchingAttendance = false);
