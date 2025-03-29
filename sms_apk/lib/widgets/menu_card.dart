@@ -6,7 +6,13 @@ class MenuCard extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  const MenuCard({super.key, required this.icon, required this.title, required this.color, required this.onTap});
+  const MenuCard({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,13 +21,25 @@ class MenuCard extends StatelessWidget {
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 50, color: color),
-            SizedBox(height: 10),
-            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(16.0), // Added padding for better spacing
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 50, color: color),
+              const SizedBox(height: 10),
+              Center( // Ensures the text is centered
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center, // Ensures text alignment
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
