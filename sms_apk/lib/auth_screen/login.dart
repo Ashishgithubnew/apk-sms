@@ -133,33 +133,48 @@ class _LoginScreenState extends State<LoginScreen> {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('userData', json.encode(data));
 
-        // Extract user details
-        Map<String, dynamic> extractedData = _extractUserData(data);
-        String extractedRole = data['role'] ?? "Unknown";
+        // Extract and store permissions correctly
+        Map<String, dynamic> permissions =
+            data['permission']?['permissions'] ?? {}; // Fixed path
+        await prefs.setString('permissions', json.encode(permissions));
 
-        // Store extracted data in SharedPreferences
+        // Store role and user details
+        String extractedRole = data['role'] ?? "Unknown";
         await prefs.setString('role', extractedRole);
-        await prefs.setString('userName', extractedData['name']);
+
+        // Extract user details safely
+        Map<String, dynamic> extractedData = _extractUserData(data);
+        await prefs.setString('userName', getOrDefault(extractedData, 'name'));
         await prefs.setString(
-            'schoolAddress', extractedData['schoolAddress'] ?? "N/A");
+            'schoolAddress', getOrDefault(extractedData, 'schoolAddress'));
         await prefs.setString(
-            'adminContact', extractedData['adminContact'] ?? "N/A");
+            'adminContact', getOrDefault(extractedData, 'adminContact'));
+
+        // Extract faculty-specific information
+        Map<String, dynamic> facultyInfo = data['facultyInfo'] ?? {};
         await prefs.setString(
-            'factAddress', extractedData['factAddress'] ?? "N/A");
+            'factAddress', getOrDefault(facultyInfo, 'fact_address'));
         await prefs.setString(
-            'factContact', extractedData['factContact'] ?? "N/A");
+            'factContact', getOrDefault(facultyInfo, 'fact_contact'));
       } else if (response.statusCode == 400) {
-        // Parse the response body to extract the error message
         final responseBody = jsonDecode(response.body);
-        final errorMessage = responseBody["detail"] ??
-            "Invalid request. Please check your input.";
+        final errorMessage = responseBody["detail"] ?? "Invalid request.";
         showPopup(context, errorMessage, AppColors.primary);
       } else {
         throw Exception('Failed to load user data');
       }
     } catch (error) {
-      _showPopupMessage('Failed to load user data. Please try again.', false);
+      showPopup(context, 'Failed to load user data. Please try again.',
+          AppColors.primary);
     }
+  }
+
+// Helper function to handle missing values
+  String getOrDefault(Map<String, dynamic> data, String key,
+      [String defaultValue = ""]) {
+    return data.containsKey(key) && data[key] != null
+        ? data[key].toString()
+        : defaultValue;
   }
 
   /// Extracts the username based on the user's role

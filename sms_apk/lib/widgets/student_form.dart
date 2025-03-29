@@ -72,6 +72,10 @@ class _StudentFormState extends State<StudentForm> {
                     'totalFee': e['totalFee'],
                   })
               .toList();
+
+          // Sorting using the custom comparator
+          classes.sort(
+              (a, b) => compareClassNames(a['className'], b['className']));
         });
       } else if (response.statusCode == 400) {
         final responseBody = jsonDecode(response.body);
@@ -84,6 +88,51 @@ class _StudentFormState extends State<StudentForm> {
     } catch (e) {
       showPopup(context, 'Error fetching classes: $e', AppColors.primary);
     }
+  }
+
+// Custom sorting function for class names
+  int compareClassNames(String classA, String classB) {
+    // Define priority order for special classes
+    List<String> priorityClasses = ["Nursery", "LKG", "UKG"];
+
+    int indexA = priorityClasses.indexOf(classA);
+    int indexB = priorityClasses.indexOf(classB);
+
+    // If both classes are in the priority list, sort by their order in the list
+    if (indexA != -1 && indexB != -1) {
+      return indexA.compareTo(indexB);
+    }
+
+    // If only classA is in the priority list, it should come first
+    if (indexA != -1) return -1;
+
+    // If only classB is in the priority list, it should come first
+    if (indexB != -1) return 1;
+
+    // Regular sorting for remaining classes
+    RegExp regex = RegExp(r'(\d+)|(\D+)');
+    Iterable<RegExpMatch> matchesA = regex.allMatches(classA);
+    Iterable<RegExpMatch> matchesB = regex.allMatches(classB);
+
+    List<String> partsA = matchesA.map((m) => m.group(0)!).toList();
+    List<String> partsB = matchesB.map((m) => m.group(0)!).toList();
+
+    int minLength =
+        partsA.length < partsB.length ? partsA.length : partsB.length;
+
+    for (int i = 0; i < minLength; i++) {
+      if (RegExp(r'^\d+$').hasMatch(partsA[i]) &&
+          RegExp(r'^\d+$').hasMatch(partsB[i])) {
+        int numA = int.parse(partsA[i]);
+        int numB = int.parse(partsB[i]);
+        if (numA != numB) return numA.compareTo(numB);
+      } else {
+        int result = partsA[i].compareTo(partsB[i]);
+        if (result != 0) return result;
+      }
+    }
+
+    return partsA.length.compareTo(partsB.length);
   }
 
   void onClassSelected(String? className) {
