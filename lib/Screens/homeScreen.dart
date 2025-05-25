@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sms_apk/Screens/Student/markAttendance.dart';
 import 'package:sms_apk/Screens/Student/studentTableScreen.dart';
 import 'package:sms_apk/Screens/Student/viewAttendance.dart';
-import 'package:sms_apk/auth_screen/profile_screen.dart';
+import 'package:sms_apk/auth_screen/setting_screen.dart';
 import 'package:sms_apk/utils/app_colors.dart';
 import 'package:sms_apk/widgets/header.dart';
 import '../widgets/drawer_menu.dart'; // Import Drawer Menu
@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => ProfileScreen()),
+                              builder: (context) => UserPassword()),
                         );
                       },
                     ),

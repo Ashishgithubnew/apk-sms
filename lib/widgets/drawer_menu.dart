@@ -5,6 +5,8 @@ import 'package:sms_apk/Screens/Faculty/add_faculty.dart';
 import 'package:sms_apk/Screens/Faculty/mark_attendance.dart';
 import 'package:sms_apk/Screens/Faculty/view_attendance.dart';
 import 'package:sms_apk/Screens/notification_screen.dart';
+import 'package:sms_apk/Screens/holiday_screen.dart';
+import 'package:sms_apk/Screens/studentreport_screen.dart';
 import '../Screens/Student/add_student.dart';
 import '../Screens/homeScreen.dart';
 import '../Screens/Student/studentTableScreen.dart';
@@ -176,12 +178,35 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   ),
                 ],
               ),
+              
+              
+              
               _buildDrawerItem(Icons.notification_add, 'Notifications', () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => NotificationPage()),
                 );
               }),
+              _buildDrawerItem(Icons.beach_access, 'Holiday', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => HolidayPage()),
+                );
+              }),
+              _buildDrawerItem(Icons.book, 'Subject', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => HolidayPage()),
+                );
+              }),
+              _buildDrawerItem(Icons.assessment, 'Student Report', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => StudentReportForm()),
+                );
+              }),
+          
+          
               const Divider(),
               ListTile(
                 leading: Icon(Icons.logout, color: AppColors.logout),

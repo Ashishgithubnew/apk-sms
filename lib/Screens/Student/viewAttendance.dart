@@ -457,7 +457,7 @@ class _ViewAttendanceScreenState extends State<ViewAttendanceScreen> {
                                 ],
                               ),
                             );
-                          }).toList(),
+                          }),
                         ],
                       ),
                     ),
