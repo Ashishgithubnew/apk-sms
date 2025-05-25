@@ -4,45 +4,6 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AppColors {
-  static const primary = Color(0xFF126666); // Teal color
-  static const white = Colors.white;
-}
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Holiday Management',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.primary,
-          centerTitle: true,
-          titleTextStyle: TextStyle(
-            color: AppColors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-          iconTheme: IconThemeData(
-            color: AppColors.white,
-            size: 30,
-          ),
-          toolbarHeight: 70,
-        ),
-      ),
-      home: const HolidayPage(),
-    );
-  }
-}
-
 class HolidayPage extends StatefulWidget {
   const HolidayPage({super.key});
 
@@ -222,6 +183,18 @@ class _HolidayPageState extends State<HolidayPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Holidays"),
+        backgroundColor: const Color(0xFF126666), // Teal color
+        centerTitle: true,
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+          size: 30,
+        ),
+        toolbarHeight: 70,
         actions: [
           if (!showForm)
             IconButton(
@@ -288,8 +261,8 @@ class _HolidayPageState extends State<HolidayPage> {
       floatingActionButton: !showForm && holidays.isNotEmpty
           ? FloatingActionButton(
               onPressed: () => setState(() => showForm = true),
-              backgroundColor: AppColors.primary,
-              child: const Icon(Icons.add, color: AppColors.white),
+              backgroundColor: const Color(0xFF126666), // Teal color
+              child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
     );
@@ -333,6 +306,18 @@ class _HolidayFormState extends State<HolidayForm> {
           onPressed: widget.onCancel,
         ),
         title: const Text("Add Holiday"),
+        backgroundColor: const Color(0xFF126666), // Teal color
+        centerTitle: true,
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+          size: 30,
+        ),
+        toolbarHeight: 70,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -481,9 +466,9 @@ class _HolidayFormState extends State<HolidayForm> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: const Color(0xFF126666), // Teal color
                   ),
-                  child: const Text("SAVE", style: TextStyle(color: AppColors.white)),
+                  child: const Text("SAVE", style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),
