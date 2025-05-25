@@ -1,0 +1,177 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.sms_apk"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="21"
+9        android:targetSdkVersion="35" />
+10
+11    <!-- Add internet and network permissions -->
+12    <uses-permission android:name="android.permission.INTERNET" />
+12-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:5:5-66
+12-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:5:22-64
+13    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+13-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:6:5-78
+13-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:6:22-76
+14
+15    <!-- Required to query activities that can process text -->
+16    <queries>
+16-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:41:5-46:15
+17        <intent>
+17-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:42:9-45:18
+18            <action android:name="android.intent.action.PROCESS_TEXT" />
+18-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:43:13-72
+18-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:43:21-70
+19
+20            <data android:mimeType="text/plain" />
+20-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:44:13-50
+20-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:44:19-48
+21        </intent>
+22    </queries>
+23
+24    <permission
+24-->[androidx.core:core:1.13.1] C:\Users\Gauri\.gradle\caches\transforms-3\f5cbb2e1b6d1020f72d540616ccd1082\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
+25        android:name="com.example.sms_apk.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+25-->[androidx.core:core:1.13.1] C:\Users\Gauri\.gradle\caches\transforms-3\f5cbb2e1b6d1020f72d540616ccd1082\transformed\core-1.13.1\AndroidManifest.xml:23:9-81
+26        android:protectionLevel="signature" />
+26-->[androidx.core:core:1.13.1] C:\Users\Gauri\.gradle\caches\transforms-3\f5cbb2e1b6d1020f72d540616ccd1082\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
+27
+28    <uses-permission android:name="com.example.sms_apk.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+28-->[androidx.core:core:1.13.1] C:\Users\Gauri\.gradle\caches\transforms-3\f5cbb2e1b6d1020f72d540616ccd1082\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
+28-->[androidx.core:core:1.13.1] C:\Users\Gauri\.gradle\caches\transforms-3\f5cbb2e1b6d1020f72d540616ccd1082\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
+29
+30    <application
+31        android:name="android.app.Application"
+31-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:10:9-42
+32        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+32-->[androidx.core:core:1.13.1] C:\Users\Gauri\.gradle\caches\transforms-3\f5cbb2e1b6d1020f72d540616ccd1082\transformed\core-1.13.1\AndroidManifest.xml:28:18-86
+33        android:extractNativeLibs="true"
+34        android:icon="@mipmap/ic_launcher"
+34-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:11:9-43
+35        android:label="sms_apk" >
+35-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:9:9-32
+36        <activity
+36-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:13:9-31:20
+37            android:name="com.example.sms_apk.MainActivity"
+37-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:14:13-41
+38            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+38-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:19:13-163
+39            android:exported="true"
+39-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:15:13-36
+40            android:hardwareAccelerated="true"
+40-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:20:13-47
+41            android:launchMode="singleTop"
+41-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:16:13-43
+42            android:taskAffinity=""
+42-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:17:13-36
+43            android:theme="@style/LaunchTheme"
+43-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:18:13-47
+44            android:windowSoftInputMode="adjustResize" >
+44-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:21:13-55
+45            <meta-data
+45-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:23:13-25:56
+46                android:name="io.flutter.embedding.android.NormalTheme"
+46-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:24:17-72
+47                android:resource="@style/NormalTheme" />
+47-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:25:17-54
+48
+49            <intent-filter>
+49-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:27:13-30:29
+50                <action android:name="android.intent.action.MAIN" />
+50-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:28:17-68
+50-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:28:25-66
+51
+52                <category android:name="android.intent.category.LAUNCHER" />
+52-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:29:17-76
+52-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:29:27-74
+53            </intent-filter>
+54        </activity>
+55
+56        <!--
+57             Don't delete the meta-data below.
+58             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java
+59        -->
+60        <meta-data
+60-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:35:9-37:33
+61            android:name="flutterEmbedding"
+61-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:36:13-44
+62            android:value="2" />
+62-->C:\apk-sms\sms_apk\android\app\src\main\AndroidManifest.xml:37:13-30
+63
+64        <uses-library
+64-->[androidx.window:window:1.2.0] C:\Users\Gauri\.gradle\caches\transforms-3\4b6b828e4956070e1638fbd0b2959ecc\transformed\jetified-window-1.2.0\AndroidManifest.xml:23:9-25:40
+65            android:name="androidx.window.extensions"
+65-->[androidx.window:window:1.2.0] C:\Users\Gauri\.gradle\caches\transforms-3\4b6b828e4956070e1638fbd0b2959ecc\transformed\jetified-window-1.2.0\AndroidManifest.xml:24:13-54
+66            android:required="false" />
+66-->[androidx.window:window:1.2.0] C:\Users\Gauri\.gradle\caches\transforms-3\4b6b828e4956070e1638fbd0b2959ecc\transformed\jetified-window-1.2.0\AndroidManifest.xml:25:13-37
+67        <uses-library
+67-->[androidx.window:window:1.2.0] C:\Users\Gauri\.gradle\caches\transforms-3\4b6b828e4956070e1638fbd0b2959ecc\transformed\jetified-window-1.2.0\AndroidManifest.xml:26:9-28:40
+68            android:name="androidx.window.sidecar"
+68-->[androidx.window:window:1.2.0] C:\Users\Gauri\.gradle\caches\transforms-3\4b6b828e4956070e1638fbd0b2959ecc\transformed\jetified-window-1.2.0\AndroidManifest.xml:27:13-51
+69            android:required="false" />
+69-->[androidx.window:window:1.2.0] C:\Users\Gauri\.gradle\caches\transforms-3\4b6b828e4956070e1638fbd0b2959ecc\transformed\jetified-window-1.2.0\AndroidManifest.xml:28:13-37
+70
+71        <provider
+71-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Gauri\.gradle\caches\transforms-3\d7fa99b3b9431496061ad515016bfd4f\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:24:9-32:20
+72            android:name="androidx.startup.InitializationProvider"
+72-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Gauri\.gradle\caches\transforms-3\d7fa99b3b9431496061ad515016bfd4f\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:25:13-67
+73            android:authorities="com.example.sms_apk.androidx-startup"
+73-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Gauri\.gradle\caches\transforms-3\d7fa99b3b9431496061ad515016bfd4f\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:26:13-68
+74            android:exported="false" >
+74-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Gauri\.gradle\caches\transforms-3\d7fa99b3b9431496061ad515016bfd4f\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:27:13-37
+75            <meta-data
+75-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Gauri\.gradle\caches\transforms-3\d7fa99b3b9431496061ad515016bfd4f\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:29:13-31:52
+76                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+76-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Gauri\.gradle\caches\transforms-3\d7fa99b3b9431496061ad515016bfd4f\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:30:17-78
+77                android:value="androidx.startup" />
+77-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Gauri\.gradle\caches\transforms-3\d7fa99b3b9431496061ad515016bfd4f\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:31:17-49
+78            <meta-data
+78-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:29:13-31:52
+79                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+79-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:30:17-85
+80                android:value="androidx.startup" />
+80-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:31:17-49
+81        </provider>
+82
+83        <receiver
+83-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:34:9-52:20
+84            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+84-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:35:13-76
+85            android:directBootAware="false"
+85-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:36:13-44
+86            android:enabled="true"
+86-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:37:13-35
+87            android:exported="true"
+87-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:38:13-36
+88            android:permission="android.permission.DUMP" >
+88-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:39:13-57
+89            <intent-filter>
+89-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:40:13-42:29
+90                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+90-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:41:17-91
+90-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:41:25-88
+91            </intent-filter>
+92            <intent-filter>
+92-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:43:13-45:29
+93                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+93-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:44:17-85
+93-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:44:25-82
+94            </intent-filter>
+95            <intent-filter>
+95-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:46:13-48:29
+96                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+96-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:47:17-88
+96-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:47:25-85
+97            </intent-filter>
+98            <intent-filter>
+98-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:49:13-51:29
+99                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+99-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:50:17-95
+99-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Gauri\.gradle\caches\transforms-3\fe69a5a79efcd271d0e7a0b9b2f2ce2b\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:50:25-92
+100            </intent-filter>
+101        </receiver>
+102    </application>
+103
+104</manifest>

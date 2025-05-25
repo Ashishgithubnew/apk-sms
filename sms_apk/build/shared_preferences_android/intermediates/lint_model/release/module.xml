@@ -1,0 +1,37 @@
+<lint-module
+    format="1"
+    dir="C:\Users\Gauri\AppData\Local\Pub\Cache\hosted\pub.dev\shared_preferences_android-2.4.2\android"
+    name=":shared_preferences_android"
+    type="LIBRARY"
+    maven="io.flutter.plugins.sharedpreferences:shared_preferences_android:"
+    agpVersion="8.2.1"
+    buildFolder="C:\apk-sms\sms_apk\build\shared_preferences_android"
+    bootClassPath="C:\Users\Gauri\AppData\Local\Android\sdk\platforms\android-34\android.jar;C:\Users\Gauri\AppData\Local\Android\sdk\build-tools\34.0.0\core-lambda-stubs.jar"
+    javaSourceLevel="11"
+    compileTarget="android-34"
+    neverShrinking="true">
+  <lintOptions
+      disable="AndroidGradlePluginVersion,InvalidPackage,GradleDependency,NewerVersionAvailable"
+      abortOnError="true"
+      absolutePaths="true"
+      checkAllWarnings="true"
+      warningsAsErrors="true"
+      checkReleaseBuilds="true"
+      explainIssues="true">
+    <severities>
+      <severity
+        id="AndroidGradlePluginVersion"
+        severity="IGNORE" />
+      <severity
+        id="GradleDependency"
+        severity="IGNORE" />
+      <severity
+        id="InvalidPackage"
+        severity="IGNORE" />
+      <severity
+        id="NewerVersionAvailable"
+        severity="IGNORE" />
+    </severities>
+  </lintOptions>
+  <variant name="release"/>
+</lint-module>
