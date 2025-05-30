@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const primary = Color.fromARGB(255, 18, 102, 102);
+ static const primary = Color(0xFF126666);
   static const logout = Colors.red;
   static const Color secondary = Color.fromARGB(255, 30, 120, 120);
   static const Color success = Color(0xFF4CAF50);
