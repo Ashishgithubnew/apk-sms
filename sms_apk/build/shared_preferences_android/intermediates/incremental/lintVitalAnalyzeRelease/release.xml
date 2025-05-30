@@ -1,0 +1,31 @@
+<variant
+    name="release"
+    package="io.flutter.plugins.sharedpreferences"
+    minSdkVersion="19"
+    targetSdkVersion="19"
+    mergedManifest="C:\apk-sms\sms_apk\build\shared_preferences_android\intermediates\merged_manifest\release\AndroidManifest.xml"
+    proguardFiles="C:\apk-sms\sms_apk\build\shared_preferences_android\intermediates\default_proguard_files\global\proguard-android.txt-8.2.1"
+    partialResultsDir="C:\apk-sms\sms_apk\build\shared_preferences_android\intermediates\lint_vital_partial_results\release\out"
+    desugaredMethodsFiles="C:\Users\Gauri\.gradle\caches\transforms-3\4c309b3ce0013b06386bdfb2acb0410d\transformed\D8BackportedDesugaredMethods.txt">
+  <buildFeatures
+      namespacing="REQUIRED"/>
+  <sourceProviders>
+    <sourceProvider
+        manifests="src\main\AndroidManifest.xml"
+        javaDirectories="src\main\java;src\main\kotlin;src\release\java;src\release\kotlin"
+        resDirectories="src\main\res;src\release\res"
+        assetsDirectories="src\main\assets;src\release\assets"/>
+  </sourceProviders>
+  <testSourceProviders>
+  </testSourceProviders>
+  <testFixturesSourceProviders>
+  </testFixturesSourceProviders>
+  <artifact
+      classOutputs="C:\apk-sms\sms_apk\build\shared_preferences_android\intermediates\javac\release\classes;C:\apk-sms\sms_apk\build\shared_preferences_android\tmp\kotlin-classes\release;C:\apk-sms\sms_apk\build\shared_preferences_android\intermediates\compile_r_class_jar\release\R.jar"
+      type="MAIN"
+      applicationId="io.flutter.plugins.sharedpreferences"
+      generatedSourceFolders="C:\apk-sms\sms_apk\build\shared_preferences_android\generated\ap_generated_sources\release\out"
+      generatedResourceFolders="C:\apk-sms\sms_apk\build\shared_preferences_android\generated\res\resValues\release"
+      desugaredMethodsFiles="C:\Users\Gauri\.gradle\caches\transforms-3\4c309b3ce0013b06386bdfb2acb0410d\transformed\D8BackportedDesugaredMethods.txt">
+  </artifact>
+</variant>

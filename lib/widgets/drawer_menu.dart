@@ -4,6 +4,8 @@ import 'package:sms_apk/Screens/Faculty/FacultyTableScreen.dart';
 import 'package:sms_apk/Screens/Faculty/add_faculty.dart';
 import 'package:sms_apk/Screens/Faculty/mark_attendance.dart';
 import 'package:sms_apk/Screens/Faculty/view_attendance.dart';
+import 'package:sms_apk/Screens/Finance/fees_page.dart';
+import 'package:sms_apk/Screens/Finance/student_fees_screen.dart';
 import 'package:sms_apk/Screens/notification_screen.dart';
 import 'package:sms_apk/Screens/holiday_screen.dart';
 import 'package:sms_apk/Screens/studentreport_screen.dart';
@@ -15,8 +17,9 @@ import '../Screens/Student/markAttendance.dart';
 import '../auth_screen/login.dart';
 import '../utils/app_colors.dart';
 
+// Added this minimal StatefulWidget wrapper for your existing state class:
 class DrawerMenu extends StatefulWidget {
-  const DrawerMenu({super.key});
+  const DrawerMenu({Key? key}) : super(key: key);
 
   @override
   _DrawerMenuState createState() => _DrawerMenuState();
@@ -27,6 +30,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
   bool isStudentAttendanceDropdownOpen = false;
   bool isFacultyDropdownOpen = false;
   bool isFacultyAttendanceDropdownOpen = false;
+  bool isFinanceDropdownOpen = false;  // <-- added this
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +57,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                       ),
                       child: Image.asset(
                         'assets/ews-full-white.png',
-                        height: 70, // Adjust height as needed
+                        height: 70,
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -178,9 +182,37 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   ),
                 ],
               ),
-              
-              
-              
+              _buildExpandableSection(
+                title: 'Finance',
+                isExpanded: isFinanceDropdownOpen,  // <-- use finance bool here
+                onTap: () {
+                  setState(() {
+                    isFinanceDropdownOpen = !isFinanceDropdownOpen;  // toggle finance
+                  });
+                },
+                children: [
+                  _buildDrawerSubItem(Icons.table_rows, 'Class Fees', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FeesPage(),
+                      ),
+                    );
+                  }),
+
+                  _buildDrawerSubItem(Icons.table_rows, 'Student Fees', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => StudentFeesScreen(),
+                      ),
+                    );
+                  }),
+                          
+                ],
+
+                
+              ),
               _buildDrawerItem(Icons.notification_add, 'Notifications', () {
                 Navigator.push(
                   context,
@@ -205,8 +237,6 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   MaterialPageRoute(builder: (context) => StudentReportForm()),
                 );
               }),
-          
-          
               const Divider(),
               ListTile(
                 leading: Icon(Icons.logout, color: AppColors.logout),
