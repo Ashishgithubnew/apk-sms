@@ -269,7 +269,17 @@ class _StudentReportFormState extends State<StudentReportForm> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Student Report Form'),
+         backgroundColor: const Color(0xFF126666),
         centerTitle: true,
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+          iconTheme: const IconThemeData(
+          color: Colors.white,
+          size: 30,
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

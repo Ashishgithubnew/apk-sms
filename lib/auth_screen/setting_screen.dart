@@ -191,8 +191,23 @@ class _UserPasswordState extends State<UserPassword> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Change Password"),
+        backgroundColor: const Color(0xFF126666), // Teal color
+        centerTitle: true,
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+          size: 30,
+        ),
+        toolbarHeight: 70,
+      ),
+      body: SingleChildScrollView(
         child: Container(
           margin: EdgeInsets.all(16),
           padding: EdgeInsets.all(16),
@@ -212,15 +227,6 @@ class _UserPasswordState extends State<UserPassword> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Change Password',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 20),
-
               if (errorMessage != null)
                 Container(
                   padding: EdgeInsets.all(12),
@@ -372,13 +378,13 @@ class _UserPasswordState extends State<UserPassword> {
                         onPressed: loading ? null : _handleSubmit,
                         style: ElevatedButton.styleFrom(
                           minimumSize: Size(200, 50),
-                          backgroundColor: Colors.blue.shade700,
+                          backgroundColor: const Color(0xFF126666), // Changed to teal color
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(4),
                           ),
                           elevation: 0,
-                          disabledBackgroundColor: Colors.blue.shade200,
+                          disabledBackgroundColor: const Color(0xFF126666).withOpacity(0.5),
                         ),
                         child: loading
                             ? SizedBox(
@@ -394,7 +400,6 @@ class _UserPasswordState extends State<UserPassword> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  
                                 ),
                               ),
                       ),

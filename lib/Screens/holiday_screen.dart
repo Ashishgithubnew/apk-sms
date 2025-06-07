@@ -182,7 +182,7 @@ class _HolidayPageState extends State<HolidayPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Holidays"),
+        title: Text(showForm ? "Add Holiday" : "Holidays"),
         backgroundColor: const Color(0xFF126666), // Teal color
         centerTitle: true,
         titleTextStyle: const TextStyle(
@@ -195,6 +195,7 @@ class _HolidayPageState extends State<HolidayPage> {
           size: 30,
         ),
         toolbarHeight: 70,
+        // Only show the add button when not in form view
         actions: [
           if (!showForm)
             IconButton(
@@ -202,6 +203,13 @@ class _HolidayPageState extends State<HolidayPage> {
               onPressed: () => setState(() => showForm = true),
             ),
         ],
+        // Show back button when in form view
+        leading: showForm 
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => setState(() => showForm = false),
+              )
+            : null,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -299,181 +307,161 @@ class _HolidayFormState extends State<HolidayForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: widget.onCancel,
-        ),
-        title: const Text("Add Holiday"),
-        backgroundColor: const Color(0xFF126666), // Teal color
-        centerTitle: true,
-        titleTextStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-          size: 30,
-        ),
-        toolbarHeight: 70,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            ExpansionTile(
-              title: const Text("Select Classes", style: TextStyle(fontSize: 16)),
-              initiallyExpanded: true,
-              children: [
-                CheckboxListTile(
-                  title: const Text("All Classes"),
-                  value: selectAll,
-                  onChanged: (value) {
-                    setState(() {
-                      selectAll = value!;
-                      selectedClasses = selectAll ? [...widget.classes] : [];
-                    });
+    // Removed the Scaffold and AppBar from here
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          ExpansionTile(
+            title: const Text("Select Classes", style: TextStyle(fontSize: 16)),
+            initiallyExpanded: true,
+            children: [
+              CheckboxListTile(
+                title: const Text("All Classes"),
+                value: selectAll,
+                onChanged: (value) {
+                  setState(() {
+                    selectAll = value!;
+                    selectedClasses = selectAll ? [...widget.classes] : [];
+                  });
+                },
+              ),
+              SizedBox(
+                height: 200,
+                child: ListView(
+                  children: widget.classes.map((className) => CheckboxListTile(
+                    title: Text(className),
+                    value: selectedClasses.contains(className),
+                    onChanged: (value) {
+                      setState(() {
+                        if (value!) {
+                          selectedClasses.add(className);
+                        } else {
+                          selectedClasses.remove(className);
+                          selectAll = false;
+                        }
+                      });
+                    },
+                  )).toList(),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 20),
+          
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: "Start Date",
+                    suffixIcon: Icon(Icons.calendar_today),
+                  ),
+                  controller: TextEditingController(
+                    text: startDate != null 
+                        ? DateFormat('dd/MM/yyyy').format(startDate!) 
+                        : '',
+                  ),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null) {
+                      setState(() => startDate = picked);
+                      if (endDate != null && endDate!.isBefore(picked)) {
+                        setState(() => endDate = null);
+                      }
+                    }
                   },
                 ),
-                SizedBox(
-                  height: 200,
-                  child: ListView(
-                    children: widget.classes.map((className) => CheckboxListTile(
-                      title: Text(className),
-                      value: selectedClasses.contains(className),
-                      onChanged: (value) {
-                        setState(() {
-                          if (value!) {
-                            selectedClasses.add(className);
-                          } else {
-                            selectedClasses.remove(className);
-                            selectAll = false;
-                          }
-                        });
-                      },
-                    )).toList(),
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 20),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: "Start Date",
-                      suffixIcon: Icon(Icons.calendar_today),
-                    ),
-                    controller: TextEditingController(
-                      text: startDate != null 
-                          ? DateFormat('dd/MM/yyyy').format(startDate!) 
-                          : '',
-                    ),
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        setState(() => startDate = picked);
-                        if (endDate != null && endDate!.isBefore(picked)) {
-                          setState(() => endDate = null);
-                        }
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextField(
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: "End Date",
-                      suffixIcon: Icon(Icons.calendar_today),
-                    ),
-                    controller: TextEditingController(
-                      text: endDate != null 
-                          ? DateFormat('dd/MM/yyyy').format(endDate!) 
-                          : '',
-                    ),
-                    onTap: () async {
-                      if (startDate == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Please select start date first")),
-                        );
-                        return;
-                      }
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: startDate!,
-                        firstDate: startDate!,
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        setState(() => endDate = picked);
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 20),
-            
-            TextField(
-              controller: descriptionController,
-              decoration: const InputDecoration(
-                labelText: "Description",
-                border: OutlineInputBorder(),
               ),
-              maxLines: 3,
-            ),
-            
-            const SizedBox(height: 20),
-            
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: widget.onCancel,
-                  child: const Text("CANCEL"),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    if (selectedClasses.isEmpty ||
-                        startDate == null ||
-                        endDate == null ||
-                        descriptionController.text.isEmpty) {
+              const SizedBox(width: 16),
+              Expanded(
+                child: TextField(
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: "End Date",
+                    suffixIcon: Icon(Icons.calendar_today),
+                  ),
+                  controller: TextEditingController(
+                    text: endDate != null 
+                        ? DateFormat('dd/MM/yyyy').format(endDate!) 
+                        : '',
+                  ),
+                  onTap: () async {
+                    if (startDate == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Please fill all fields")),
+                        const SnackBar(content: Text("Please select start date first")),
                       );
                       return;
                     }
-                    widget.onSave(
-                      selectedClasses: selectedClasses,
-                      startDate: startDate!,
-                      endDate: endDate!,
-                      description: descriptionController.text,
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: startDate!,
+                      firstDate: startDate!,
+                      lastDate: DateTime(2100),
                     );
+                    if (picked != null) {
+                      setState(() => endDate = picked);
+                    }
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF126666), // Teal color
-                  ),
-                  child: const Text("SAVE", style: TextStyle(color: Colors.white)),
                 ),
-              ],
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 20),
+          
+          TextField(
+            controller: descriptionController,
+            decoration: const InputDecoration(
+              labelText: "Description",
+              border: OutlineInputBorder(),
             ),
-          ],
-        ),
+            maxLines: 3,
+          ),
+          
+          const SizedBox(height: 20),
+          
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: widget.onCancel,
+                child: const Text("CANCEL"),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton(
+                onPressed: () {
+                  if (selectedClasses.isEmpty ||
+                      startDate == null ||
+                      endDate == null ||
+                      descriptionController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Please fill all fields")),
+                    );
+                    return;
+                  }
+                  widget.onSave(
+                    selectedClasses: selectedClasses,
+                    startDate: startDate!,
+                    endDate: endDate!,
+                    description: descriptionController.text,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF126666), // Teal color
+                ),
+                child: const Text("SAVE", style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
