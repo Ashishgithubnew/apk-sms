@@ -18,8 +18,10 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _forgotPasswordEmailController = TextEditingController();
   bool _isLoading = false;
   bool _isPasswordVisible = false;
+  bool _showForgotPassword = false; // New state for forgot password form
 
   // Email validation function
   bool _isValidEmail(String email) {
@@ -59,10 +61,61 @@ class _LoginScreenState extends State<LoginScreen> {
     Future.delayed(Duration(seconds: 2), () {
       Navigator.pop(context);
       if (isSuccess) {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        if (_showForgotPassword) {
+          // If forgot password was successful, go back to login form
+          setState(() {
+            _showForgotPassword = false;
+            _forgotPasswordEmailController.clear();
+          });
+        } else {
+          // If login was successful, navigate to home screen
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        }
       }
     });
+  }
+
+  // Function to handle forgot password request
+  Future<void> _forgotPassword() async {
+    String email = _forgotPasswordEmailController.text.trim();
+
+    if (email.isEmpty) {
+      _showPopupMessage('Please enter your email address.', false);
+      return;
+    }
+
+    if (!_isValidEmail(email)) {
+      _showPopupMessage('Please enter a valid email address.', false);
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      const String apiUrl = 'https://s-m-s-keyw.onrender.com/auth/forget-password';
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        _showPopupMessage('Password reset instructions have been sent to your email.', true);
+      } else {
+        final responseBody = jsonDecode(response.body);
+        final errorMessage = responseBody['message'] ?? 'Failed to send password reset email.';
+        _showPopupMessage(errorMessage, false);
+      }
+    } catch (e) {
+      _showPopupMessage('Network error. Please try again.', false);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   // Function to handle login request
@@ -221,7 +274,12 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
 
           // Login container with bounce animation
-          Center(
+      Align(
+  alignment: Alignment(0, 0.3), // 0.3 pushes it downward, increase for lower
+  child: Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -243,10 +301,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Login Title with fade effect
+                        // Title with fade effect
                         FadeInLeft(
                           child: Text(
-                            'Login',
+                            _showForgotPassword ? 'Forgot Password' : 'Login',
                             style: TextStyle(
                                 fontSize: 26,
                                 fontWeight: FontWeight.bold,
@@ -255,97 +313,171 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         SizedBox(height: 20),
 
-                        // Email Input Field
-                        FadeInRight(
-                          child: TextField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            cursorColor:
-                                AppColors.primary, // Cursor (caret) color
-                            decoration: InputDecoration(
-                              labelText: 'Email',
-                              floatingLabelStyle: TextStyle(
-                                  color: AppColors
-                                      .primary), // Label color when focused
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColors
-                                        .primary), // Default border color
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColors.primary,
-                                    width: 2), // Focused border color
-                                borderRadius: BorderRadius.circular(8),
+                        // Conditional rendering based on form state
+                        if (!_showForgotPassword) ...[
+                          // Login Form
+                          // Email Input Field
+                          FadeInRight(
+                            child: TextField(
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              cursorColor: AppColors.primary,
+                              decoration: InputDecoration(
+                                labelText: 'Email',
+                                floatingLabelStyle: TextStyle(color: AppColors.primary),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: AppColors.primary),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: AppColors.primary, width: 2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        SizedBox(height: 15),
+                          SizedBox(height: 15),
 
-                        // Password Input Field with Eye Button
-                        FadeInLeft(
-                          child: TextField(
-                            controller: _passwordController,
-                            obscureText: !_isPasswordVisible,
-                            cursorColor:
-                                AppColors.primary, // Cursor (caret) color
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              floatingLabelStyle: TextStyle(
-                                  color: AppColors
-                                      .primary), // Label color when focused
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColors
-                                        .primary), // Default border color
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: AppColors.primary,
-                                    width: 2), // Focused border color
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              suffixIcon: IconButton(
-                                icon: Icon(_isPasswordVisible
-                                    ? Icons.visibility_off
-                                    : Icons.visibility),
-                                onPressed: () {
-                                  setState(() {
-                                    _isPasswordVisible = !_isPasswordVisible;
-                                  });
-                                },
+                          // Password Input Field with Eye Button
+                          FadeInLeft(
+                            child: TextField(
+                              controller: _passwordController,
+                              obscureText: !_isPasswordVisible,
+                              cursorColor: AppColors.primary,
+                              decoration: InputDecoration(
+                                labelText: 'Password',
+                                floatingLabelStyle: TextStyle(color: AppColors.primary),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: AppColors.primary),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: AppColors.primary, width: 2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(_isPasswordVisible
+                                      ? Icons.visibility_off
+                                      : Icons.visibility),
+                                  onPressed: () {
+                                    setState(() {
+                                      _isPasswordVisible = !_isPasswordVisible;
+                                    });
+                                  },
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        SizedBox(height: 20),
+                          SizedBox(height: 20),
 
-                        // Login Button with pulse animation
-                        Pulse(
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _login,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              shadowColor: Colors.black,
-                              elevation: 5,
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              minimumSize: Size(double.infinity, 50),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
+                          // Login Button
+                          Pulse(
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _login,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                shadowColor: Colors.black,
+                                elevation: 5,
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                minimumSize: Size(double.infinity, 50),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: _isLoading
+                                  ? CircularProgressIndicator(color: Colors.white)
+                                  : Text('Login', style: TextStyle(fontSize: 18)),
                             ),
-                            child: _isLoading
-                                ? CircularProgressIndicator(color: Colors.white)
-                                : Text('Login', style: TextStyle(fontSize: 18)),
                           ),
-                        ),
+                          SizedBox(height: 15),
+
+                          // Forgot Password Link
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _showForgotPassword = true;
+                              });
+                            },
+                            child: Text(
+                              'Forgot Password?',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 16,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ] else ...[
+                          // Forgot Password Form
+                          FadeInRight(
+                            child: TextField(
+                              controller: _forgotPasswordEmailController,
+                              keyboardType: TextInputType.emailAddress,
+                              cursorColor: AppColors.primary,
+                              decoration: InputDecoration(
+                                labelText: 'Email',
+                                floatingLabelStyle: TextStyle(color: AppColors.primary),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8)),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: AppColors.primary),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: AppColors.primary, width: 2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 20),
+
+                          // Send Reset Link Button
+                          Pulse(
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _forgotPassword,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                shadowColor: Colors.black,
+                                elevation: 5,
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                minimumSize: Size(double.infinity, 50),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: _isLoading
+                                  ? CircularProgressIndicator(color: Colors.white)
+                                  : Text('Send Reset Link', style: TextStyle(fontSize: 18)),
+                            ),
+                          ),
+                          SizedBox(height: 15),
+
+                          // Back to Login Link
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _showForgotPassword = false;
+                                _forgotPasswordEmailController.clear();
+                              });
+                            },
+                            child: Text(
+                              'Back to Login',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 16,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -360,20 +492,24 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary, // Button color
-                    foregroundColor: Colors.white, // Text color
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12), // Optional: Padding
+                        horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(8), // Optional: Rounded corners
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   child: const Text("Notifications"),
                 ),
               ],
             ),
-          ),
+          ), // Your content
+    ],
+  ),
+)
+
+         
         ],
       ),
     );

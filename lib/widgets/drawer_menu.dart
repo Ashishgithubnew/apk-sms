@@ -13,6 +13,7 @@ import 'package:sms_apk/Screens/studentreport_screen.dart';
 import '../Screens/Student/add_student.dart';
 import '../Screens/homeScreen.dart';
 import '../Screens/Student/studentTableScreen.dart';
+import '../Screens/subject_show_screen.dart';
 import '../Screens/Student/viewAttendance.dart';
 import '../Screens/Student/markAttendance.dart';
 import '../auth_screen/login.dart';
@@ -238,7 +239,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
               _buildDrawerItem(Icons.book, 'Subject', () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => HolidayPage()),
+                  MaterialPageRoute(builder: (context) => ClassSubjectShow()),
                 );
               }),
               _buildDrawerItem(Icons.assessment, 'Student Report', () {
