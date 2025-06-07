@@ -6,6 +6,7 @@ import 'package:sms_apk/Screens/Faculty/mark_attendance.dart';
 import 'package:sms_apk/Screens/Faculty/view_attendance.dart';
 import 'package:sms_apk/Screens/Finance/fees_page.dart';
 import 'package:sms_apk/Screens/Finance/student_fees_screen.dart';
+import 'package:sms_apk/Screens/Finance/Faculty_Salary_Screen.dart';
 import 'package:sms_apk/Screens/notification_screen.dart';
 import 'package:sms_apk/Screens/holiday_screen.dart';
 import 'package:sms_apk/Screens/studentreport_screen.dart';
@@ -206,6 +207,15 @@ class _DrawerMenuState extends State<DrawerMenu> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => StudentFeesScreen(),
+                      ),
+                    );
+                  }),
+
+                  _buildDrawerSubItem(Icons.table_rows, 'Faculty Salary', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FacultySalaryScreen(),
                       ),
                     );
                   }),
