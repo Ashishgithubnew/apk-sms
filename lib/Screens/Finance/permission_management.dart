@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'dart:math' as math;
-
-// Then use:
 
 class Faculty {
   final String id;
@@ -121,57 +118,51 @@ class _PermissionManagementState extends State<PermissionManagement> {
     _initializeData();
   }
 
-// Add this to your initState method
-Future<void> _initializeData() async {
-  final prefs = await SharedPreferences.getInstance();
-  final storedToken = prefs.getString('authToken');
-  
-  if (storedToken == null) {
-    print('WARNING: authToken is null in SharedPreferences');
+  Future<void> _initializeData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storedToken = prefs.getString('authToken');
     
-  } else {
-    authToken = storedToken;
-  }
-  
-  await _fetchFaculty();
-}
-// Updated _fetchFaculty method only  
-Future<void> _fetchFaculty() async {
-  setState(() {
-    isLoading = true;
-  });
-
-  try {
-   
-    final response = await http.get(
-      Uri.parse('https://s-m-s-keyw.onrender.com/faculty/findAllFaculty'),
-      headers: {
-        'Authorization': 'Bearer $authToken',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    ).timeout(Duration(seconds: 30));
-
-    
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      setState(() {
-        facultyData = data.map((faculty) => Faculty.fromJson(faculty)).toList();
-      });
-      
+    if (storedToken == null) {
+      print('WARNING: authToken is null in SharedPreferences');
     } else {
-      _showErrorSnackBar('Failed to fetch faculty data: ${response.statusCode}');
+      authToken = storedToken;
     }
-  } catch (error) {
     
-    _showErrorSnackBar('Failed to fetch faculty data');
-  } finally {
-    setState(() {
-      isLoading = false;
-    });
+    await _fetchFaculty();
   }
-}
+
+  Future<void> _fetchFaculty() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://s-m-s-keyw.onrender.com/faculty/findAllFaculty'),
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ).timeout(Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          facultyData = data.map((faculty) => Faculty.fromJson(faculty)).toList();
+        });
+      } else {
+        _showErrorSnackBar('Failed to fetch faculty data: ${response.statusCode}');
+      }
+    } catch (error) {
+      _showErrorSnackBar('Failed to fetch faculty data');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   Future<void> _fetchPermissions(Faculty faculty) async {
     setState(() {
       isLoading = true;
@@ -209,7 +200,6 @@ Future<void> _fetchFaculty() async {
         _showErrorSnackBar('Failed to fetch permissions');
       }
     } catch (error) {
-      
       _showErrorSnackBar('Failed to fetch permissions');
     }
 
@@ -217,7 +207,9 @@ Future<void> _fetchFaculty() async {
       isLoading = false;
     });
   }
-Future<void> _savePermissions() async {
+
+  // FIXED: Updated _savePermissions method to match web version logic
+  Future<void> _savePermissions() async {
   if (selectedFaculty == null) {
     _showWarningSnackBar('Please select a faculty member.');
     return;
@@ -228,13 +220,51 @@ Future<void> _savePermissions() async {
   });
 
   try {
-    // Get token exactly as stored
+    // Get token from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
     
     if (token == null) {
       throw Exception('Auth token is null');
     }
+
+    // FIXED: Get role from correct SharedPreferences keys
+    String? role;
+    
+    // First try to get role directly from flutter.role key
+    role = prefs.getString('flutter.role');
+    
+    // If not found, try to get from flutter.userData
+    if (role == null) {
+      final userDataStr = prefs.getString('flutter.userData');
+      if (userDataStr != null) {
+        try {
+          final userData = json.decode(userDataStr);
+          // Add null check before accessing 'role'
+          if (userData != null && userData is Map<String, dynamic> && userData.containsKey('role')) {
+            role = userData['role']?.toString();
+          }
+        } catch (e) {
+          print('Error parsing userData: $e');
+        }
+      }
+    }
+
+    print('Role: $role');
+
+    // FIXED: Determine user type for query param exactly like web version
+    String userType = "";
+    if (role == "admin") {
+      userType = "school";
+    } else if (role == "user") {
+      userType = "faculty";
+    } else {
+      // Default fallback if role is not found or invalid
+      print('Warning: Role not found or invalid, defaulting to faculty');
+      userType = "faculty";
+    }
+
+    print('UserType: $userType');
 
     // Create payload exactly like React version
     final payload = {
@@ -243,30 +273,31 @@ Future<void> _savePermissions() async {
       'permissions': permissions.toJson(),
     };
 
-  
-   
-final url = 'https://s-m-s-keyw.onrender.com/permissions/save?user=${selectedFaculty!.email}';
+    // Use userType in query parameter
+    final url = 'https://s-m-s-keyw.onrender.com/permissions/save?user=$userType';
+    
+    print('API URL: $url');
+    print('Payload: ${json.encode(payload)}');
 
-final response = await http.post(
-  Uri.parse(url),
-  headers: {
-    'Authorization': 'Bearer $token',
-    'Content-Type': 'application/json',
-  },
-  body: json.encode({
-    'facultyId': selectedFaculty!.id,
-    'email': selectedFaculty!.email,
-    'permissions': permissions.toJson(),
-  }),
-);
-   
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(payload),
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
     if (response.statusCode == 200 || response.statusCode == 201) {
       _showSuccessSnackBar('Permissions updated successfully!');
     } else {
       _showErrorSnackBar('Error updating permissions: ${response.statusCode}');
     }
   } catch (error) {
-    
+    print('Error in _savePermissions: $error');
     _showErrorSnackBar('Error updating permissions');
   } finally {
     setState(() {
@@ -274,6 +305,7 @@ final response = await http.post(
     });
   }
 }
+
   void _updatePermission(String section, String key, bool value) {
     setState(() {
       switch (section) {
