@@ -16,6 +16,7 @@ import '../Screens/Student/studentTableScreen.dart';
 import '../Screens/subject_show_screen.dart';
 import '../Screens/Student/viewAttendance.dart';
 import '../Screens/Student/markAttendance.dart';
+import '../Screens/finance/permission_management.dart';
 import '../auth_screen/login.dart';
 import '../utils/app_colors.dart';
 
@@ -216,6 +217,14 @@ class _DrawerMenuState extends State<DrawerMenu> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => FacultySalaryScreen(),
+                      ),
+                    );
+                  }),
+                  _buildDrawerSubItem(Icons.table_rows, 'Permission', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PermissionManagement(),
                       ),
                     );
                   }),

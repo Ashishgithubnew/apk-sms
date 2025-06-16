@@ -193,6 +193,10 @@ class _AddFeesScreenState extends State<AddFeesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Fees Page'),
+        backgroundColor: Color(0xFF3a8686),
+        foregroundColor: Colors.white, // Teal color
+        centerTitle: true,
+      
       ),
       body: GestureDetector( // Added GestureDetector to dismiss keyboard on tap outside
         onTap: () {
