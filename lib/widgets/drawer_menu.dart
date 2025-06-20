@@ -17,6 +17,7 @@ import '../Screens/subject_show_screen.dart';
 import '../Screens/Student/viewAttendance.dart';
 import '../Screens/Student/markAttendance.dart';
 import '../Screens/finance/permission_management.dart';
+import '../Screens/Syllabus/UploadSyllabus_screen.dart';
 import '../auth_screen/login.dart';
 import '../utils/app_colors.dart';
 
@@ -33,7 +34,8 @@ class _DrawerMenuState extends State<DrawerMenu> {
   bool isStudentAttendanceDropdownOpen = false;
   bool isFacultyDropdownOpen = false;
   bool isFacultyAttendanceDropdownOpen = false;
-  bool isFinanceDropdownOpen = false;  // <-- added this
+  bool isFinanceDropdownOpen = false; // <-- added this
+  bool isSyllabusDropdownOpen = false; // <-- added this
 
   @override
   Widget build(BuildContext context) {
@@ -187,10 +189,11 @@ class _DrawerMenuState extends State<DrawerMenu> {
               ),
               _buildExpandableSection(
                 title: 'Finance',
-                isExpanded: isFinanceDropdownOpen,  // <-- use finance bool here
+                isExpanded: isFinanceDropdownOpen, // <-- use finance bool here
                 onTap: () {
                   setState(() {
-                    isFinanceDropdownOpen = !isFinanceDropdownOpen;  // toggle finance
+                    isFinanceDropdownOpen =
+                        !isFinanceDropdownOpen; // toggle finance
                   });
                 },
                 children: [
@@ -202,7 +205,6 @@ class _DrawerMenuState extends State<DrawerMenu> {
                       ),
                     );
                   }),
-
                   _buildDrawerSubItem(Icons.table_rows, 'Student Fees', () {
                     Navigator.push(
                       context,
@@ -211,7 +213,6 @@ class _DrawerMenuState extends State<DrawerMenu> {
                       ),
                     );
                   }),
-
                   _buildDrawerSubItem(Icons.table_rows, 'Faculty Salary', () {
                     Navigator.push(
                       context,
@@ -228,10 +229,35 @@ class _DrawerMenuState extends State<DrawerMenu> {
                       ),
                     );
                   }),
-                          
                 ],
-
-                
+              ),
+              _buildExpandableSection(
+                title: 'Syllabus',
+                isExpanded: isSyllabusDropdownOpen, // <-- use finance bool here
+                onTap: () {
+                  setState(() {
+                    isSyllabusDropdownOpen =
+                        !isSyllabusDropdownOpen; // toggle finance
+                  });
+                },
+                children: [
+                  _buildDrawerSubItem(Icons.table_rows, 'Upload Syllabus', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UploadSyllabusScreen(),
+                      ),
+                    );
+                  }),
+                  _buildDrawerSubItem(Icons.table_rows, 'View Syllabus', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FacultySalaryScreen(),
+                      ),
+                    );
+                  }),
+                ],
               ),
               _buildDrawerItem(Icons.notification_add, 'Notifications', () {
                 Navigator.push(
