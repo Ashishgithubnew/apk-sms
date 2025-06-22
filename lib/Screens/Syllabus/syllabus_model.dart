@@ -37,7 +37,7 @@ class Syllabus {
     };
   }
 
-  // Create a copy with updated fields
+
   Syllabus copyWith({
     String? id,
     String? title,

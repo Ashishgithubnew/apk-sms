@@ -256,7 +256,7 @@ class _ViewSyllabusScreenState extends State<ViewSyllabusScreen> {
           children: [
             Icon(Icons.library_books, color: Colors.white),
             SizedBox(width: 8),
-            Text('Syllabus Documents', style: TextStyle(color: Colors.white)),
+            Text('Syllabus Documents', style: TextStyle(color: Colors.white),overflow: TextOverflow.ellipsis, ),
           ],
         ),
         backgroundColor: Color(0xFF519186),
@@ -268,11 +268,7 @@ class _ViewSyllabusScreenState extends State<ViewSyllabusScreen> {
             onPressed: _loadSyllabus,
             tooltip: 'Refresh',
           ),
-          IconButton(
-            icon: Icon(Icons.add, color: Colors.white),
-            onPressed: () => _navigateToUpload(),
-            tooltip: 'Upload Syllabus',
-          ),
+         
         ],
       ),
       body: Column(
