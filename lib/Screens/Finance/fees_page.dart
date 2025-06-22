@@ -13,7 +13,6 @@ class FeesPage extends StatefulWidget {
 class _FeesPageState extends State<FeesPage> {
   List<Fee> fees = [];
   bool isLoading = true;
-  bool showForm = false;
 
   final List<String> classes = [
     'Nursery',
@@ -105,7 +104,6 @@ class _FeesPageState extends State<FeesPage> {
       if (response.statusCode == 200) {
         showSuccess("Fee added successfully!");
         await loadFees();
-        setState(() => showForm = false);
       } else {
         showError("Failed to add fee: ${response.body}");
       }
@@ -152,106 +150,113 @@ class _FeesPageState extends State<FeesPage> {
     );
   }
 
+  // Navigate to form page
+  void _navigateToForm() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FeesFormPage(
+          classes: classes,
+          onSave: saveFee,
+        ),
+      ),
+    );
+    
+    // Refresh the list if a fee was added
+    if (result == true) {
+      loadFees();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Fees"),
-        backgroundColor: const Color(0xFF126666),
+        backgroundColor: Color(0xFF3a8686),
+        foregroundColor: Colors.white,
         centerTitle: true,
         actions: [
-          if (!showForm)
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => setState(() => showForm = true),
-            ),
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+            onPressed: _navigateToForm,
+          ),
         ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : showForm
-              ? FeesForm(
-                  classes: classes,
-                  onSave: saveFee,
-                  onCancel: () {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      FocusScope.of(context).unfocus();
-                    });
-                    setState(() => showForm = false);
-                  },
-                )
-              : fees.isEmpty
-                  ? const Center(child: Text("No fees found"))
-                  : ListView.builder(
-                      itemCount: fees.length,
-                      itemBuilder: (context, index) {
-                        final fee = fees[index];
-                        return Card(
-                          margin: const EdgeInsets.all(8),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("Class: ${fee.className}",
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16)),
-                                const SizedBox(height: 6),
-                                Text("School Fee: ₹${fee.schoolFee}"),
-                                Text("Sports Fee: ₹${fee.sportsFee}"),
-                                Text("Book Fee: ₹${fee.bookFee}"),
-                                Text("Transportation Fee: ₹${fee.transportation}"),
-                                if (fee.otherAmount.isNotEmpty) ...[
-                                  const SizedBox(height: 6),
-                                  const Text("Other Amounts:",
-                                      style:
-                                          TextStyle(fontWeight: FontWeight.bold)),
-                                  ...fee.otherAmount.map((other) => Text(
-                                      " - ${other.name.isEmpty ? '(no name)' : other.name}: ₹${other.amount}")),
-                                ],
-                                const SizedBox(height: 6),
-                                Text("Total Fee: ₹${fee.totalFee}",
-                                    style:
-                                        const TextStyle(fontWeight: FontWeight.bold)),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (ctx) => AlertDialog(
-                                          title: const Text("Delete Fee"),
-                                          content:
-                                              Text("Delete fees for ${fee.className}?"),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () => Navigator.pop(ctx),
-                                              child: const Text("Cancel"),
-                                            ),
-                                            TextButton(
-                                              onPressed: () {
-                                                deleteFee(fee.id);
-                                                Navigator.pop(ctx);
-                                              },
-                                              child: const Text("Delete"),
-                                            ),
-                                          ],
+          : fees.isEmpty
+              ? const Center(child: Text("No fees found"))
+              : ListView.builder(
+                  itemCount: fees.length,
+                  itemBuilder: (context, index) {
+                    final fee = fees[index];
+                    return Card(
+                      margin: const EdgeInsets.all(8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Class: ${fee.className}",
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16)),
+                            const SizedBox(height: 6),
+                            Text("School Fee: ₹${fee.schoolFee}"),
+                            Text("Sports Fee: ₹${fee.sportsFee}"),
+                            Text("Book Fee: ₹${fee.bookFee}"),
+                            Text("Transportation Fee: ₹${fee.transportation}"),
+                            if (fee.otherAmount.isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              const Text("Other Amounts:",
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              ...fee.otherAmount.map((other) => Text(
+                                  " - ${other.name.isEmpty ? '(no name)' : other.name}: ₹${other.amount}")),
+                            ],
+                            const SizedBox(height: 6),
+                            Text("Total Fee: ₹${fee.totalFee}",
+                                style:
+                                    const TextStyle(fontWeight: FontWeight.bold)),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text("Delete Fee"),
+                                      content:
+                                          Text("Delete fees for ${fee.className}?"),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx),
+                                          child: const Text("Cancel"),
                                         ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
+                                        TextButton(
+                                          onPressed: () {
+                                            deleteFee(fee.id);
+                                            Navigator.pop(ctx);
+                                          },
+                                          child: const Text("Delete"),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-      floatingActionButton: !showForm && fees.isNotEmpty
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+      floatingActionButton: fees.isNotEmpty
           ? FloatingActionButton(
-              onPressed: () => setState(() => showForm = true),
+              onPressed: _navigateToForm,
               backgroundColor: const Color(0xFF126666),
               child: const Icon(Icons.add, color: Colors.white),
             )
@@ -260,7 +265,8 @@ class _FeesPageState extends State<FeesPage> {
   }
 }
 
-class FeesForm extends StatefulWidget {
+// Separate page for the form
+class FeesFormPage extends StatefulWidget {
   final List<String> classes;
   final Function({
     required String className,
@@ -270,33 +276,29 @@ class FeesForm extends StatefulWidget {
     required double transportation,
     required List<OtherAmount> otherAmounts,
   }) onSave;
-  final VoidCallback onCancel;
 
-  const FeesForm({
+  const FeesFormPage({
     required this.classes,
     required this.onSave,
-    required this.onCancel,
     super.key,
   });
 
   @override
-  _FeesFormState createState() => _FeesFormState();
+  _FeesFormPageState createState() => _FeesFormPageState();
 }
 
-class _FeesFormState extends State<FeesForm> {
+class _FeesFormPageState extends State<FeesFormPage> {
   String? selectedClass;
   final TextEditingController schoolFeeController = TextEditingController();
   final TextEditingController sportsFeeController = TextEditingController();
   final TextEditingController bookFeeController = TextEditingController();
   final TextEditingController transportationController = TextEditingController();
 
-  // List to hold multiple OtherAmount entries
   List<OtherAmountField> otherAmountFields = [];
 
   @override
   void initState() {
     super.initState();
-    // start with one empty OtherAmount field
     otherAmountFields.add(OtherAmountField());
   }
 
@@ -331,21 +333,43 @@ class _FeesFormState extends State<FeesForm> {
     });
   }
 
+  void _saveFee() async {
+    if (selectedClass == null || schoolFeeController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all required fields")),
+      );
+      return;
+    }
+
+    List<OtherAmount> otherAmounts = [];
+    for (var field in otherAmountFields) {
+      String name = field.nameController.text.trim();
+      double amount = _parseDouble(field.amountController.text);
+      if (name.isNotEmpty || amount > 0) {
+        otherAmounts.add(OtherAmount(name: name, amount: amount));
+      }
+    }
+
+    await widget.onSave(
+      className: selectedClass!,
+      schoolFee: _parseDouble(schoolFeeController.text),
+      sportsFee: _parseDouble(sportsFeeController.text),
+      bookFee: _parseDouble(bookFeeController.text),
+      transportation: _parseDouble(transportationController.text),
+      otherAmounts: otherAmounts,
+    );
+
+    // Return true to indicate success
+    Navigator.pop(context, true);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              FocusScope.of(context).unfocus();
-            });
-            widget.onCancel();
-          },
-        ),
         title: const Text("Add Fee"),
-        backgroundColor: const Color(0xFF126666),
+        backgroundColor: Color(0xFF3a8686),
+        foregroundColor: Colors.white,
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -413,7 +437,7 @@ class _FeesFormState extends State<FeesForm> {
                   icon: const Icon(Icons.add),
                   label: const Text("Add"),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const  Color.fromARGB(255, 224, 236, 236),
+                    backgroundColor: const Color.fromARGB(255, 224, 236, 236),
                   ),
                 )
               ],
@@ -467,49 +491,12 @@ class _FeesFormState extends State<FeesForm> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed: () {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      FocusScope.of(context).unfocus();
-                    });
-                    widget.onCancel();
-                  },
+                  onPressed: () => Navigator.pop(context),
                   child: const Text("CANCEL"),
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
-                  onPressed: () {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      FocusScope.of(context).unfocus();
-                    });
-
-                    if (selectedClass == null ||
-                        schoolFeeController.text.isEmpty
-                       ) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Please fill all required fields")),
-                      );
-                      return;
-                    }
-
-                    // Gather otherAmounts, ignoring empty ones (empty name & zero amount)
-                    List<OtherAmount> otherAmounts = [];
-                    for (var field in otherAmountFields) {
-                      String name = field.nameController.text.trim();
-                      double amount = _parseDouble(field.amountController.text);
-                      if (name.isNotEmpty || amount > 0) {
-                        otherAmounts.add(OtherAmount(name: name, amount: amount));
-                      }
-                    }
-
-                    widget.onSave(
-                      className: selectedClass!,
-                      schoolFee: _parseDouble(schoolFeeController.text),
-                      sportsFee: _parseDouble(sportsFeeController.text),
-                      bookFee: _parseDouble(bookFeeController.text),
-                      transportation: _parseDouble(transportationController.text),
-                      otherAmounts: otherAmounts,
-                    );
-                  },
+                  onPressed: _saveFee,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 224, 236, 236),
                   ),
@@ -524,6 +511,7 @@ class _FeesFormState extends State<FeesForm> {
   }
 }
 
+// Keep the existing classes unchanged
 class OtherAmountField {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController amountController = TextEditingController();

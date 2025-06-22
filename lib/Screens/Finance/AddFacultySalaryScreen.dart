@@ -219,6 +219,8 @@ class _AddFacultySalaryScreenState extends State<AddFacultySalaryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Faculty Salary'),
+           backgroundColor: Color(0xFF3a8686),
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

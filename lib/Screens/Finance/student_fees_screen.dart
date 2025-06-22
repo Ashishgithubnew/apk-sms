@@ -67,6 +67,10 @@ class _StudentFeesScreenState extends State<StudentFeesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Student Fees'),
+          backgroundColor: Color(0xFF3a8686),
+        foregroundColor: Colors.white,// Teal color
+        centerTitle: true,
+    
       ),
       body: FutureBuilder<List<Student>>(
         future: _studentsFuture,
