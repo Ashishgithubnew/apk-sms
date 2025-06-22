@@ -18,6 +18,7 @@ import '../Screens/Student/viewAttendance.dart';
 import '../Screens/Student/markAttendance.dart';
 import '../Screens/finance/permission_management.dart';
 import '../Screens/Syllabus/UploadSyllabus_screen.dart';
+import '../Screens/Syllabus/ViewSyllabus.dart';
 import '../auth_screen/login.dart';
 import '../utils/app_colors.dart';
 
@@ -245,7 +246,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => UploadSyllabusScreen(),
+                        builder: (context) => DynamicSyllabusScreen(),
                       ),
                     );
                   }),
@@ -253,7 +254,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => FacultySalaryScreen(),
+                        builder: (context) => ViewSyllabusScreen(),
                       ),
                     );
                   }),

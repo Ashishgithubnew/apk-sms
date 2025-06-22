@@ -9,13 +9,26 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http_parser/http_parser.dart';
+import 'syllabus_model.dart'; 
 
-class UploadSyllabusScreen extends StatefulWidget {
+// Dynamic Syllabus Screen - Works for both Upload and Edit
+class DynamicSyllabusScreen extends StatefulWidget {
+  final bool isEditMode;
+  final Syllabus? existingSyllabus;
+  final VoidCallback? onSuccess;
+
+  const DynamicSyllabusScreen({
+    Key? key,
+    this.isEditMode = false,
+    this.existingSyllabus,
+    this.onSuccess,
+  }) : super(key: key);
+
   @override
-  _UploadSyllabusScreenState createState() => _UploadSyllabusScreenState();
+  _DynamicSyllabusScreenState createState() => _DynamicSyllabusScreenState();
 }
 
-class _UploadSyllabusScreenState extends State<UploadSyllabusScreen> {
+class _DynamicSyllabusScreenState extends State<DynamicSyllabusScreen> {
   // Form controllers
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
@@ -28,7 +41,7 @@ class _UploadSyllabusScreenState extends State<UploadSyllabusScreen> {
   String _selectedSubject = '';
   String _inputType = 'file';
   
-  // FIXED: Use Uint8List for web compatibility
+  // File handling
   Uint8List? _selectedFileBytes;
   String? _selectedFileName;
   
@@ -42,6 +55,7 @@ class _UploadSyllabusScreenState extends State<UploadSyllabusScreen> {
   void initState() {
     super.initState();
     _fetchClassData();
+    _initializeFormData();
   }
 
   @override
@@ -49,6 +63,17 @@ class _UploadSyllabusScreenState extends State<UploadSyllabusScreen> {
     _titleController.dispose();
     _textContentController.dispose();
     super.dispose();
+  }
+
+  // Initialize form data for edit mode
+  void _initializeFormData() {
+    if (widget.isEditMode && widget.existingSyllabus != null) {
+      final syllabus = widget.existingSyllabus!;
+      _titleController.text = syllabus.title;
+      _selectedClass = syllabus.cls;
+      _selectedSubject = syllabus.subject;
+      _publish = syllabus.publish;
+    }
   }
 
   Future<void> _fetchClassData() async {
@@ -64,8 +89,6 @@ class _UploadSyllabusScreenState extends State<UploadSyllabusScreen> {
         return;
       }
 
-      
-
       final response = await http.get(
         Uri.parse('$_baseUrl/class/data'),
         headers: {
@@ -73,8 +96,6 @@ class _UploadSyllabusScreenState extends State<UploadSyllabusScreen> {
           'Content-Type': 'application/json',
         },
       );
-
-      
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
@@ -93,6 +114,11 @@ class _UploadSyllabusScreenState extends State<UploadSyllabusScreen> {
           _showToast('Invalid response format');
           setState(() => _isLoading = false);
         }
+
+        // Set subjects for edit mode
+        if (widget.isEditMode && _selectedClass.isNotEmpty) {
+          _onClassChanged(_selectedClass);
+        }
       } else if (response.statusCode == 401) {
         _showToast('Session expired. Please login again.');
         await prefs.remove('authToken');
@@ -102,77 +128,97 @@ class _UploadSyllabusScreenState extends State<UploadSyllabusScreen> {
         setState(() => _isLoading = false);
       }
     } catch (e) {
-     
       _showToast('Failed to load class data: $e');
       setState(() => _isLoading = false);
     }
   }
 
-  // FIXED: Web-compatible upload function
-Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, String fileName) async {
-  setState(() => _isLoading = true);
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final authToken = prefs.getString('authToken')?.trim();
-    
-    if (authToken == null || authToken.isEmpty) {
-      _showToast('Not authenticated. Please login.');
+  // Dynamic API call - Upload or Update based on mode
+  Future<void> _submitSyllabus(Map<String, String> params, Uint8List fileBytes, String fileName) async {
+    setState(() => _isLoading = true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final authToken = prefs.getString('authToken')?.trim();
+      
+      if (authToken == null || authToken.isEmpty) {
+        _showToast('Not authenticated. Please login.');
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // Ensure filename ends with .pdf
+      if (!fileName.toLowerCase().endsWith('.pdf')) {
+        fileName = '$fileName.pdf';
+      }
+
+      // Dynamic endpoint based on mode
+      String endpoint = widget.isEditMode ? '/doc/update' : '/doc/upload';
+      
+      // Add ID for edit mode
+      if (widget.isEditMode && widget.existingSyllabus != null) {
+        params['id'] = widget.existingSyllabus!.id;
+      }
+
+      final queryString = Uri(queryParameters: params).query;
+      final url = Uri.parse('$_baseUrl$endpoint?$queryString');
+
+      var request = http.MultipartRequest('POST', url);
+      
+      request.headers['Authorization'] = 'Bearer $authToken'; 
+      request.headers['Content-Type'] = 'multipart/form-data';
+      
+      // Add PDF content type to the file part
+      var multipartFile = http.MultipartFile.fromBytes(
+        'file',
+        fileBytes,
+        filename: fileName,
+        contentType: MediaType('application', 'pdf'),
+      );
+      request.files.add(multipartFile);
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        String successMessage = widget.isEditMode 
+            ? 'Syllabus updated successfully' 
+            : 'Syllabus uploaded successfully';
+        _showToast(successMessage);
+        _clearForm();
+        
+        // Call success callback
+        if (widget.onSuccess != null) {
+          widget.onSuccess!();
+        }
+        
+        Navigator.pop(context);
+      } else {
+        String errorMessage = widget.isEditMode 
+            ? 'Update failed: ${response.statusCode}\n$responseBody'
+            : 'Upload failed: ${response.statusCode}\n$responseBody';
+        _showToast(errorMessage);
+      }
+    } catch (e) {
+      String errorMessage = widget.isEditMode 
+          ? 'Update error: ${e.toString()}'
+          : 'Upload error: ${e.toString()}';
+      _showToast(errorMessage);
+    } finally {
       setState(() => _isLoading = false);
-      return;
     }
-
-    // Ensure filename ends with .pdf
-    if (!fileName.toLowerCase().endsWith('.pdf')) {
-      fileName = '$fileName.pdf';
-    }
-
-    final queryString = Uri(queryParameters: params).query;
-    final url = Uri.parse('$_baseUrl/doc/upload?$queryString');
-
-    var request = http.MultipartRequest('POST', url);
-    
-    request.headers['Authorization'] = 'Bearer $authToken'; 
-    request.headers['Content-Type'] = 'multipart/form-data';
-    
-    // Add PDF content type to the file part
-    var multipartFile = http.MultipartFile.fromBytes(
-      'file',
-      fileBytes,
-      filename: fileName,
-      contentType: MediaType('application', 'pdf'), // Explicit content type
-    );
-    request.files.add(multipartFile);
-
-  
-
-    var response = await request.send();
-    var responseBody = await response.stream.bytesToString();
-    
-    
-    
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      _showToast('Syllabus uploaded successfully');
-      _clearForm();
-      Navigator.pop(context);
-    } else {
-      _showToast('Upload failed: ${response.statusCode}\n$responseBody');
-    }
-  } catch (e) {
-   
-    _showToast('Upload error: ${e.toString()}');
-  } finally {
-    setState(() => _isLoading = false);
   }
-}
+
   void _clearForm() {
     setState(() {
       _selectedFileBytes = null;
       _selectedFileName = null;
       _titleController.clear();
       _textContentController.clear();
-      _selectedClass = '';
-      _selectedSubject = '';
-      _publish = false;
+      if (!widget.isEditMode) {
+        _selectedClass = '';
+        _selectedSubject = '';
+        _publish = false;
+      }
     });
   }
 
@@ -184,13 +230,10 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
       backgroundColor: Colors.black87,
       textColor: Colors.white,
     );
-    
   }
 
-  // FIXED: Font-compatible PDF generation (no Helvetica)
   Future<Uint8List> _convertTextToPdf(String text, String title) async {
     try {
-   
       final pdf = pw.Document();
       
       pdf.addPage(
@@ -199,7 +242,6 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
           margin: pw.EdgeInsets.all(32),
           build: (pw.Context context) {
             return [
-              // FIXED: Remove font specification to use default
               pw.Header(
                 level: 0, 
                 child: pw.Text(
@@ -207,7 +249,6 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
                   style: pw.TextStyle(
                     fontSize: 20, 
                     fontWeight: pw.FontWeight.bold,
-                    // No font specified - uses default
                   )
                 )
               ),
@@ -217,7 +258,6 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
                 style: pw.TextStyle(
                   fontSize: 12, 
                   lineSpacing: 1.5,
-                  // No font specified - uses default
                 ),
               ),
             ];
@@ -226,23 +266,19 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
       );
 
       final bytes = await pdf.save();
-      
       return bytes;
     } catch (e) {
-
       throw Exception('Failed to generate PDF: $e');
     }
   }
 
-  // FIXED: Simplified file picker for web
   Future<void> _pickFile() async {
     try {
-      
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'txt', 'doc', 'docx'],
         allowMultiple: false,
-        withData: true, // Important for web
+        withData: true,
         withReadStream: false,
       );
 
@@ -255,20 +291,17 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
           return;
         }
         
-        // Use bytes for web compatibility
         if (platformFile.bytes != null) {
           setState(() {
             _selectedFileBytes = platformFile.bytes;
             _selectedFileName = platformFile.name;
           });
           _showToast('File selected: ${platformFile.name}');
-          
         } else {
           _showToast('Could not read file data');
         }
       }
     } catch (e) {
-     
       _showToast('Error selecting file: ${e.toString()}');
     }
   }
@@ -276,7 +309,9 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
   void _onClassChanged(String? className) {
     setState(() {
       _selectedClass = className ?? '';
-      _selectedSubject = '';
+      if (!widget.isEditMode) {
+        _selectedSubject = '';
+      }
       
       if (className != null && className.isNotEmpty) {
         try {
@@ -291,7 +326,6 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
             _subjects = [];
           }
         } catch (e) {
-          
           _subjects = [];
         }
       } else {
@@ -300,9 +334,7 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
     });
   }
 
-  // FIXED: Proper variable initialization
   Future<void> _handleSubmit() async {
- 
     if (!_formKey.currentState!.validate()) {
       _showToast('Please fill all required fields');
       return;
@@ -318,6 +350,7 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
       return;
     }
 
+    // File is mandatory for both upload and edit modes
     if (_inputType == 'file' && _selectedFileBytes == null) {
       _showToast('Please select a file');
       return;
@@ -329,20 +362,14 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
     }
 
     try {
-      // FIXED: Initialize variables properly
       Uint8List? fileBytes;
-      String fileName = 'syllabus.pdf'; // Default value
+      String fileName = 'syllabus.pdf';
 
       if (_inputType == 'text' && _textContentController.text.isNotEmpty) {
-   ;
         _showToast('Converting text to PDF...');
-        
         fileBytes = await _convertTextToPdf(_textContentController.text, _titleController.text);
         fileName = '${_titleController.text.replaceAll(RegExp(r'[^\w\s-]'), '_')}.pdf';
-        
-      
       } else if (_selectedFileBytes != null && _selectedFileName != null) {
-    
         fileBytes = _selectedFileBytes;
         fileName = _selectedFileName!; 
       }
@@ -353,31 +380,39 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
       }
 
       final params = {
-        'tittle': _titleController.text,
+        'title': _titleController.text,
         'subject': _selectedSubject,
         'publish': _publish.toString(),
         'cls': _selectedClass,
       };
 
-   
-      
-      await _uploadSyllabus(params, fileBytes, fileName);
+      await _submitSyllabus(params, fileBytes, fileName);
     } catch (e) {
-    
-      _showToast('Upload failed: ${e.toString()}');
+      String errorMessage = widget.isEditMode 
+          ? 'Update failed: ${e.toString()}'
+          : 'Upload failed: ${e.toString()}';
+      _showToast(errorMessage);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Dynamic title based on mode
+    String screenTitle = widget.isEditMode ? 'Edit Syllabus' : 'Upload Syllabus';
+    String buttonText = widget.isEditMode ? 'Update Syllabus' : 'Upload Syllabus';
+    String loadingText = widget.isEditMode ? 'Updating...' : 'Uploading...';
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(Icons.book_outlined, color: Colors.white),
+            Icon(
+              widget.isEditMode ? Icons.edit : Icons.book_outlined, 
+              color: Colors.white
+            ),
             SizedBox(width: 8),
-            Text('Upload Syllabus', style: TextStyle(color: Colors.white)),
+            Text(screenTitle, style: TextStyle(color: Colors.white)),
           ],
         ),
         backgroundColor: Color(0xFF519186),
@@ -416,28 +451,39 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Status indicator
-                      Container(
-                        padding: EdgeInsets.all(12),
-                        margin: EdgeInsets.only(bottom: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.green[50],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.green[200]!),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.info_outline, color: Colors.green[700], size: 20),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Web-optimized file upload • Unicode-safe PDF generation',
-                                style: TextStyle(fontSize: 12, color: Colors.green[700]),
+                      // Show current file info in edit mode
+                      if (widget.isEditMode && widget.existingSyllabus != null) ...[
+                        Container(
+                          padding: EdgeInsets.all(12),
+                          margin: EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.insert_drive_file, color: Colors.grey[600], size: 20),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Current File: ${widget.existingSyllabus!.name}',
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                    ),
+                                    Text(
+                                      'Upload a new file to replace the current one',
+                                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
 
                       // Title Field
                       _buildSectionTitle('Title', Icons.book),
@@ -544,7 +590,7 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
                             Icon(Icons.check_circle_outline, size: 20, color: Colors.grey[600]),
                             SizedBox(width: 8),
                             Text(
-                              'Publish immediately',
+                              'Publish immediately*',
                               style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                             ),
                           ],
@@ -582,7 +628,7 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
                             elevation: 2,
                           ),
                           child: Text(
-                            _isLoading ? 'Uploading...' : 'Upload Syllabus',
+                            _isLoading ? loadingText : buttonText,
                             style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
                           ),
                         ),
@@ -603,11 +649,19 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
           Icon(icon, size: 18, color: Color(0xFF519186)),
           SizedBox(width: 8),
           Text(
-            '$title*',
+            '$title',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Colors.grey[700],
+            ),
+          ),
+          Text(
+            '*',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.red,
             ),
           ),
         ],
@@ -637,6 +691,7 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildSectionTitle('File Upload', Icons.upload_file),
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
@@ -661,7 +716,9 @@ Future<void> _uploadSyllabus(Map<String, String> params, Uint8List fileBytes, St
                 ),
                 SizedBox(height: 16),
                 Text(
-                  _selectedFileBytes != null ? 'File Ready for Upload' : 'Click to upload file',
+                  _selectedFileBytes != null 
+                      ? 'File Ready for ${widget.isEditMode ? "Update" : "Upload"}' 
+                      : 'Click to upload file',
                   style: TextStyle(
                     fontSize: 14, 
                     color: _selectedFileBytes != null ? Color(0xFF519186) : Colors.grey[600], 
