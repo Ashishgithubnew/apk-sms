@@ -169,6 +169,7 @@ class _ClassSubjectShowState extends State<ClassSubjectShow> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Class & Subjects'),
         backgroundColor: Colors.teal,

@@ -181,6 +181,7 @@ class _HolidayPageState extends State<HolidayPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(showForm ? "Add Holiday" : "Holidays"),
         backgroundColor: const Color(0xFF126666), // Teal color

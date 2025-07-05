@@ -267,6 +267,7 @@ class _StudentReportFormState extends State<StudentReportForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Student Report Form'),
          backgroundColor: const Color(0xFF126666),

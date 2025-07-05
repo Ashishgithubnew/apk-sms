@@ -19,6 +19,8 @@ import '../Screens/Student/markAttendance.dart';
 import '../Screens/finance/permission_management.dart';
 import '../Screens/Syllabus/UploadSyllabus_screen.dart';
 import '../Screens/Syllabus/ViewSyllabus.dart';
+import '../Screens/TransferCertificate.dart';
+import '../Screens/Marksheet.dart';
 import '../auth_screen/login.dart';
 import '../utils/app_colors.dart';
 
@@ -282,6 +284,18 @@ class _DrawerMenuState extends State<DrawerMenu> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => StudentReportForm()),
+                );
+              }),
+              _buildDrawerItem(Icons.assessment, 'Marksheet', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MarksheetScreen()),
+                );
+              }),
+              _buildDrawerItem(Icons.assessment, 'Transfer Certificate', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => TransferCertificateScreen()),
                 );
               }),
               const Divider(),

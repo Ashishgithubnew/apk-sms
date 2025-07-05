@@ -412,6 +412,7 @@ class _PermissionManagementState extends State<PermissionManagement> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text('Manage Faculty Permission'),
         backgroundColor: Color(0xFF3a8686),

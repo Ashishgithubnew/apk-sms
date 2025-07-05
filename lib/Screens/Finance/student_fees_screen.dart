@@ -65,6 +65,7 @@ class _StudentFeesScreenState extends State<StudentFeesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Student Fees'),
           backgroundColor: Color(0xFF3a8686),

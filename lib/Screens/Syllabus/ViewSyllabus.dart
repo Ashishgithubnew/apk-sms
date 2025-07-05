@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import 'UploadSyllabus_screen.dart';
 import 'syllabus_model.dart';
 
@@ -17,7 +18,6 @@ class SyllabusController {
     try {
       final prefs = await SharedPreferences.getInstance();
       final authToken = prefs.getString('authToken');
-
       if (authToken == null) {
         throw Exception('Authentication token not found');
       }
@@ -59,7 +59,6 @@ class SyllabusController {
     try {
       final prefs = await SharedPreferences.getInstance();
       final authToken = prefs.getString('authToken');
-
       if (authToken == null) {
         throw Exception('Authentication token not found');
       }
@@ -82,46 +81,127 @@ class SyllabusController {
     }
   }
 
+  // Simplified permission handling method (same as Transfer Certificate screen)
+  Future<bool> _requestStoragePermission() async {
+    if (Platform.isAndroid) {
+      // Try multiple permission approaches for different Android versions
+      try {
+        // First try the newer permissions for Android 11+
+        var status = await Permission.manageExternalStorage.status;
+        if (status.isGranted) {
+          return true;
+        }
+        // If not granted, try to request it
+        status = await Permission.manageExternalStorage.request();
+        if (status.isGranted) {
+          return true;
+        }
+        // If manage external storage is not available, try storage permission
+        var storageStatus = await Permission.storage.status;
+        if (storageStatus.isGranted) {
+          return true;
+        }
+        storageStatus = await Permission.storage.request();
+        if (storageStatus.isGranted) {
+          return true;
+        }
+        // If both fail, we'll use app-specific directory which doesn't need permission
+        return true;
+      } catch (e) {
+        print('Permission error: $e');
+        // If permission handling fails, we'll use app-specific directory
+        return true;
+      }
+    }
+    return true; // For iOS or other platforms
+  }
+
+  // Updated download method with the same logic as Transfer Certificate screen
   Future<void> downloadSyllabus(String id, String fileName) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final authToken = prefs.getString('authToken');
-
       if (authToken == null) {
         throw Exception('Authentication token not found');
       }
 
       if (kIsWeb) {
-        final response = await http.get(
-          Uri.parse('$baseUrl/doc/download/$id'),
-          headers: {
-            'Authorization': 'Bearer $authToken',
-          },
+        // Web version
+        final dio = Dio();
+        final response = await dio.get(
+          '$baseUrl/doc/download/$id',
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $authToken',
+            },
+            responseType: ResponseType.bytes,
+          ),
         );
 
-        if (response.statusCode == 200) {
-          final blob = html.Blob([response.bodyBytes]);
-          final url = html.Url.createObjectUrlFromBlob(blob);
-          final anchor = html.AnchorElement(href: url)
-            ..setAttribute('download', fileName)
-            ..click();
-          html.Url.revokeObjectUrl(url);
-        } else {
-          throw Exception('Failed to download file: ${response.statusCode}');
-        }
+        final fullFileName = fileName.endsWith('.pdf') ? fileName : '$fileName.pdf';
+        final blob = html.Blob([response.data], 'application/pdf');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', fullFileName)
+          ..click();
+        html.Url.revokeObjectUrl(url);
       } else {
-        final status = await Permission.storage.request();
-        if (status.isGranted) {
-          final dir = await getExternalStorageDirectory();
-          await FlutterDownloader.enqueue(
-            url: '$baseUrl/doc/download/$id',
-            savedDir: dir!.path,
-            fileName: fileName,
-            headers: {'Authorization': 'Bearer $authToken'},
-            showNotification: true,
-            openFileFromNotification: true,
-          );
+        // Mobile version with simplified permission handling
+        await _requestStoragePermission();
+
+        final dio = Dio();
+        final fullFileName = fileName.endsWith('.pdf') ? fileName : '$fileName.pdf';
+
+        // Try different storage locations in order of preference
+        String? filePath;
+
+        try {
+          // First try: Downloads folder (works on most devices)
+          final downloadsDir = Directory('/storage/emulated/0/Download');
+          if (await downloadsDir.exists()) {
+            filePath = '${downloadsDir.path}/$fullFileName';
+          }
+        } catch (e) {
+          print('Downloads directory not accessible: $e');
         }
+
+        if (filePath == null) {
+          try {
+            // Second try: External storage directory
+            final dir = await getExternalStorageDirectory();
+            if (dir != null) {
+              final downloadDir = '${dir.path}/Downloads';
+              final downloadFolder = Directory(downloadDir);
+              if (!await downloadFolder.exists()) {
+                await downloadFolder.create(recursive: true);
+              }
+              filePath = '$downloadDir/$fullFileName';
+            }
+          } catch (e) {
+            print('External storage directory not accessible: $e');
+          }
+        }
+
+        if (filePath == null) {
+          // Final fallback: App documents directory (always works)
+          final dir = await getApplicationDocumentsDirectory();
+          filePath = '${dir.path}/$fullFileName';
+        }
+
+        await dio.download(
+          '$baseUrl/doc/download/$id',
+          filePath,
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $authToken',
+            },
+          ),
+          onReceiveProgress: (received, total) {
+            if (total != -1) {
+              print('Download progress: ${(received / total * 100).toStringAsFixed(0)}%');
+            }
+          },
+        );
       }
     } catch (e) {
       throw Exception('Download failed: ${e.toString()}');
@@ -138,6 +218,8 @@ class _ViewSyllabusScreenState extends State<ViewSyllabusScreen> {
   final SyllabusController _controller = SyllabusController();
   List<Syllabus> _syllabusList = [];
   bool _loading = false;
+  bool _downloading = false;
+  String _downloadingId = '';
 
   // NEW: Status management variables
   Map<String, bool> _modifiedStatus = {};
@@ -226,9 +308,9 @@ class _ViewSyllabusScreenState extends State<ViewSyllabusScreen> {
 
     final payload = _modifiedStatus.entries
         .map((entry) => {
-              'id': entry.key,
-              'publish': entry.value.toString(),
-            })
+      'id': entry.key,
+      'publish': entry.value.toString(),
+    })
         .toList();
 
     setState(() => _isUpdating = true);
@@ -247,6 +329,30 @@ class _ViewSyllabusScreenState extends State<ViewSyllabusScreen> {
     }
   }
 
+  // Updated download method with state management
+  Future<void> _downloadSyllabus(String id, String fileName) async {
+    setState(() {
+      _downloading = true;
+      _downloadingId = id;
+    });
+
+    try {
+      await _controller.downloadSyllabus(id, fileName);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Syllabus downloaded successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to download syllabus: ${e.toString()}')),
+      );
+    } finally {
+      setState(() {
+        _downloading = false;
+        _downloadingId = '';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -256,7 +362,7 @@ class _ViewSyllabusScreenState extends State<ViewSyllabusScreen> {
           children: [
             Icon(Icons.library_books, color: Colors.white),
             SizedBox(width: 8),
-            Text('Syllabus Documents', style: TextStyle(color: Colors.white),overflow: TextOverflow.ellipsis, ),
+            Text('Syllabus Documents', style: TextStyle(color: Colors.white), overflow: TextOverflow.ellipsis),
           ],
         ),
         backgroundColor: Color(0xFF519186),
@@ -268,7 +374,6 @@ class _ViewSyllabusScreenState extends State<ViewSyllabusScreen> {
             onPressed: _loadSyllabus,
             tooltip: 'Refresh',
           ),
-         
         ],
       ),
       body: Column(
@@ -283,10 +388,10 @@ class _ViewSyllabusScreenState extends State<ViewSyllabusScreen> {
                 onPressed: _isUpdating ? null : _updatePublishStatus,
                 icon: _isUpdating
                     ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
                     : Icon(Icons.publish),
                 label: Text(_isUpdating
                     ? 'Publishing...'
@@ -300,224 +405,227 @@ class _ViewSyllabusScreenState extends State<ViewSyllabusScreen> {
                 ),
               ),
             ),
-
           // Main content
           Expanded(
             child: _loading
                 ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(color: Color(0xFF519186)),
-                        SizedBox(height: 16),
-                        Text('Loading syllabus...',
-                            style: TextStyle(color: Colors.grey[600])),
-                      ],
-                    ),
-                  )
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Color(0xFF519186)),
+                  SizedBox(height: 16),
+                  Text('Loading syllabus...',
+                      style: TextStyle(color: Colors.grey[600])),
+                ],
+              ),
+            )
                 : _syllabusList.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.library_books_outlined,
+                      size: 64, color: Colors.grey[400]),
+                  SizedBox(height: 16),
+                  Text(
+                    'No syllabus documents found',
+                    style: TextStyle(
+                        fontSize: 18, color: Colors.grey[600]),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Tap the + button to upload your first syllabus',
+                    style: TextStyle(
+                        fontSize: 14, color: Colors.grey[500]),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () => _navigateToUpload(),
+                    icon: Icon(Icons.add),
+                    label: Text('Upload Syllabus'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF519186),
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ],
+              ),
+            )
+                : ListView.builder(
+              padding: EdgeInsets.all(16),
+              itemCount: _syllabusList.length,
+              itemBuilder: (context, index) {
+                final syllabus = _syllabusList[index];
+                final currentStatus =
+                _getCurrentStatus(syllabus.id, syllabus.publish);
+                final isDownloading = _downloading && _downloadingId == syllabus.id;
+
+                return Card(
+                  margin: EdgeInsets.only(bottom: 12),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Container(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Icon(Icons.library_books_outlined,
-                                size: 64, color: Colors.grey[400]),
-                            SizedBox(height: 16),
-                            Text(
-                              'No syllabus documents found',
-                              style: TextStyle(
-                                  fontSize: 18, color: Colors.grey[600]),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Tap the + button to upload your first syllabus',
-                              style: TextStyle(
-                                  fontSize: 14, color: Colors.grey[500]),
-                            ),
-                            SizedBox(height: 20),
-                            ElevatedButton.icon(
-                              onPressed: () => _navigateToUpload(),
-                              icon: Icon(Icons.add),
-                              label: Text('Upload Syllabus'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF519186),
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 12),
+                            // NEW: Status checkbox
+                            Container(
+                              margin: EdgeInsets.only(right: 12),
+                              child: Checkbox(
+                                value: currentStatus,
+                                onChanged: (value) =>
+                                    _handleStatusChange(
+                                        syllabus.id, currentStatus),
+                                activeColor: Color(0xFF519186),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8)),
+                                  borderRadius:
+                                  BorderRadius.circular(4),
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: EdgeInsets.all(16),
-                        itemCount: _syllabusList.length,
-                        itemBuilder: (context, index) {
-                          final syllabus = _syllabusList[index];
-                          final currentStatus =
-                              _getCurrentStatus(syllabus.id, syllabus.publish);
-
-                          return Card(
-                            margin: EdgeInsets.only(bottom: 12),
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            child: Container(
-                              padding: EdgeInsets.all(16),
+                            Container(
+                              padding: EdgeInsets.all(8),
+                              child: Icon(
+                                Icons.picture_as_pdf,
+                                color: Color(0xFF519186),
+                                size: 24,
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
                                 children: [
+                                  Text(
+                                    syllabus.title ??
+                                        'Untitled Document',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey[800],
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
                                   Row(
                                     children: [
-                                      // NEW: Status checkbox
-                                      Container(
-                                        margin: EdgeInsets.only(right: 12),
-                                        child: Checkbox(
-                                          value: currentStatus,
-                                          onChanged: (value) =>
-                                              _handleStatusChange(
-                                                  syllabus.id, currentStatus),
-                                          activeColor: Color(0xFF519186),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(4),
-                                          ),
-                                        ),
-                                      ),
-
-                                      Container(
-                                        padding: EdgeInsets.all(8),
-                                       
-                                        child: Icon(
-                                          Icons.picture_as_pdf,
-                                          color: Color(0xFF519186),
-                                          size: 24,
-                                        ),
+                                      Icon(Icons.school,
+                                          size: 14,
+                                          color: Colors.grey[600]),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Class: ${syllabus.cls == "undefined" ? "Not specified" : syllabus.cls}',
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600]),
                                       ),
                                       SizedBox(width: 12),
+                                      Icon(Icons.subject,
+                                          size: 14,
+                                          color: Colors.grey[600]),
+                                      SizedBox(width: 4),
                                       Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              syllabus.title ??
-                                                  'Untitled Document',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.grey[800],
-                                              ),
-                                            ),
-                                            SizedBox(height: 4),
-                                            Row(
-                                              children: [
-                                                Icon(Icons.school,
-                                                    size: 14,
-                                                    color: Colors.grey[600]),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  'Class: ${syllabus.cls == "undefined" ? "Not specified" : syllabus.cls}',
-                                                  style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: Colors.grey[600]),
-                                                ),
-                                                SizedBox(width: 12),
-                                                Icon(Icons.subject,
-                                                    size: 14,
-                                                    color: Colors.grey[600]),
-                                                SizedBox(width: 4),
-                                                Expanded(
-                                                  child: Text(
-                                                    'Subject: ${syllabus.subject}',
-                                                    style: TextStyle(
-                                                        fontSize: 12,
-                                                        color:
-                                                            Colors.grey[600]),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: currentStatus
-                                              ? Colors.green[50]
-                                              : Colors.orange[50],
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          border: Border.all(
-                                            color: currentStatus
-                                                ? Colors.green[200]!
-                                                : Colors.orange[200]!,
-                                          ),
-                                        ),
                                         child: Text(
-                                          currentStatus ? 'Published' : 'Draft',
+                                          'Subject: ${syllabus.subject}',
                                           style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                            color: currentStatus
-                                                ? Colors.green[700]
-                                                : Colors.orange[700],
-                                          ),
+                                              fontSize: 12,
+                                              color:
+                                              Colors.grey[600]),
+                                          overflow:
+                                          TextOverflow.ellipsis,
                                         ),
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: 12),
-
-                                  // Action buttons
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      // Download Button
-                                      IconButton(
-                                        onPressed: () =>
-                                            _controller.downloadSyllabus(
-                                          syllabus.id,
-                                          syllabus.name,
-                                        ),
-                                        icon: Icon(Icons.download,
-                                            color: Color(
-                                                0xFF519186)), // Added missing parenthesis
-                                        tooltip: 'Download',
-                                      ),
-
-                                      // Edit Button
-                                      IconButton(
-                                        onPressed: () =>
-                                            _navigateToEdit(syllabus),
-                                        icon: Icon(Icons.edit,
-                                            color: Colors.blue[600]),
-                                        tooltip: 'Edit',
-                                      ),
-
-                                      // Delete Button
-                                      IconButton(
-                                        onPressed: () =>
-                                            _confirmDelete(syllabus.id),
-                                        icon: Icon(Icons.delete,
-                                            color: Colors.red[600]),
-                                        tooltip: 'Delete',
-                                      ),
-                                    ],
-                                  )
                                 ],
                               ),
                             ),
-                          );
-                        },
-                      ),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: currentStatus
+                                    ? Colors.green[50]
+                                    : Colors.orange[50],
+                                borderRadius:
+                                BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: currentStatus
+                                      ? Colors.green[200]!
+                                      : Colors.orange[200]!,
+                                ),
+                              ),
+                              child: Text(
+                                currentStatus ? 'Published' : 'Draft',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: currentStatus
+                                      ? Colors.green[700]
+                                      : Colors.orange[700],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 12),
+                        // Action buttons
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceEvenly,
+                          children: [
+                            // Download Button
+                            IconButton(
+                              onPressed: isDownloading ? null : () =>
+                                  _downloadSyllabus(
+                                    syllabus.id,
+                                    syllabus.name,
+                                  ),
+                              icon: isDownloading
+                                  ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFF519186),
+                                  strokeWidth: 2,
+                                ),
+                              )
+                                  : Icon(Icons.download,
+                                  color: Color(0xFF519186)),
+                              tooltip: isDownloading ? 'Downloading...' : 'Download',
+                            ),
+                            // Edit Button
+                            IconButton(
+                              onPressed: () =>
+                                  _navigateToEdit(syllabus),
+                              icon: Icon(Icons.edit,
+                                  color: Colors.blue[600]),
+                              tooltip: 'Edit',
+                            ),
+                            // Delete Button
+                            IconButton(
+                              onPressed: () =>
+                                  _confirmDelete(syllabus.id),
+                              icon: Icon(Icons.delete,
+                                  color: Colors.red[600]),
+                              tooltip: 'Delete',
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),

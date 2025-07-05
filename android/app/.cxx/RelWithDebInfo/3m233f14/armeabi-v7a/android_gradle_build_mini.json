@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "C:\\sms-apk\\apk-sms\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\groovy\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\hp\\AppData\\Local\\Android\\sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "D:\\sms-apk\\apk-sms\\sms_apk\\android\\app\\.cxx\\RelWithDebInfo\\3m233f14\\armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\hp\\AppData\\Local\\Android\\sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "D:\\sms-apk\\apk-sms\\sms_apk\\android\\app\\.cxx\\RelWithDebInfo\\3m233f14\\armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

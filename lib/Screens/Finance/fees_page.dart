@@ -171,6 +171,7 @@ class _FeesPageState extends State<FeesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Fees"),
         backgroundColor: Color(0xFF3a8686),

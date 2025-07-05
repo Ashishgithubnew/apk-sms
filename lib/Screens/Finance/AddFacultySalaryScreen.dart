@@ -217,6 +217,7 @@ class _AddFacultySalaryScreenState extends State<AddFacultySalaryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Add Faculty Salary'),
            backgroundColor: Color(0xFF3a8686),

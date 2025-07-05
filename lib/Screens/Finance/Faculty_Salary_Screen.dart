@@ -53,6 +53,7 @@ class _FacultySalaryScreenState extends State<FacultySalaryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(title: const Text('Faculty Salary',),   backgroundColor: Color(0xFF3a8686),
         foregroundColor: Colors.white,),
       body: isLoading

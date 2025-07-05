@@ -191,6 +191,7 @@ class _AddFeesScreenState extends State<AddFeesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Add Fees Page'),
         backgroundColor: Color(0xFF3a8686),
