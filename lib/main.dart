@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sms_apk/Screens/splashScreen.dart';
+import 'package:sms_apk/splashScreen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.transparent
         )
       ),
-      home: SplashScreen(),
+      home: const SplashScreen(),
     );
   }
 }

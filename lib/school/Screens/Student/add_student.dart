@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sms_apk/widgets/header.dart';
+import 'package:sms_apk/school/widgets/header.dart';
 import '../../widgets/student_form.dart';
 
 class AddStudentScreen extends StatelessWidget {

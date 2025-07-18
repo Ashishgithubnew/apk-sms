@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sms_apk/widgets/custom_popup.dart';
+import 'package:sms_apk/school/widgets/custom_popup.dart';
 import '../utils/app_colors.dart';
 import 'package:intl/intl.dart'; // For date formatting
 

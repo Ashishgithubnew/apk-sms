@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sms_apk/auth_screen/login.dart';
-import 'package:sms_apk/utils/app_colors.dart';
-import 'package:sms_apk/widgets/custom_popup.dart';
-import 'package:sms_apk/widgets/header.dart';
+import 'package:sms_apk/school/auth_screen/login.dart';
+import 'package:sms_apk/school/utils/app_colors.dart';
+import 'package:sms_apk/school/widgets/custom_popup.dart';
+import 'package:sms_apk/school/widgets/header.dart';
 
 class FacultyTableScreen extends StatefulWidget {
   const FacultyTableScreen({super.key});

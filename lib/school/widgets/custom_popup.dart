@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart';
+import 'package:sms_apk/school/utils/app_colors.dart';
 
 Future<void> showPopup(BuildContext context, String message, Color bgColor) async {
   return showDialog(

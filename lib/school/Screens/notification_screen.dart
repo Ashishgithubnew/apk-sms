@@ -3,10 +3,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:sms_apk/Screens/homeScreen.dart';
-import 'package:sms_apk/widgets/custom_popup.dart';
-import 'package:sms_apk/utils/app_colors.dart';
+import 'package:sms_apk/school/widgets/custom_popup.dart';
+import 'package:sms_apk/school/utils/app_colors.dart';
 import 'package:intl/intl.dart';
-import 'package:sms_apk/widgets/header.dart';
+import 'package:sms_apk/school/widgets/header.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});

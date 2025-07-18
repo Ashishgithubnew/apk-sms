@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:animate_do/animate_do.dart';
-import 'package:sms_apk/auth_screen/NotificationScreen.dart';
-import 'package:sms_apk/utils/app_colors.dart';
-import 'package:sms_apk/widgets/custom_popup.dart';
+import 'package:sms_apk/school/utils/app_colors.dart';
+import 'package:sms_apk/school/auth_screen/NotificationScreen.dart';
+import 'package:sms_apk/school/widgets/custom_popup.dart';
 import '../Screens/homeScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

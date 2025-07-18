@@ -214,7 +214,7 @@ class _ClassSubjectShowState extends State<ClassSubjectShow> {
   }
 
   // Method to handle form close
-  void _closeForm() {
+   void _closeForm() {
     setState(() {
       showForm = false;
       editableRow = null;

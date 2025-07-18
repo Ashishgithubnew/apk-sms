@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sms_apk/widgets/custom_popup.dart';
-import 'package:sms_apk/widgets/header.dart';
+import 'package:sms_apk/school/widgets/custom_popup.dart';
+import 'package:sms_apk/school/widgets/header.dart';
 import '../../utils/app_colors.dart';
 
 class ViewAttendanceScreen extends StatefulWidget {

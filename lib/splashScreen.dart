@@ -1,7 +1,8 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
-import '../auth_screen/login.dart';
+import './school/auth_screen/login.dart';
+import 'selection_screen.dart';
 import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
@@ -13,16 +14,16 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   @override
-  void initState() {
-    super.initState();
-    Timer(Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-      );
-    });
-  }
-
+ @override
+void initState() {
+  super.initState();
+  Timer(const Duration(seconds: 3), () {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const SelectionScreen()),
+    );
+  });
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
