@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sms_apk/school/auth_screen/login.dart';
-import 'package:sms_apk/hotel/home_screen.dart';
+import 'package:sms_apk/hotel/auth/hotelLogin.dart';
 
 class SelectionScreen extends StatelessWidget {
   const SelectionScreen({super.key});
@@ -167,7 +167,7 @@ class SelectionScreen extends StatelessWidget {
                                 // Navigate to school login
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => LoginScreen()), // Directly use LoginScreen
+                                  MaterialPageRoute(builder: (context) => LoginScreen()),
                                 );
                               },
                             ),
@@ -181,10 +181,10 @@ class SelectionScreen extends StatelessWidget {
                               description: "Hospitality management system",
                               color: const Color(0xFF2196F3), // Keeping blue for hotel
                               onTap: () {
-                                // Navigate to hotel home screen
+                                // Navigate to hotel login screen
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => HotelHome()),
+                                  MaterialPageRoute(builder: (context) => HotelLoginScreen()),
                                 );
                               },
                             ),

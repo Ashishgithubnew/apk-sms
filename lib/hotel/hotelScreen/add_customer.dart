@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HotelRegistrationForm extends StatefulWidget {
   @override
@@ -16,6 +17,9 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
   final _formKey = GlobalKey<FormState>();
   final _picker = ImagePicker();
   static const platform = MethodChannel('com.abhotel/fingerprint');
+   6 
+  String? token;
+  bool _isTokenLoading = true;
 
   // Color Palette
   final Color primaryColor = Color(0xFF126666);
@@ -48,9 +52,72 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
   bool _isExistingCustomer = false;
   Map<String, dynamic>? _existingCustomerData;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadToken();
+  }
+
+  // Load token from SharedPreferences
+  Future<void> _loadToken() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        token = prefs.getString('authToken');
+        _isTokenLoading = false;
+      });
+      
+      if (token == null || token!.isEmpty) {
+        _showErrorSnackBar('Authentication token not found. Please login again.');
+        // Optionally navigate back to login screen
+        // Nav    igator.of(context).pushReplacementNamed('/login');
+      }
+    } catch (e) {
+      setState(() {
+        _isTokenLoading = false;
+      });
+      _showErrorSnackBar('Error loading authentication token');
+    }
+  }
+
+  // Get headers with authentication
+  Map<String, String> _getAuthHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (token != null && token!.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  // Handle authentication errors
+  void _handleAuthError(int statusCode) {
+    if (statusCode == 401) {
+      _showErrorSnackBar('Session expired. Please login again.');
+      // Clear token and navigate to login
+      _clearTokenAndNavigateToLogin();
+    } else if (statusCode == 403) {
+      _showErrorSnackBar('Access denied. Insufficient permissions.');
+    }
+  }
+
+  Future<void> _clearTokenAndNavigateToLogin() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('authToken');
+    setState(() {
+      token = null;
+    });
+    // Navigate to login screen
+    // Navigator.of(context).pushReplacementNamed('/login');
+  }
+
   Future<void> _scanFingerprint() async {
     if (kIsWeb) {
       _showErrorSnackBar('Fingerprint scanning is not supported on web');
+      return;
+    }
+    
+    if (token == null || token!.isEmpty) {
+      _showErrorSnackBar('Authentication required. Please login again.');
       return;
     }
     
@@ -73,8 +140,6 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
 
   Future<void> _captureFace() async {
     try {
-      // Show dialog to choose between camera and gallery on mobile
-      // On web, only gallery is available
       ImageSource? source;
       
       if (kIsWeb) {
@@ -207,13 +272,18 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
       return;
     }
     
+    if (token == null || token!.isEmpty) {
+      _showErrorSnackBar('Authentication required. Please login again.');
+      return;
+    }
+    
     setState(() => _isScanning = true);
     try {
       final String fingerprintData = await platform.invokeMethod('scanFingerprint');
       
       final response = await http.post(
         Uri.parse('https://s-m-s-keyw.onrender.com/hotel/customer/check'),
-        headers: {'Content-Type': 'application/json'},
+        headers: _getAuthHeaders(),
         body: json.encode({
           'fingerprint_data': fingerprintData,
         }),
@@ -228,17 +298,21 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
           _fillFormWithExistingData();
         });
         _showSuccessSnackBar('Existing customer found');
-      } else {
+      } else if (response.statusCode == 404) {
         _showErrorSnackBar('Customer not found. Please register new customer.');
         setState(() {
           _showForm = true;
           _isExistingCustomer = false;
         });
+      } else {
+        _handleAuthError(response.statusCode);
+        _showErrorSnackBar('Error checking customer: ${response.body}');
       }
     } on PlatformException catch (e) {
       _showErrorSnackBar('Scan failed: ${e.message}');
     } catch (e) {
       _showErrorSnackBar('Network error: $e');
+      print('Check customer error: $e');
     } finally {
       setState(() => _isScanning = false);
     }
@@ -262,6 +336,12 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      // Check authentication
+      if (token == null || token!.isEmpty) {
+        _showErrorSnackBar('Authentication required. Please login again.');
+        return;
+      }
+
       // Validate required images
       if (_faceImageBase64.isEmpty) {
         _showErrorSnackBar('Please capture face image');
@@ -310,10 +390,7 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
 
         final response = await http.post(
           Uri.parse('https://s-m-s-keyw.onrender.com/hotel/customer/register'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
+          headers: _getAuthHeaders(),
           body: json.encode(payload),
         );
 
@@ -321,6 +398,7 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
           _showSuccessSnackBar('Registration successful!');
           _resetForm();
         } else {
+          _handleAuthError(response.statusCode);
           _showErrorSnackBar('Error: ${response.body}');
           print('Server response: ${response.statusCode} - ${response.body}');
         }
@@ -380,6 +458,29 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading while token is being loaded
+    if (_isTokenLoading) {
+      return Scaffold(
+        backgroundColor: backgroundColor,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: primaryColor),
+              SizedBox(height: 16),
+              Text(
+                'Loading...',
+                style: TextStyle(
+                  color: primaryColor,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -392,6 +493,16 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
         ),
         backgroundColor: primaryColor,
         iconTheme: IconThemeData(color: Colors.white),
+        actions: [
+          if (token != null && token!.isNotEmpty)
+            IconButton(
+              icon: Icon(Icons.logout, color: Colors.white),
+              onPressed: () async {
+                await _clearTokenAndNavigateToLogin();
+              },
+              tooltip: 'Logout',
+            ),
+        ],
       ),
       backgroundColor: backgroundColor,
       body: SingleChildScrollView(
@@ -399,6 +510,30 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Authentication status indicator
+            if (token == null || token!.isEmpty)
+              Container(
+                padding: EdgeInsets.all(12),
+                margin: EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.red),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Authentication required. Please login to continue.',
+                        style: TextStyle(color: Colors.red.shade800),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             if (kIsWeb)
               Container(
                 padding: EdgeInsets.all(12),
@@ -425,22 +560,22 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
             if (!_showForm) ...[
               SizedBox(height: MediaQuery.of(context).size.height * 0.15),
               _buildMainActionButton(
-                onPressed: () {
+                onPressed: (token != null && token!.isNotEmpty) ? () {
                   setState(() {
                     _showForm = true;
                     _isExistingCustomer = false;
                   });
-                },
+                } : null,
                 label: 'Add New Customer',
                 icon: Icons.person_add,
-                color: primaryColor,
+                color: (token != null && token!.isNotEmpty) ? primaryColor : Colors.grey,
               ),
               SizedBox(height: 20),
               _buildMainActionButton(
-                onPressed: kIsWeb ? null : _checkExistingCustomer,
+                onPressed: (kIsWeb || token == null || token!.isEmpty) ? null : _checkExistingCustomer,
                 label: kIsWeb ? 'Check Existing Customer (Not Available on Web)' : 'Check Existing Customer',
                 icon: Icons.fingerprint,
-                color: kIsWeb ? Colors.grey : accentColor,
+                color: (kIsWeb || token == null || token!.isEmpty) ? Colors.grey : accentColor,
                 isLoading: _isScanning,
               ),
             ] else ...[
@@ -467,7 +602,9 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
                     SizedBox(height: 16),
 
                     _buildSectionHeader('2. Address'),
-                    _buildTextFormField(_addressController, maxLines: 3, isRequired: true),
+                    _buildTextFormField(_addressController, maxLines: 3, 
+                    // isRequired: true
+                    ),
                     SizedBox(height: 16),
 
                     Row(
@@ -495,11 +632,15 @@ class _HotelRegistrationFormState extends State<HotelRegistrationForm> {
                     SizedBox(height: 16),
 
                     _buildSectionHeader('6. Aadhar Number'),
-                    _buildTextFormField(_adharNoController, isRequired: true),
+                    _buildTextFormField(_adharNoController,
+                    //  isRequired: true
+                     ),
                     SizedBox(height: 16),
 
                     _buildSectionHeader('7. Nationality'),
-                    _buildTextFormField(_nationalityController, isRequired: true),
+                    _buildTextFormField(_nationalityController, 
+                    // isRequired: true
+                    ),
                     SizedBox(height: 16),
 
                     _buildSectionHeader('8. Aadhar Card Front'),
