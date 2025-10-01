@@ -13,13 +13,12 @@ class _HotelFormState extends State<HotelForm> {
   bool _isSubmitting = false;
   bool _obscurePassword = true;
 
-  // Color Palette
+  // Colors
   final Color primaryColor = Color(0xFF126666);
   final Color secondaryColor = Color(0xFFE74C3C);
-  final Color accentColor = Color.fromARGB(255, 30, 120, 120);
   final Color backgroundColor = Color(0xFFECF0F1);
 
-  // Form controllers
+  // Controllers
   final TextEditingController _hotelNameController = TextEditingController();
   final TextEditingController _ownerNameController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
@@ -32,65 +31,91 @@ class _HotelFormState extends State<HotelForm> {
   final TextEditingController _countryController = TextEditingController();
   final TextEditingController _totalRoomsController = TextEditingController();
   final TextEditingController _gstNumberController = TextEditingController();
+  final TextEditingController _roomNumberController = TextEditingController();
 
   String _selectedSubscription = 'Basic';
   final List<String> _subscriptionOptions = ['Basic', 'Premium', 'Enterprise'];
 
+  String? _selectedReferral;
+  final List<String> _referralOptions = ['viveksaini', 'gaurav'];
+
+  List<String> _roomNumbers = [];
+
   @override
   void initState() {
     super.initState();
-    // Set default country
     _countryController.text = 'India';
+
+    // Listen to total rooms changes to rebuild UI for room input
+    _totalRoomsController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _hotelNameController.dispose();
+    _ownerNameController.dispose();
+    _contactController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _addressController.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    _pincodeController.dispose();
+    _countryController.dispose();
+    _totalRoomsController.dispose();
+    _gstNumberController.dispose();
+    _roomNumberController.dispose();
+    super.dispose();
   }
 
   Future<void> _submitHotelForm() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isSubmitting = true);
+    if (!_formKey.currentState!.validate()) return;
 
-      try {
-        final payload = {
-          "hotelName": _hotelNameController.text.trim(),
-          "ownerName": _ownerNameController.text.trim(),
-          "contactNumber": _contactController.text.trim(),
-          "email": _emailController.text.trim(),
-          "password": _passwordController.text.trim(),
-          "address": _addressController.text.trim(),
-          "city": _cityController.text.trim(),
-          "state": _stateController.text.trim(),
-          "pincode": _pincodeController.text.trim(),
-          "country": _countryController.text.trim(),
-          "totalRooms": _totalRoomsController.text.trim(),
-          "subscription": _selectedSubscription,
-          "gstNumber": _gstNumberController.text.trim(),
-        };
+    setState(() => _isSubmitting = true);
 
-        print('Sending hotel creation payload: ${json.encode(payload)}');
+    try {
+      final payload = {
+        "hotelName": _hotelNameController.text.trim(),
+        "ownerName": _ownerNameController.text.trim(),
+        "contactNumber": _contactController.text.trim(),
+        "referral": _selectedReferral ?? '',
+        "email": _emailController.text.trim(),
+        "password": _passwordController.text.trim(),
+        "address": _addressController.text.trim(),
+        "city": _cityController.text.trim(),
+        "state": _stateController.text.trim(),
+        "pincode": _pincodeController.text.trim(),
+        "country": _countryController.text.trim(),
+        "totalRooms": _totalRoomsController.text.trim(),
+        "subscription": _selectedSubscription,
+        "gstNumber": _gstNumberController.text.trim(),
+        "roomNumber": _roomNumbers.map((e) => int.tryParse(e) ?? 0).toList(),
+      };
 
-        final response = await http.post(
-          Uri.parse('https://s-m-s-keyw.onrender.com/hotelCreation/save'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: json.encode(payload),
-        );
+      final response = await http.post(
+        Uri.parse('https://s-m-s-keyw.onrender.com/hotelCreation/save'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode(payload),
+      );
 
-        print('Hotel creation response status: ${response.statusCode}');
-        print('Hotel creation response body: ${response.body}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _showSnackBar('Hotel created successfully!', success: true);
 
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          _showSuccessSnackBar('Hotel created successfully!');
-          _resetHotelForm();
-        } else {
-          final errorData = json.decode(response.body);
-          _showErrorSnackBar('Hotel creation failed: ${errorData['message'] ?? 'Unknown error'}');
-        }
-      } catch (e) {
-        _showErrorSnackBar('Network error: $e');
-        print('Hotel creation error: $e');
-      } finally {
-        setState(() => _isSubmitting = false);
+        _resetHotelForm();
+        Navigator.pop(context, true);
+      } else {
+        final errorData = json.decode(response.body);
+        _showSnackBar('Hotel creation failed: ${errorData['message'] ?? 'Unknown error'}', success: false);
       }
+    } catch (e) {
+      _showSnackBar('Network error: $e', success: false);
+    } finally {
+      setState(() => _isSubmitting = false);
     }
   }
 
@@ -108,27 +133,20 @@ class _HotelFormState extends State<HotelForm> {
     _countryController.text = 'India';
     _totalRoomsController.clear();
     _gstNumberController.clear();
+    _roomNumberController.clear();
+    _roomNumbers.clear();
     setState(() {
       _selectedSubscription = 'Basic';
+      _selectedReferral = null;
     });
   }
 
-  void _showSuccessSnackBar(String message) {
+  void _showSnackBar(String message, {bool success = true}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: success ? Colors.green : Colors.red,
         duration: Duration(seconds: 3),
-      ),
-    );
-  }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        duration: Duration(seconds: 4),
       ),
     );
   }
@@ -136,285 +154,84 @@ class _HotelFormState extends State<HotelForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Hotel Creation Form',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: primaryColor,
-        iconTheme: IconThemeData(color: Colors.white),
-        elevation: 2,
-      ),
       backgroundColor: backgroundColor,
+      appBar: AppBar(
+        title: Text('Hotel Creation Form', style: TextStyle(color: Colors.white)),
+        backgroundColor: primaryColor,
+      ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header Card
-              Container(
-                padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.add_business,
-                      size: 50,
-                      color: primaryColor,
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      'Create New Hotel',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: primaryColor,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Register your hotel business with our management platform',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 24),
-
-              // Hotel Business Information Section
               _buildSectionCard(
                 title: 'Hotel Business Details',
                 icon: Icons.business,
                 children: [
-                  _buildSectionHeader('Hotel Name'),
-                  _buildTextFormField(
-                    controller: _hotelNameController,
-                    hintText: 'Enter your hotel name',
-                    isRequired: true,
-                  ),
-                  SizedBox(height: 16),
-
-                  _buildSectionHeader('Total Rooms'),
-                  _buildTextFormField(
-                    controller: _totalRoomsController,
-                    hintText: 'Enter total number of rooms',
-                    keyboardType: TextInputType.number,
-                    // isRequired: true,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  ),
-                  SizedBox(height: 16),
-
-                  _buildSectionHeader('Subscription Plan'),
-                  _buildDropdownField(),
-                  SizedBox(height: 16),
-
-                  _buildSectionHeader('GST Number'),
-                  _buildTextFormField(
-                    controller: _gstNumberController,
-                    hintText: 'Enter GST number (15 digits)',
-                    // isRequired: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'GST number is required';
-                      }
-                      if (value.length != 15) {
-                        return 'GST number must be 15 characters';
-                      }
-                      return null;
-                    },
-                  ),
+                  _buildTextFieldWithHeader('Hotel Name', _hotelNameController, 'Enter hotel name', isRequired: true),
+                  _buildTextFieldWithHeader('Total Rooms', _totalRoomsController, 'Enter total rooms', keyboardType: TextInputType.number),
+                  _buildRoomNumberInput(),
+                  _buildDropdownFieldWithHeader('Referral (optional)', _referralOptions, _selectedReferral, (val) => setState(() => _selectedReferral = val)),
+_buildDropdownFieldWithHeader(
+  'Subscription Plan',
+  _subscriptionOptions,
+  _selectedSubscription,
+  (val) => setState(() => _selectedSubscription = val ?? 'Basic'),
+),
+                  _buildTextFieldWithHeader('GST Number', _gstNumberController, 'Enter GST number'),
                 ],
               ),
-
-              SizedBox(height: 20),
-
-              // Hotel Owner Information Section
               _buildSectionCard(
                 title: 'Hotel Owner Details',
                 icon: Icons.person_pin,
                 children: [
-                  _buildSectionHeader('Owner Name'),
-                  _buildTextFormField(
-                    controller: _ownerNameController,
-                    hintText: 'Enter hotel owner full name',
-                    isRequired: true,
-                  ),
-                  SizedBox(height: 16),
-
-                  _buildSectionHeader('Contact Number'),
-                  _buildTextFormField(
-                    controller: _contactController,
-                    hintText: 'Enter 10-digit mobile number',
-                    keyboardType: TextInputType.phone,
-                    isRequired: true,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(10),
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Contact number is required';
-                      }
-                      if (value.length != 10) {
-                        return 'Contact number must be 10 digits';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 16),
-
-                  _buildSectionHeader('Email Address'),
-                  _buildTextFormField(
-                    controller: _emailController,
-                    hintText: 'Enter business email address',
-                    keyboardType: TextInputType.emailAddress,
-                    isRequired: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Email is required';
-                      }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                        return 'Enter a valid email address';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 16),
-
-                  _buildSectionHeader('Account Password'),
+                  _buildTextFieldWithHeader('Owner Name', _ownerNameController, 'Enter owner name', isRequired: true),
+                  _buildTextFieldWithHeader('Contact Number', _contactController, 'Enter 10-digit number', keyboardType: TextInputType.phone, inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)], validator: (v) {
+                    if (v == null || v.isEmpty) return 'Contact number required';
+                    if (v.length != 10) return 'Must be 10 digits';
+                    return null;
+                  }),
+                  _buildTextFieldWithHeader('Email Address', _emailController, 'Enter email', keyboardType: TextInputType.emailAddress, validator: (v) {
+                    if (v == null || v.isEmpty) return 'Email required';
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) return 'Invalid email';
+                    return null;
+                  }),
                   _buildPasswordField(),
                 ],
               ),
-
-              SizedBox(height: 20),
-
-              // Hotel Location Information Section
               _buildSectionCard(
                 title: 'Hotel Location Details',
                 icon: Icons.location_on,
                 children: [
-                  _buildSectionHeader('Hotel Address'),
-                  _buildTextFormField(
-                    controller: _addressController,
-                    hintText: 'Enter complete hotel address',
-                    maxLines: 3,
-                    isRequired: true,
-                  ),
-                  SizedBox(height: 16),
-
+                  _buildTextFieldWithHeader('Address', _addressController, 'Enter address', maxLines: 3, isRequired: true),
                   Row(
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSectionHeader('City'),
-                            _buildTextFormField(
-                              controller: _cityController,
-                              hintText: 'Enter city',
-                              isRequired: true,
-                            ),
-                          ],
-                        ),
-                      ),
+                      Expanded(child: _buildTextFieldWithHeader('City', _cityController, 'Enter city', isRequired: true)),
                       SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSectionHeader('State'),
-                            _buildTextFormField(
-                              controller: _stateController,
-                              hintText: 'Enter state',
-                              isRequired: true,
-                            ),
-                          ],
-                        ),
-                      ),
+                      Expanded(child: _buildTextFieldWithHeader('State', _stateController, 'Enter state', isRequired: true)),
                     ],
                   ),
-                  SizedBox(height: 16),
-
                   Row(
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSectionHeader('Pincode'),
-                            _buildTextFormField(
-                              controller: _pincodeController,
-                              hintText: 'Enter pincode',
-                              keyboardType: TextInputType.number,
-                              isRequired: true,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(6),
-                              ],
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Pincode is required';
-                                }
-                                if (value.length != 6) {
-                                  return 'Pincode must be 6 digits';
-                                }
-                                return null;
-                              },
-                            ),
-                          ],
-                        ),
+                        child: _buildTextFieldWithHeader('Pincode', _pincodeController, 'Enter pincode', keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)], validator: (v) {
+                          if (v == null || v.isEmpty) return 'Pincode required';
+                          if (v.length != 6) return 'Must be 6 digits';
+                          return null;
+                        }),
                       ),
                       SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSectionHeader('Country'),
-                            _buildTextFormField(
-                              controller: _countryController,
-                              hintText: 'Enter country',
-                              isRequired: true,
-                            ),
-                          ],
-                        ),
-                      ),
+                      Expanded(child: _buildTextFieldWithHeader('Country', _countryController, 'Enter country', isRequired: true)),
                     ],
                   ),
                 ],
               ),
-
-              SizedBox(height: 32),
-
-              // Submit Button
+              SizedBox(height: 20),
               _buildSubmitButton(),
-
-              SizedBox(height: 16),
-
-              // Reset Button
+              SizedBox(height: 12),
               _buildResetButton(),
-
               SizedBox(height: 20),
             ],
           ),
@@ -423,98 +240,38 @@ class _HotelFormState extends State<HotelForm> {
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
+  // ------------------------ WIDGET BUILDERS ------------------------
+
+  Widget _buildSectionCard({required String title, required IconData icon, required List<Widget> children}) {
     return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: primaryColor, size: 24),
-              SizedBox(width: 12),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 20),
-          ...children,
-        ],
-      ),
+      margin: EdgeInsets.only(bottom: 20),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 5, offset: Offset(0, 2))]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [Icon(icon, color: primaryColor), SizedBox(width: 8), Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryColor))]),
+        SizedBox(height: 12),
+        ...children,
+      ]),
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: primaryColor,
-          fontSize: 16,
+  Widget _buildTextFieldWithHeader(String header, TextEditingController controller, String hintText,
+      {bool isRequired = false, TextInputType? keyboardType, List<TextInputFormatter>? inputFormatters, int maxLines = 1, String? Function(String?)? validator}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(header, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: primaryColor)),
+        SizedBox(height: 6),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          inputFormatters: inputFormatters,
+          decoration: InputDecoration(hintText: hintText, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), filled: true, fillColor: Colors.grey.shade50, contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
+          validator: validator ?? (isRequired ? (v) => v!.isEmpty ? 'This field is required' : null : null),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextFormField({
-    required TextEditingController controller,
-    required String hintText,
-    int maxLines = 1,
-    TextInputType? keyboardType,
-    bool isRequired = false,
-    List<TextInputFormatter>? inputFormatters,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      decoration: InputDecoration(
-        hintText: hintText,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: primaryColor, width: 2),
-        ),
-        filled: true,
-        fillColor: Colors.grey.shade50,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      ),
-      validator: validator ?? (isRequired
-          ? (value) => value!.isEmpty ? 'This field is required' : null
-          : null),
+        SizedBox(height: 12),
+      ],
     );
   }
 
@@ -523,117 +280,106 @@ class _HotelFormState extends State<HotelForm> {
       controller: _passwordController,
       obscureText: _obscurePassword,
       decoration: InputDecoration(
-        hintText: 'Create account password (min 8 characters)',
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: primaryColor, width: 2),
-        ),
+        hintText: 'Create password (min 8 chars)',
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         filled: true,
         fillColor: Colors.grey.shade50,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         suffixIcon: IconButton(
-          icon: Icon(
-            _obscurePassword ? Icons.visibility : Icons.visibility_off,
-            color: Colors.grey,
-          ),
-          onPressed: () {
-            setState(() {
-              _obscurePassword = !_obscurePassword;
-            });
-          },
+          icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
         ),
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Password is required';
-        }
-        if (value.length < 8) {
-          return 'Password must be at least 8 characters';
-        }
+      validator: (v) {
+        if (v == null || v.isEmpty) return 'Password required';
+        if (v.length < 8) return 'Min 8 characters';
         return null;
       },
     );
   }
 
-  Widget _buildDropdownField() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(10),
-        color: Colors.grey.shade50,
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedSubscription,
-          isExpanded: true,
-          items: _subscriptionOptions.map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedSubscription = newValue!;
-            });
-          },
+  Widget _buildDropdownFieldWithHeader(String header, List<String> options, String? selectedValue, Function(String?) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(header, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: primaryColor)),
+        SizedBox(height: 6),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey.shade300)),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedValue,
+              hint: Text('Select'),
+              isExpanded: true,
+              items: options.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              onChanged: onChanged,
+            ),
+          ),
         ),
-      ),
+        SizedBox(height: 12),
+      ],
+    );
+  }
+
+  Widget _buildRoomNumberInput() {
+    int totalRooms = int.tryParse(_totalRoomsController.text) ?? 0;
+    bool isRoomLimitReached = _roomNumbers.length >= totalRooms;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Room Numbers', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: primaryColor)),
+        SizedBox(height: 6),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _roomNumberController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                enabled: totalRooms > 0 && !isRoomLimitReached,
+                decoration: InputDecoration(hintText: 'Enter room number', border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), filled: true, fillColor: Colors.grey.shade50, contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
+              ),
+            ),
+            SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: (_roomNumberController.text.isEmpty || isRoomLimitReached) ? null : () {
+                setState(() {
+                  _roomNumbers.add(_roomNumberController.text.trim());
+                  _roomNumberController.clear();
+                });
+              },
+              child: Icon(Icons.add),
+              style: ElevatedButton.styleFrom(backgroundColor: primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), padding: EdgeInsets.symmetric(horizontal: 14, vertical: 14)),
+            ),
+          ],
+        ),
+        SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: _roomNumbers.map((room) => Chip(label: Text(room), deleteIcon: Icon(Icons.close, size: 18), onDeleted: () => setState(() => _roomNumbers.remove(room)))).toList(),
+        ),
+        if (isRoomLimitReached && totalRooms > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text('You have reached total rooms!', style: TextStyle(color: Colors.red)),
+          ),
+        SizedBox(height: 12),
+      ],
     );
   }
 
   Widget _buildSubmitButton() {
     return SizedBox(
-      height: 55,
+      height: 50,
       child: ElevatedButton(
         onPressed: _isSubmitting ? null : _submitHotelForm,
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: primaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 3,
-        ),
+        style: ElevatedButton.styleFrom(backgroundColor: primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
         child: _isSubmitting
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    'Creating Hotel...',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_business, size: 24),
-                  SizedBox(width: 12),
-                  Text(
-                    'Create Hotel',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
+            ? CircularProgressIndicator(color: Colors.white)
+            : Text('Create Hotel', style: TextStyle(fontSize: 16)),
       ),
     );
   }
@@ -643,42 +389,9 @@ class _HotelFormState extends State<HotelForm> {
       height: 50,
       child: TextButton(
         onPressed: _resetHotelForm,
-        style: TextButton.styleFrom(
-          foregroundColor: secondaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: secondaryColor),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.refresh, size: 20),
-            SizedBox(width: 8),
-            Text(
-              'Reset Form',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
+        style: TextButton.styleFrom(foregroundColor: secondaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: secondaryColor))),
+        child: Text('Reset Form', style: TextStyle(fontSize: 16)),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _hotelNameController.dispose();
-    _ownerNameController.dispose();
-    _contactController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _addressController.dispose();
-    _cityController.dispose();
-    _stateController.dispose();
-    _pincodeController.dispose();
-    _countryController.dispose();
-    _totalRoomsController.dispose();
-    _gstNumberController.dispose();
-    super.dispose();
   }
 }
