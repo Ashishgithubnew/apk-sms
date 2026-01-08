@@ -1,0 +1,2 @@
+D:/sms-apk/apk-sms/sms_apk/android/app/.cxx/RelWithDebInfo/284f5w2y/x86/CMakeFiles/edit_cache.dir
+D:/sms-apk/apk-sms/sms_apk/android/app/.cxx/RelWithDebInfo/284f5w2y/x86/CMakeFiles/rebuild_cache.dir

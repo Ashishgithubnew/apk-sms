@@ -1,3 +1,36 @@
+// allprojects {
+//     repositories {
+//         google()
+//         mavenCentral()
+//     }
+// }
+
+// rootProject.buildDir = "../build"
+// subprojects {
+//     project.buildDir = "${rootProject.buildDir}/${project.name}"
+// }
+// subprojects {
+//     project.evaluationDependsOn(":app")
+// }
+
+// tasks.register("clean", Delete) {
+//     delete rootProject.buildDir
+// }
+buildscript {
+    ext {
+        // Define Kotlin version here (match with your Flutter/Kotlin requirements)
+        kotlin_version = "1.8.22" // Recommended stable version for Flutter
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:7.3.1" // Android Gradle Plugin
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version" // Kotlin plugin
+    }
+}
+
 allprojects {
     repositories {
         google()

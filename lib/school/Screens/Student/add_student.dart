@@ -1,0 +1,16 @@
+import 'package:flutter/material.dart';
+import 'package:sms_apk/school/widgets/header.dart';
+import '../../widgets/student_form.dart';
+
+class AddStudentScreen extends StatelessWidget {
+  const AddStudentScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color.fromARGB(255, 238, 235, 235),
+      appBar: Header(text: "Add Student"),
+      body: const StudentForm(),
+    );
+  }
+}
